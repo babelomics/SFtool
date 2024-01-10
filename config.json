@@ -3,4 +3,5 @@
   "clinvar_path": "./clinvar/",
   "intervar_path": "/home/jpflorido/software/InterVar/",
   "temp_path": "./temp/",
-  "out_path": "./final_output/"}
+  "out_path": "./final_output/",
+  "bcftools_path":  "/home/jpflorido/software/bcftools-1.16/"}

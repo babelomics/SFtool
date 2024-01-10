@@ -51,6 +51,7 @@ def main():
     temp_path = config_data["temp_path"]
     out_path = config_data["out_path"]
     intervar_path = config_data["intervar_path"]
+    bcftools_path = config_data["bcftools_path"]
 
     """ 
     Create clinvar, temp and final_output directories
@@ -137,11 +138,13 @@ def main():
     if not os.path.exists(intervar_path):
         print("InterVar no está instalado. Por favor, instálalo para continuar.")
 
+    # Comprobar si bcftools está en el path : TO DO
+    # Comprobar si Annovar está en el path: TO DO
     
     """
     Normalizar VCF de entrada
     """
-    norm_vcf = normalize_vcf(vcf_file, temp_path, assembly)
+    norm_vcf = normalize_vcf(vcf_file, temp_path, assembly, bcftools_path)
     
     """
     Realizar la intersección con los archivos BED
