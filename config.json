@@ -1,1 +1,6 @@
-{"dir_path": "./", "categories_path": "./categories/", "clinvar_path": "./clinvar/", "intervar_path": "./InterVar/", "temp_path": "./temp/", "out_path": "./final_output/"}
+{"dir_path": "./",
+  "categories_path": "./categories/",
+  "clinvar_path": "./clinvar/",
+  "intervar_path": "/home/jpflorido/software/InterVar/",
+  "temp_path": "./temp/",
+  "out_path": "./final_output/"}
