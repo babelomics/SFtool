@@ -4,4 +4,5 @@
   "intervar_path": "/home/jpflorido/software/InterVar/",
   "temp_path": "./temp/",
   "out_path": "./final_output/",
-  "bcftools_path":  "/home/jpflorido/software/bcftools-1.16/"}
+  "bcftools_path":  "/home/jpflorido/software/bcftools-1.16/",
+  "reference_genome_37_path":  "/mnt/lustre/scratch/CBRA/data/indexed_genomes/bwa/hs37d5/hs37d5.fa"}

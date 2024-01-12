@@ -52,6 +52,7 @@ def main():
     out_path = config_data["out_path"]
     intervar_path = config_data["intervar_path"]
     bcftools_path = config_data["bcftools_path"]
+    reference_genome_37_path = config_data["reference_genome_37_path"]
 
     """ 
     Create clinvar, temp and final_output directories
@@ -144,7 +145,7 @@ def main():
     """
     Normalizar VCF de entrada
     """
-    norm_vcf = normalize_vcf(vcf_file, temp_path, assembly, bcftools_path)
+    norm_vcf = normalize_vcf(vcf_file, temp_path, assembly, bcftools_path, reference_genome_37_path)
     
     """
     Realizar la intersección con los archivos BED

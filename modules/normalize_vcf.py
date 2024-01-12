@@ -8,7 +8,7 @@ import os
 import gzip
 import subprocess
 
-def normalize_vcf(input_vcf_path, temp_path, assembly, bcftools_path):
+def normalize_vcf(input_vcf_path, temp_path, assembly, bcftools_path, reference_genome_37_path):
     """
     Normaliza un archivo VCF de entrada utilizando bcftools.
     
@@ -16,6 +16,7 @@ def normalize_vcf(input_vcf_path, temp_path, assembly, bcftools_path):
         input_vcf_path (str): La ruta al archivo VCF de entrada que se va a normalizar.
         temp_path (str): La ruta al directorio temporal donde se guardarán los archivos intermedios.
         bcftools_path (str): path a bcftools
+        reference_genome_37_path (str): path to reference genome (hs37d5)
     
     Returns:
         str: La ruta del archivo VCF normalizado. Este archivo se encuentra en el directorio temporal.
@@ -36,7 +37,7 @@ def normalize_vcf(input_vcf_path, temp_path, assembly, bcftools_path):
         
         # Comando para normalizar con bcftools
         if assembly == '37':
-            bcftools_command = [bcftools_path + "bcftools", "norm", "-O", "v", "-m", "-any", "--check-ref", "w", "-f", "./references_hs37d5_hs37d5.fa", "-o", output_vcf_path, input_vcf_path]
+            bcftools_command = [bcftools_path + "bcftools", "norm", "-O", "v", "-m", "-any", "--check-ref", "w", "-f", reference_genome_37_path, "-o", output_vcf_path, input_vcf_path]
         elif assembly == '38':
             bcftools_command = [bcftools_path + "bcftools", "norm", "-O", "v", "-m", "-any", "--check-ref", "w", "-f", "./Homo_sapiens.GRCh38.dna.primary_assembly.fa", "-o", output_vcf_path, input_vcf_path]
 
