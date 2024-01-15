@@ -36,16 +36,21 @@ from modules.run_fg_module import annotate_fg_variants, check_gene_variants, ass
 from modules.write_report import combine_variant_and_gene_info, check_inheritance, check_diagnosis, get_hpos_from_txt, write_report
 
 def main():
-    
+
+
+    """
+    Get the arguments
+    """
+    args = arguments()
+
     """
     Read config file
     """
     # Leer el archivo de configuración config.json
-    with open("./config.json", "r") as config_file:
+    with open(args.config_file, "r") as config_file:
         config_data = json.load(config_file)
     
     # Obtener los valores del archivo de configuración
-    dir_path = config_data["dir_path"]
     categories_path = config_data["categories_path"]
     clinvar_path = config_data["clinvar_path"]
     temp_path = config_data["temp_path"]
@@ -62,10 +67,7 @@ def main():
         if not os.path.exists(folder):
             os.mkdir(folder)       
     
-    """
-    Get the arguments
-    """
-    args = arguments()
+
     
     # Argumentos del usuario
     vcf_file = args.vcf_file

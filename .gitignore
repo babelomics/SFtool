@@ -7,3 +7,4 @@ categories/PR/*.json
 categories/PR/*.bed
 .idea
 modules/__pycache__/
+temp/*

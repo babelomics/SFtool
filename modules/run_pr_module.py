@@ -35,8 +35,8 @@ def run_intervar(norm_vcf, category, assembly, intervar_path):
             assembly_int = 'hg38'
             
         # Construir el comando para ejecutar Intervar
-        #intervar_file_path = os.path.join(intervar_path, "Intervar.py")
-        intervar_file_path = "./Intervar.py"
+
+        intervar_file_path = os.path.join(intervar_path, "Intervar.py")
         cmd = [
             intervar_file_path,
             "-b", assembly_int,    #  no sé si se puede 38 en intervar
@@ -55,7 +55,7 @@ def run_intervar(norm_vcf, category, assembly, intervar_path):
     except subprocess.CalledProcessError as e:
         print(f"Error al ejecutar InterVar: {e.output}")
         
-def parse_intervar_output(norm_vcf, category, mode):
+def parse_intervar_output(norm_vcf, category, mode, intervar_path):
     """
     Procesa el archivo de salida de InterVar y extrae los campos necesarios.
 
@@ -324,7 +324,7 @@ def run_personal_risk_module(norm_vcf, assembly, mode, evidence_level, clinvar_d
     category = "pr"
     if mode == "basic":
         run_intervar(norm_vcf, category, assembly, intervar_path)
-        intervar_results = parse_intervar_output(norm_vcf, category, mode)
+        intervar_results = parse_intervar_output(norm_vcf, category, mode, intervar_path)
         #DEBERIA ESCRIBIR TAMBIEN ESTOS RESULTADSO
         return(intervar_results)
 
