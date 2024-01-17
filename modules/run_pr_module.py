@@ -26,8 +26,8 @@ def run_intervar(norm_vcf, category, assembly, intervar_path):
     """
     try:
         # Ruta vcf interseccion y directorio de salida
-        input_vcf = f".{norm_vcf.split('normalized')[0]}{category}_intersection.vcf"
-        output_file = f".{norm_vcf.split('normalized')[0]}{category}"
+        input_vcf = f"{norm_vcf.split('normalized')[0]}{category}_intersection.vcf"
+        output_file = f"{norm_vcf.split('normalized')[0]}{category}"
         
         if assembly == '37':
             assembly_int = "hg19"
@@ -47,7 +47,6 @@ def run_intervar(norm_vcf, category, assembly, intervar_path):
 
         # Ejecutar el comando y capturar la salida
         # Cambiar el directorio de trabajo solo para el comando Intervar
-        #with subprocess.Popen(cmd, stderr=subprocess.STDOUT, text=True, cwd="./InterVar") as process:
         with subprocess.Popen(cmd, stderr=subprocess.STDOUT, text=True, cwd=intervar_path) as process:
         #with subprocess.Popen(cmd, stderr=subprocess.STDOUT, text=True) as process:
             output, _ = process.communicate()
@@ -55,18 +54,25 @@ def run_intervar(norm_vcf, category, assembly, intervar_path):
     except subprocess.CalledProcessError as e:
         print(f"Error al ejecutar InterVar: {e.output}")
         
-def parse_intervar_output(norm_vcf, category, mode, intervar_path):
+def parse_intervar_output(norm_vcf, category, mode, assembly):
     """
     Procesa el archivo de salida de InterVar y extrae los campos necesarios.
 
     Args:
         norm_vcf (str): Ruta al archivo VCF de entrada.
         category (str): Categoría de genes para la anotación.
-        mode (str)
+        mode (str): basic or advanced
+        assembly (str): Ensamblaje genómico a utilizar.
 
     Returns:
         list: Una lista de diccionarios con los campos extraídos.
     """
+
+    if assembly == '37':
+        assembly_int = "hg19"
+    elif assembly == '38':
+        assembly_int = 'hg38'
+
     intervar_output_file = f"{norm_vcf.split('normalized')[0]}{category}.{assembly_int}_multianno.txt.intervar"
     intervar_results = {}
     
@@ -324,7 +330,7 @@ def run_personal_risk_module(norm_vcf, assembly, mode, evidence_level, clinvar_d
     category = "pr"
     if mode == "basic":
         run_intervar(norm_vcf, category, assembly, intervar_path)
-        intervar_results = parse_intervar_output(norm_vcf, category, mode, intervar_path)
+        intervar_results = parse_intervar_output(norm_vcf, category, mode, assembly)
         #DEBERIA ESCRIBIR TAMBIEN ESTOS RESULTADSO
         return(intervar_results)
 
