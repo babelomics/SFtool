@@ -140,7 +140,7 @@ def check_inheritance(results, category, categories_path):
                
 #     return(hpo_data)
 
-def check_diagnosis(reported_results, hpos_user, categories_path):
+def check_patient_HPO(reported_results, hpos_user, categories_path, gene_to_phenotype_file):
     """
     Comprueba si los HPOs del usuario coinciden con los resultados reportados.
 
@@ -156,7 +156,7 @@ def check_diagnosis(reported_results, hpos_user, categories_path):
     gene_hpo_dict = {}
     
     # Abrir el archivo de texto para lectura
-    with open(f'{categories_path}genes_to_phenotype.txt', 'r') as file:
+    with open(gene_to_phenotype_file, 'r') as file:
         # Leer la primera línea (encabezado) para omitirla
         next(file)
         
@@ -213,7 +213,7 @@ def get_hpos_from_txt(hpos_file):
         print(f"El archivo {hpos_file} no se encontró.")
         return []
 
-def write_report(pr_results, rr_results, fg_results, haplot_results, categories_path, out_path, categories, vcf_file, hpos_txt):
+def write_report(pr_results, rr_results, fg_results, haplot_results, categories_path, out_path, categories, vcf_file, hpos_txt, gene_to_phenotype_file):
     """
     Escribe los resultados de las categorías PR, RR y FG en un archivo Excel.
 
@@ -232,13 +232,13 @@ def write_report(pr_results, rr_results, fg_results, haplot_results, categories_
             for category in categories:
                 if category == 'pr':
                     reported_results = check_inheritance(pr_results, category, categories_path)
-                    pr_final = check_diagnosis(reported_results, hpos_user, categories_path)  # pendiente de desarrollar, warning si los términos orpha se corresponden con los hpo del paciente
+                    pr_final = check_patient_HPO(reported_results, hpos_user, categories_path, gene_to_phenotype_file)  # pendiente de desarrollar, warning si los términos orpha se corresponden con los hpo del paciente
                     results_df =  pd.DataFrame.from_dict(pr_final, orient='index')
                     results_df.to_excel(writer, sheet_name= category.upper() + ' results', index=True)
                     
                 elif category == 'rr':
                     reported_results = check_inheritance(rr_results, category, categories_path)
-                    rr_final = check_diagnosis(reported_results, hpos_user, categories_path)  # pendiente de desarrollar, warning si los términos orpha se corresponden con los hpo del paciente
+                    rr_final = check_patient_HPO(reported_results, hpos_user, categories_path, gene_to_phenotype_file)  # pendiente de desarrollar, warning si los términos orpha se corresponden con los hpo del paciente
                     results_df =  pd.DataFrame.from_dict(rr_final, orient='index')
                     results_df.to_excel(writer, sheet_name= category.upper() + ' results', index=True)
         

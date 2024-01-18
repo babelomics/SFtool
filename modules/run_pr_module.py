@@ -54,7 +54,7 @@ def run_intervar(norm_vcf, category, assembly, intervar_path):
     except subprocess.CalledProcessError as e:
         print(f"Error al ejecutar InterVar: {e.output}")
         
-def parse_intervar_output(norm_vcf, category, mode, assembly):
+def parse_intervar_output(norm_vcf, category, mode, assembly, temp_path):
     """
     Procesa el archivo de salida de InterVar y extrae los campos necesarios.
 
@@ -95,11 +95,21 @@ def parse_intervar_output(norm_vcf, category, mode, assembly):
                     # Crear un diccionario con los campos extraídos
                     intervar_results[variant] = {
                         "Gene": ref_gene,
-                        "Rs": avsnp,
-                        "Classification": classification,
+                        "rs": avsnp,
+                        "IntervarClassification": classification,
                         "Orpha": orpha,
-                        "GT": other_info
+                        "Genotype": other_info,
+                        "ClinvarClinicalSignificance":'NA',
+                        "ReviewStatus": 'NA',
+                        "ClinvarID": 'NA',
                     }
+
+
+
+    # Write JSON file with intervar results
+    out_json = os.path.join(temp_path, "variants_in_" + category + "_risk_genes.json")
+    with open(out_json, 'w') as json_file:
+        json.dump(intervar_results, json_file, indent = 4)
 
     return intervar_results
         
@@ -316,7 +326,7 @@ def write_combined_results_to_tsv(combined_results, norm_vcf, category):
             writer.writerow(row)    
 
 
-def run_personal_risk_module(norm_vcf, assembly, mode, evidence_level, clinvar_db, categories_path, intervar_path):
+def run_personal_risk_module(norm_vcf, assembly, mode, evidence_level, clinvar_db, categories_path, intervar_path, temp_path):
     """
     Ejecuta el módulo de riesgo personal según el modo seleccionado.
     
@@ -330,7 +340,7 @@ def run_personal_risk_module(norm_vcf, assembly, mode, evidence_level, clinvar_d
     category = "pr"
     if mode == "basic":
         run_intervar(norm_vcf, category, assembly, intervar_path)
-        intervar_results = parse_intervar_output(norm_vcf, category, mode, assembly)
+        intervar_results = parse_intervar_output(norm_vcf, category, mode, assembly, temp_path)
         #DEBERIA ESCRIBIR TAMBIEN ESTOS RESULTADSO
         return(intervar_results)
 
