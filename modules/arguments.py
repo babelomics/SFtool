@@ -30,7 +30,7 @@ def arguments():
     parser.add_argument('--assembly', type=int, choices=[37, 38], default=37, help='Genoma de referencia')
     
     # Argumento para el archivo de texto de HPOs
-    parser.add_argument("--hpos_txt", default=None, help="Archivo de texto que contiene la lista de HPOs")
+    parser.add_argument("--hpos_file", default=None, help="Archivo de texto que contiene la lista de HPOs")
 
     # Argument for config file
     parser.add_argument("--config_file", default=None, help="Config file")

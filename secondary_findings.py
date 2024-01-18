@@ -75,7 +75,7 @@ def main():
     mode = args.mode
     evidence = args.evidence
     assembly = str(args.assembly)
-    hpos_txt = args.hpos_txt
+    hpos_file = args.hpos_file
     
     # Obtener la preferencia del usuario para las categorías a analizar (PR, RR, FG)
     categories_usr = input("Elija las categorías a analizar (PR, RR, FG separados por comas): ") ####cambiar al config
@@ -188,7 +188,7 @@ def main():
     """
     Generar el informe de salida
     """
-    out_file = write_report(pr_results, rr_results, fg_results, haplot_results, categories_path, out_path, categories, vcf_file, hpos_txt, gene_to_phenotype_file)
+    out_file = write_report(pr_results, rr_results, fg_results, haplot_results, categories_path, out_path, categories, vcf_file, hpos_file, gene_to_phenotype_file)
     print("Informe de resultados generado.\n ---Finalizado---")
 
     
