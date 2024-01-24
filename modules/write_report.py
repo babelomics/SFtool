@@ -23,10 +23,11 @@ def combine_variant_and_gene_info(variant_info, gene_info):
         "Gene": variant_info["Gene"],
         "Genotype": variant_info["Genotype"],
         "rs": variant_info.get("rs", ""),
+        "IntervarConsequence": variant_info.get("IntervarConsequence", ""),
         "IntervarClassification": variant_info["IntervarClassification"],
-        "ClinvarClinicalSignificance": variant_info.get("ClinvarClinicalSignificance", ""),
-        "ReviewStatus": variant_info.get("ReviewStatus", ""),
-        "ClinvarID": variant_info.get("ClinvarID", ""),
+        "ClinvarClinicalSignificance": variant_info.get("ClinvarClinicalSignificance", "-"),
+        "ReviewStatus": variant_info.get("ReviewStatus", "-"),
+        "ClinvarID": variant_info.get("ClinvarID", "-"),
         "Orpha": variant_info.get("Orpha", ""),
         "Phenotype": gene_info["phenotype"],
         "ACMG_version": gene_info.get("ACMG_version", ""),  # Usar get para manejar la falta de 'ACMG_version'
@@ -213,7 +214,7 @@ def get_hpos_from_txt(hpos_file):
         print(f"El archivo {hpos_file} no se encontró.")
         return []
 
-def write_report(pr_results, rr_results, fg_results, haplot_results, categories_path, out_path, categories, vcf_file, hpos_txt, gene_to_phenotype_file):
+def generate_report(pr_results, rr_results, fg_results, haplot_results, categories_path, out_path, categories, vcf_file, hpos_txt, gene_to_phenotype_file):
     """
     Escribe los resultados de las categorías PR, RR y FG en un archivo Excel.
 

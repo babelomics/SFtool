@@ -54,7 +54,7 @@ def run_intervar(norm_vcf, category, assembly, intervar_path):
     except subprocess.CalledProcessError as e:
         print(f"Error al ejecutar InterVar: {e.output}")
         
-def parse_intervar_output(norm_vcf, category, mode, assembly, temp_path):
+def parse_intervar_output(norm_vcf, category, mode, assembly):
     """
     Procesa el archivo de salida de InterVar y extrae los campos necesarios.
 
@@ -84,6 +84,7 @@ def parse_intervar_output(norm_vcf, category, mode, assembly, temp_path):
                 # Extraer los campos necesarios y formatearlos como se requiere
                 variant = f"{fields[0]}:{fields[1]}:{fields[3]}:{fields[4]}"
                 ref_gene = fields[5]
+                intervar_consequence = fields[6] + ',' + fields[7]
                 avsnp = fields[9]
                 classification = fields[13].split(": ")[1].split(" PVS")[0]
                 orpha = fields[32]
@@ -99,17 +100,9 @@ def parse_intervar_output(norm_vcf, category, mode, assembly, temp_path):
                         "IntervarClassification": classification,
                         "Orpha": orpha,
                         "Genotype": other_info,
-                        "ClinvarClinicalSignificance":'NA',
-                        "ReviewStatus": 'NA',
-                        "ClinvarID": 'NA',
+                        "IntervarConsequence": intervar_consequence
                     }
 
-
-
-    # Write JSON file with intervar results
-    out_json = os.path.join(temp_path, "variants_in_" + category + "_risk_genes.json")
-    with open(out_json, 'w') as json_file:
-        json.dump(intervar_results, json_file, indent = 4)
 
     return intervar_results
         
@@ -189,7 +182,7 @@ def run_clinvar_filtering(evidence_level, clinvar_db, assembly):
         print(f"Error al filtrar variantes: {e}")
         
         
-def combine_results(vcf_norm, category, intervar_results, clinvar_dct):
+def combine_results(vcf_norm, category, intervar_results, clinvar_results):
     """
     Combina los resultados de Intervar y ClinVar en una sola línea por variante.
 
@@ -197,7 +190,7 @@ def combine_results(vcf_norm, category, intervar_results, clinvar_dct):
         vcf_norm (str): Ruta al archivo VCF normalizado.
         category (str): Categoría de genes para la anotación.
         intervar_results (dict): Resultados de Intervar.
-        clinvar_dct (dict): Base de datos de ClinVar.
+        clinvar_results (dict): Base de datos de ClinVar.
 
     Returns:
         dict: Un diccionario con los resultados combinados.
@@ -207,7 +200,7 @@ def combine_results(vcf_norm, category, intervar_results, clinvar_dct):
     # para combinar los resultados de intervar y clinvar, aunque lo ideal sería recorrer
     # las listas, intervar cambia la anotación, eliminando el nt de referencia en las indels
     # por lo que no es posible encontrar esa variante en clinvar (no siempre hay rs disponible)
-    # así que lo único que se me ocurre es recorrer el vcf de interseccion
+    # así que hay que recorrer el vcf de interseccion
     
 
 
@@ -249,37 +242,35 @@ def combine_results(vcf_norm, category, intervar_results, clinvar_dct):
                 intervar_info = intervar_results.get(variant_int)
         
                 # Busca la variante en los resultados de ClinVar
-                clinvar_info = clinvar_dct.get(variant_key)
+                clinvar_info = clinvar_results.get(variant_key)
 
                 if clinvar_info is not None:
-    
                     # Combina la información si es "Pathogenic" o "Likely pathogenic" en alguno de los dos
-#                     if (intervar_info and intervar_info["Classification"] in ["Pathogenic", "Likely pathogenic"]) or (clinvar_info and clinvar_info["ClinicalSignificance"] in ["Pathogenic", "Likely pathogenic", "Conflicting interpretations of pathogenicity"
-# ]):
-                    if (intervar_info and intervar_info["Classification"] in ["Pathogenic", "Likely pathogenic"]) or (clinvar_info and clinvar_info["ClinicalSignificance"] in ["Pathogenic", "Likely pathogenic"]) or ((clinvar_info and clinvar_info["ClinicalSignificance"].split(';')[0] == "Conflicting interpretations of pathogenicity") and (clinvar_info["ClinSigSimple"]=="1")):
-                    #if (clinvar_info and (clinvar_info["ClinicalSignificance"].split(';')[0] == "Conflicting interpretations of pathogenicity") and (clinvar_info["ClinSigSimple"]=="1")):
+                    if (intervar_info and intervar_info["IntervarClassification"] in ["Pathogenic", "Likely pathogenic"]) or (clinvar_info and clinvar_info["ClinicalSignificance"] in ["Pathogenic", "Likely pathogenic"]) or ((clinvar_info and clinvar_info["ClinicalSignificance"].split(';')[0] == "Conflicting interpretations of pathogenicity") and (clinvar_info["ClinSigSimple"]=="1")):
                             combined_results[variant_key] = {
                                 "Gene": clinvar_info["Gene"],
-                                "Genotype": intervar_info["GT"],
-                                "rs": intervar_info["Rs"] if intervar_info["Rs"] != '.' else clinvar_info["rs"],
-                                "IntervarClassification": intervar_info["Classification"],
+                                "Genotype": intervar_info["Genotype"],
+                                "rs": intervar_info["rs"] if intervar_info["rs"] != '.' else clinvar_info["rs"],
+                                "IntervarClassification": intervar_info["IntervarClassification"],
                                 "ClinvarClinicalSignificance": clinvar_info["ClinicalSignificance"],
                                 "ReviewStatus": clinvar_info["ReviewStatus"],
                                 "ClinvarID": clinvar_info["ClinvarID"],
-                                "Orpha": intervar_info["Orpha"]
+                                "Orpha": intervar_info["Orpha"],
+                                "IntervarConsequence": intervar_info["IntervarConsequence"]
                             }
                 else:
                     # Conserva la info de intervar si no hay info de clinvar
-                    if (intervar_info and intervar_info["Classification"] in ["Pathogenic", "Likely pathogenic"]):
+                    if (intervar_info and intervar_info["IntervarClassification"] in ["Pathogenic", "Likely pathogenic"]):
                             combined_results[variant_key] = {
                                 "Gene": intervar_info["Gene"],
-                                "Genotype": intervar_info["GT"],
-                                "rs": intervar_info["Rs"] if intervar_info["Rs"] != '.' else clinvar_info["rs"],
-                                "IntervarClassification": intervar_info["Classification"],
+                                "Genotype": intervar_info["Genotype"],
+                                "rs": intervar_info["rs"] if intervar_info["rs"] != '.' else '-',
+                                "IntervarClassification": intervar_info["IntervarClassification"],
                                 "ClinvarClinicalSignificance": "NA",
                                 "ReviewStatus": "NA",
                                 "ClinvarID": "NA",
-                                "Orpha": intervar_info["Orpha"]
+                                "Orpha": intervar_info["Orpha"],
+                                "IntervarConsequence": intervar_info["IntervarConsequence"]
                             }
 
     except Exception as e:
@@ -288,12 +279,12 @@ def combine_results(vcf_norm, category, intervar_results, clinvar_dct):
     return(combined_results)
     
     
-def write_combined_results_to_tsv(combined_results, norm_vcf, category):
+def write_category_results_to_tsv(results, norm_vcf, category):
     """
     Escribe los resultados combinados en un archivo TSV.
 
     Args:
-        combined_results (list): Lista de diccionarios con los resultados combinados.
+        results (list): Lista de diccionarios con los resultados combinados.
         norm_vcf (str): Ruta al archivo normalizado.
         category (str): Categoría de genes para la anotación.
     """
@@ -301,24 +292,25 @@ def write_combined_results_to_tsv(combined_results, norm_vcf, category):
     
     # Abrir el archivo TSV para escritura
     with open(output_tsv, "w", newline="") as tsv_file:
-        fieldnames = ["Variant", "Gene", "Genotype", "rs", "IntervarClassification", "ClinvarClinicalSignificance", "ReviewStatus", "ClinvarID", "Orpha"]
+        fieldnames = ["Variant", "Gene", "Genotype", "Intervar Consequence", "rs", "Intervar Classification","Clinvar Clinical Significance", "ReviewStatus", "ClinvarID", "Orpha"]
         writer = csv.DictWriter(tsv_file, fieldnames=fieldnames, delimiter="\t")
     
         # Escribir el encabezado del archivo TSV
         writer.writeheader()
     
         # Iterar sobre las claves (variantes) en el diccionario result
-        for variant, info in combined_results.items():
+        for variant, info in results.items():
             # Asegurarse de que el diccionario 'info' tenga todas las claves necesarias
             row = {
                 "Variant": variant,
                 "Gene": info.get("Gene", ""),
                 "Genotype": info.get("Genotype", ""),
+                "Intervar Consequence": info.get("IntervarConsequence", "-"),
                 "rs": info.get("rs", ""),
-                "IntervarClassification": info.get("IntervarClassification", ""),
-                "ClinvarClinicalSignificance": info.get("ClinvarClinicalSignificance", ""),
-                "ReviewStatus": info.get("ReviewStatus", ""),
-                "ClinvarID": info.get("ClinvarID", ""),
+                "Intervar Classification": info.get("IntervarClassification", ""),
+                "Clinvar Clinical Significance": info.get("ClinvarClinicalSignificance", "-"),
+                "ReviewStatus": info.get("ReviewStatus", "-"),
+                "ClinvarID": info.get("ClinvarID", "-"),
                 "Orpha": info.get("Orpha", "")
             }
     
@@ -338,22 +330,23 @@ def run_personal_risk_module(norm_vcf, assembly, mode, evidence_level, clinvar_d
         category (str): Categoría de genes para la anotación.
     """
     category = "pr"
+    # Intervar is always run
+    run_intervar(norm_vcf, category, assembly, intervar_path)
+    intervar_results = parse_intervar_output(norm_vcf, category, mode, assembly)
     if mode == "basic":
-        run_intervar(norm_vcf, category, assembly, intervar_path)
-        intervar_results = parse_intervar_output(norm_vcf, category, mode, assembly, temp_path)
-        #DEBERIA ESCRIBIR TAMBIEN ESTOS RESULTADSO
-        return(intervar_results)
-
+        category_results = intervar_results
     elif mode == "advanced":
-        run_intervar(norm_vcf, category, assembly, intervar_path)
-        intervar_results = parse_intervar_output(norm_vcf, category, mode)
-        clinvar_dct = run_clinvar_filtering(evidence_level, clinvar_db, assembly)
-        combined_results = combine_results(norm_vcf, category, intervar_results, clinvar_dct)
-        write_combined_results_to_tsv(combined_results, norm_vcf, category)
-        return(combined_results)
+        # Advanced mode: run Clinvar and combine results with Intervar
+        clinvar_results = run_clinvar_filtering(evidence_level, clinvar_db, assembly)
+        intervar_clinvar_results = combine_results(norm_vcf, category, intervar_results, clinvar_results)
+        category_results = intervar_clinvar_results
 
-    else:
-        print("Modo no válido. Elija 'basic' o 'advanced'.")
-        return(None)
+    # Write results of this category to a file
+    write_category_results_to_tsv(category_results, norm_vcf, category)
+    return(category_results)
+
+
+
+
     
 
