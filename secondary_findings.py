@@ -170,7 +170,7 @@ def main():
     if "rr" in categories:
         # Ejecutar el módulo de riesgo reproductivo (RR)
         print("Ejecutando módulo de riesgo reproductivo...")
-        rr_results = run_reproductive_risk_module(norm_vcf, assembly, mode, evidence, clinvar_db, categories_path, intervar_path)
+        rr_results = run_reproductive_risk_module(norm_vcf, assembly, mode, evidence, clinvar_db, categories_path, intervar_path, temp_path)
     else:
         rr_results = None        
         
