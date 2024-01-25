@@ -7,6 +7,7 @@ import subprocess
 
 import csv
 import os
+import re
 
 def run_intervar(norm_vcf, category, assembly, intervar_path):
     """
@@ -242,8 +243,15 @@ def combine_results(vcf_norm, category, intervar_results, clinvar_results):
                 clinvar_info = clinvar_results.get(variant_key)
 
                 if clinvar_info is not None:
-                    # Combina la información si es "Pathogenic" o "Likely pathogenic" en alguno de los dos
-                    if (intervar_info and intervar_info["IntervarClassification"] in ["Pathogenic", "Likely pathogenic"]) or (clinvar_info and clinvar_info["ClinicalSignificance"] in ["Pathogenic", "Likely pathogenic"]) or ((clinvar_info and clinvar_info["ClinicalSignificance"].split(';')[0] == "Conflicting interpretations of pathogenicity") and (clinvar_info["ClinSigSimple"]=="1")):
+
+                    clinvar_clinical_significance_tmp = list(map(str.strip,re.split(';|,|/',clinvar_info["ClinicalSignificance"])))
+                    clinvar_clinical_significance = list(map(str.lower,clinvar_clinical_significance_tmp))
+
+                    if (intervar_info and intervar_info["IntervarClassification"] in ["Pathogenic", "Likely pathogenic"]) or \
+                        ("pathogenic" in clinvar_clinical_significance) or \
+                        ("likely pathogenic" in clinvar_clinical_significance) or \
+                        (("conflicting interpretations of pathogenicity" in clinvar_clinical_significance) and (clinvar_info["ClinSigSimple"]=="1")):
+
                         combined_results[variant_key] = {
                             "Gene": clinvar_info["Gene"],
                             "Genotype": intervar_info["Genotype"],
