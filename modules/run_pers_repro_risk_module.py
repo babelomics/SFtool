@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Oct  3 18:15:14 2023
+Created on Thu Jan 25 2024
 
-@author: kindi
+@author: jpflorido
 """
 from modules.utils import run_intervar, parse_intervar_output, map_review_status, run_clinvar_filtering, combine_results, write_category_results_to_tsv
 
 
 
-def run_reproductive_risk_module(norm_vcf, assembly, mode, evidence_level, clinvar_db, categories_path, intervar_path, temp_path):
+def run_pers_repro_risk_module(norm_vcf, assembly, mode, evidence_level, clinvar_db, intervar_path, category):
     """
     Ejecuta el módulo de riesgo personal según el modo seleccionado.
-    
+
     Args:
         vcf_path (str): Ruta al archivo VCF de entrada.
         assembly (str): Ensamblaje genómico a utilizar.
@@ -21,7 +21,6 @@ def run_reproductive_risk_module(norm_vcf, assembly, mode, evidence_level, clinv
         clinvar_db (str): Ruta al archivo de base de datos de CLINVAR.
     """
 
-    category = "rr"
     # Intervar is always run
     run_intervar(norm_vcf, category, assembly, intervar_path)
     intervar_results = parse_intervar_output(norm_vcf, category, mode, assembly)

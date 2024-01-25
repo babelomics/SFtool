@@ -30,10 +30,9 @@ from modules.get_json_bed_fg import generate_json_from_fg_csv, generate_bed_from
 from modules.get_clinvar import process_clinvar_data, get_clinvar
 from modules.normalize_vcf import normalize_vcf
 from modules.intersect_vcf_bed import intersect_vcf_with_bed
-from modules.run_pr_module import run_intervar, parse_intervar_output, map_review_status, run_clinvar_filtering, combine_results, write_category_results_to_tsv, run_personal_risk_module
-from modules.run_rr_module import run_reproductive_risk_module, run_intervar
 from modules.run_fg_module import annotate_fg_variants, check_gene_variants, assign_cyp2c9_diplotype, assign_cyp2c19_diplotype, assign_dpyd_diplotype, assign_nudt15_diplotype, assign_tpmt_diplotype, get_diplotype_phenotype_dictionary, run_pharmacogenomic_risk_module
 from modules.generate_report import combine_variant_and_gene_info, check_inheritance, check_patient_HPO, get_hpos_from_txt, generate_report
+from modules.run_pers_repro_risk_module import run_pers_repro_risk_module
 
 def main():
 
@@ -163,14 +162,14 @@ def main():
     if "pr" in categories:
         # Ejecutar el módulo de riesgo personal (PR)
         print("Ejecutando módulo de riesgo personal...")
-        pr_results = run_personal_risk_module(norm_vcf, assembly, mode, evidence, clinvar_db, categories_path, intervar_path, temp_path)
+        pr_results = run_pers_repro_risk_module(norm_vcf, assembly, mode, evidence, clinvar_db, intervar_path, 'pr')
     else:
         pr_results = None
         
     if "rr" in categories:
         # Ejecutar el módulo de riesgo reproductivo (RR)
         print("Ejecutando módulo de riesgo reproductivo...")
-        rr_results = run_reproductive_risk_module(norm_vcf, assembly, mode, evidence, clinvar_db, categories_path, intervar_path, temp_path)
+        rr_results = run_pers_repro_risk_module(norm_vcf, assembly, mode, evidence, clinvar_db, intervar_path, 'rr')
     else:
         rr_results = None        
         
