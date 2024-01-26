@@ -29,7 +29,7 @@ def process_clinvar_data(assembly, release_date, clinvar_path):
     """
     # Nombres de las columnas de interés
     columns_of_interest_names = ["Type", "Name", "GeneSymbol",
-                                 "ClinicalSignificance", "ClinSigSimple", "RS# (dbSNP)", "RCVaccession",
+                                 "ClinicalSignificance", "ClinSigSimple", "RS# (dbSNP)", "VariationID",
                                  "PhenotypeIDS", "PhenotypeList", "Assembly", 
                                  "Chromosome", "Start", "Stop", "ReviewStatus", 
                                  "SubmitterCategories", "PositionVCF", 
