@@ -33,6 +33,7 @@ from modules.intersect_vcf_bed import intersect_vcf_with_bed
 from modules.run_fg_module import annotate_fg_variants, check_gene_variants, assign_cyp2c9_diplotype, assign_cyp2c19_diplotype, assign_dpyd_diplotype, assign_nudt15_diplotype, assign_tpmt_diplotype, get_diplotype_phenotype_dictionary, run_pharmacogenomic_risk_module
 from modules.generate_report import combine_variant_and_gene_info, check_inheritance, check_patient_HPO, get_hpos_from_txt, generate_report
 from modules.run_pers_repro_risk_module import run_pers_repro_risk_module
+from modules.get_versions_paths import get_versions_paths
 
 def main():
 
@@ -106,7 +107,7 @@ def main():
     """
     # Si el modo es avanzado, comprobar si se ha descargado la BD ClinVar
     if mode == 'advanced':
-        clinvar_files = [file for file in os.listdir(clinvar_path) if file.startswith("clinvar_database_")]
+        clinvar_files = [file for file in os.listdir(clinvar_path) if file.startswith("clinvar_database_GRCh" + str(assembly))]
         
         # Si hay archivos clinvar, seleccionar el más reciente
         if clinvar_files:
@@ -182,12 +183,18 @@ def main():
         haplot_results = None
     # Informar al usuario que los módulos han sido ejecutados
     print("Módulos de análisis completados.")
-    
-    
+
+
+    """
+    Get versions and paths
+    """
+    versions_paths = get_versions_paths(args, config_data, clinvar_db)
+
+
     """
     Generar el informe de salida
     """
-    out_file = generate_report(pr_results, rr_results, fg_results, haplot_results, categories_path, out_path, categories, vcf_file, hpos_file, gene_to_phenotype_file)
+    out_file = generate_report(pr_results, rr_results, fg_results, haplot_results, categories_path, out_path, categories, vcf_file, hpos_file, gene_to_phenotype_file, versions_paths)
     print("Informe de resultados generado.\n ---Finalizado---")
 
     

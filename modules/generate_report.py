@@ -214,7 +214,7 @@ def get_hpos_from_txt(hpos_file):
         print(f"El archivo {hpos_file} no se encontró.")
         return []
 
-def generate_report(pr_results, rr_results, fg_results, haplot_results, categories_path, out_path, categories, vcf_file, hpos_txt, gene_to_phenotype_file):
+def generate_report(pr_results, rr_results, fg_results, haplot_results, categories_path, out_path, categories, vcf_file, hpos_txt, gene_to_phenotype_file, versions_path):
     """
     Escribe los resultados de las categorías PR, RR y FG en un archivo Excel.
 
@@ -230,6 +230,10 @@ def generate_report(pr_results, rr_results, fg_results, haplot_results, categori
         outfile = f"{out_path}{vcf_file.split('/')[-1].split('.vcf')[0]}_final_results.xlsx"
         # Crear un objeto ExcelWriter para el archivo Excel
         with pd.ExcelWriter(outfile) as writer:
+            # Write versions and paths
+            summary_df = pd.DataFrame.from_dict(versions_path, orient="index")
+            summary_df.to_excel(writer, sheet_name= 'Versions and Paths', index=True, header=False)
+
             for category in categories:
                 if category == 'pr':
                     reported_results = check_inheritance(pr_results, category, categories_path)
