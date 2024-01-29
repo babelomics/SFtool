@@ -4,7 +4,7 @@ Created on Thu Jan 25 2024
 
 @author: jpflorido
 """
-from modules.utils import run_intervar, parse_intervar_output, map_review_status, run_clinvar_filtering, combine_results, write_category_results_to_tsv
+from modules.utils import run_intervar, parse_intervar_output, map_review_status, run_clinvar, combine_results, write_category_results_to_tsv
 
 
 
@@ -28,7 +28,7 @@ def run_pers_repro_risk_module(norm_vcf, assembly, mode, evidence_level, clinvar
         category_results = intervar_results
     elif mode == "advanced":
         # Advanced mode: run Clinvar and combine results with Intervar
-        clinvar_results = run_clinvar_filtering(evidence_level, clinvar_db, assembly)
+        clinvar_results = run_clinvar(evidence_level, clinvar_db, assembly)
         intervar_clinvar_results = combine_results(norm_vcf, category, intervar_results, clinvar_results)
         category_results = intervar_clinvar_results
 

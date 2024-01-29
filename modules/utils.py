@@ -127,7 +127,7 @@ def map_review_status(review_status):
     }
     return mapping.get(review_status.lower(), 0)  # Valor predeterminado es 0 si no se encuentra en el mapeo
 
-def run_clinvar_filtering(evidence_level, clinvar_db, assembly):
+def run_clinvar(evidence_level, clinvar_db, assembly):
     """
     Filtra variantes de la base de datos de CLINVAR según un nivel de evidencia dado.
 
