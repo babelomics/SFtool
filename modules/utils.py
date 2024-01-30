@@ -4,7 +4,7 @@
 @author: jpflorido
 """
 import subprocess
-
+import vcfpy
 import csv
 import os
 import re
@@ -206,77 +206,69 @@ def combine_results(vcf_norm, category, intervar_results, clinvar_results):
     vcf_path = f"{vcf_norm.split('normalized')[0]}{category}_intersection.vcf"
 
     try:
-        # Abrir el archivo VCF de intersección
-        with open(vcf_path, "r") as vcf_file:
-            # Recorrer el archivo línea por línea
-            for line in vcf_file:
-                fields = line.strip().split("\t")
-                chrom = fields[0]
-                pos = fields[1]
-                ref = fields[3]
-                alt = fields[4]  # Supongo una sola alternativa porque he splitteado los multiallelic sites
+        # Read VCF file
+        vcf_reader = vcfpy.Reader.from_path(vcf_path)
+        for variant_record in vcf_reader:
+            chrom = str(variant_record.CHROM)
+            pos = str(variant_record.POS)
+            ref = str(variant_record.REF)
+            alt = str(variant_record.ALT[0].value)
+            variant_key = chrom + ':' + pos + ':' + ref + ':' + alt
 
-                # Construye la clave de búsqueda
-                variant_key = f"{chrom}:{pos}:{ref}:{alt}"
-
-                # Busca la variante en los resultados de Intervar
-                # Si es una delecion
-                if len(ref) > len(alt):
-                    if len(alt) == 1:
-                        #variant_int = chrom + ':' + str(int(pos) + 1) + ':' + ref[1:] + ':-'
-                        variant_int = f"{chrom}:{str(int(pos) + 1)}:{ref[1:]}:-"
-                    else:
-                        variant_int = f"{chrom}:{str(int(pos) + 1)}:{ref[1:]}:{alt[1:]}"
-                # Si es una inserción
-                elif len(ref) < len(alt):
-                    if len(ref) == 1:
-                        variant_int = f"{chrom}:{pos}:-:{alt[1:]}"
-                    else:
-                        variant_int = f"{chrom}:{pos}:{ref[1:]}:{alt[1:]}"
-                        # Cambio de nt
+            if len(ref) > len(alt): # Deletion
+                if len(alt) == 1:
+                    variant_int = f"{chrom}:{str(int(pos) + 1)}:{ref[1:]}:-"
                 else:
-                    variant_int = f"{chrom}:{pos}:{ref}:{alt}"
-
-                intervar_info = intervar_results.get(variant_int)
-
-                # Busca la variante en los resultados de ClinVar
-                clinvar_info = clinvar_results.get(variant_key)
-
-                if clinvar_info is not None:
-
-                    clinvar_clinical_significance_tmp = list(map(str.strip,re.split(';|,|/',clinvar_info["ClinicalSignificance"])))
-                    clinvar_clinical_significance = list(map(str.lower,clinvar_clinical_significance_tmp))
-
-                    if (intervar_info and intervar_info["IntervarClassification"] in ["Pathogenic", "Likely pathogenic"]) or \
-                        ("pathogenic" in clinvar_clinical_significance) or \
-                        ("likely pathogenic" in clinvar_clinical_significance) or \
-                        (("conflicting interpretations of pathogenicity" in clinvar_clinical_significance) and (clinvar_info["ClinSigSimple"]=="1")):
-
-                        combined_results[variant_key] = {
-                            "Gene": clinvar_info["Gene"],
-                            "Genotype": intervar_info["Genotype"],
-                            "rs": intervar_info["rs"] if intervar_info["rs"] != '.' else clinvar_info["rs"],
-                            "IntervarClassification": intervar_info["IntervarClassification"],
-                            "ClinvarClinicalSignificance": clinvar_info["ClinicalSignificance"],
-                            "ReviewStatus": clinvar_info["ReviewStatus"],
-                            "ClinvarID": clinvar_info["ClinvarID"],
-                            "Orpha": intervar_info["Orpha"],
-                            "IntervarConsequence": intervar_info["IntervarConsequence"]
-                        }
+                    variant_int = f"{chrom}:{str(int(pos) + 1)}:{ref[1:]}:{alt[1:]}"
+            elif len(ref) < len(alt): # Insertion
+                if len(ref) == 1:
+                    variant_int = f"{chrom}:{pos}:-:{alt[1:]}"
                 else:
-                    # Conserva la info de intervar si no hay info de clinvar
-                    if (intervar_info and intervar_info["IntervarClassification"] in ["Pathogenic", "Likely pathogenic"]):
-                        combined_results[variant_key] = {
-                            "Gene": intervar_info["Gene"],
-                            "Genotype": intervar_info["Genotype"],
-                            "rs": intervar_info["rs"] if intervar_info["rs"] != '.' else '-',
-                            "IntervarClassification": intervar_info["IntervarClassification"],
-                            "ClinvarClinicalSignificance": "NA",
-                            "ReviewStatus": "NA",
-                            "ClinvarID": "NA",
-                            "Orpha": intervar_info["Orpha"],
-                            "IntervarConsequence": intervar_info["IntervarConsequence"]
-                        }
+                    variant_int = f"{chrom}:{pos}:{ref[1:]}:{alt[1:]}"
+            else:
+                variant_int = f"{chrom}:{pos}:{ref}:{alt}"
+
+
+            intervar_info = intervar_results.get(variant_int)
+
+            # Busca la variante en los resultados de ClinVar
+            clinvar_info = clinvar_results.get(variant_key)
+
+            if clinvar_info is not None:
+
+                clinvar_clinical_significance_tmp = list(map(str.strip,re.split(';|,|/',clinvar_info["ClinicalSignificance"])))
+                clinvar_clinical_significance = list(map(str.lower,clinvar_clinical_significance_tmp))
+
+                if (intervar_info and intervar_info["IntervarClassification"] in ["Pathogenic", "Likely pathogenic"]) or \
+                    ("pathogenic" in clinvar_clinical_significance) or \
+                    ("likely pathogenic" in clinvar_clinical_significance) or \
+                    (("conflicting interpretations of pathogenicity" in clinvar_clinical_significance) and (clinvar_info["ClinSigSimple"]=="1")):
+
+                    combined_results[variant_key] = {
+                        "Gene": clinvar_info["Gene"],
+                        "Genotype": intervar_info["Genotype"],
+                        "rs": intervar_info["rs"] if intervar_info["rs"] != '.' else clinvar_info["rs"],
+                        "IntervarClassification": intervar_info["IntervarClassification"],
+                        "ClinvarClinicalSignificance": clinvar_info["ClinicalSignificance"],
+                        "ReviewStatus": clinvar_info["ReviewStatus"],
+                        "ClinvarID": clinvar_info["ClinvarID"],
+                        "Orpha": intervar_info["Orpha"],
+                        "IntervarConsequence": intervar_info["IntervarConsequence"]
+                    }
+            else:
+                # Conserva la info de intervar si no hay info de clinvar
+                if (intervar_info and intervar_info["IntervarClassification"] in ["Pathogenic", "Likely pathogenic"]):
+                    combined_results[variant_key] = {
+                        "Gene": intervar_info["Gene"],
+                        "Genotype": intervar_info["Genotype"],
+                        "rs": intervar_info["rs"] if intervar_info["rs"] != '.' else '-',
+                        "IntervarClassification": intervar_info["IntervarClassification"],
+                        "ClinvarClinicalSignificance": "NA",
+                        "ReviewStatus": "NA",
+                        "ClinvarID": "NA",
+                        "Orpha": intervar_info["Orpha"],
+                        "IntervarConsequence": intervar_info["IntervarConsequence"]
+                    }
 
     except Exception as e:
         raise Exception(f"Error al combinar resultados: {e}")

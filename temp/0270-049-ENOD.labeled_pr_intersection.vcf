@@ -128,8 +128,8 @@
 ##reference=file:///mnt/lustre/scratch/CBRA/data/indexed_genomes/bwa/hs37d5/hs37d5.fa
 ##source=GenomicsDBImport
 ##bcftools_normVersion=1.16+htslib-1.16
-##bcftools_normCommand=norm -O v -m -any --check-ref w -f /mnt/lustre/scratch/CBRA/data/indexed_genomes/bwa/hs37d5/hs37d5.fa -o /home/jpflorido/GBPA/projects/secondaryfindings/temp/0270-049-ENOD.labeled_normalized_int.vcf /home/jpflorido/GBPA/projects/secondaryfindings/examples/0270-049-ENOD.labeled.vcf.gz; Date=Tue Jan 30 11:13:57 2024
-##bcftools_normCommand=norm --rm-dup none -Oz -o /home/jpflorido/GBPA/projects/secondaryfindings/temp/0270-049-ENOD.labeled_normalized.vcf /home/jpflorido/GBPA/projects/secondaryfindings/temp/0270-049-ENOD.labeled_normalized_int.vcf; Date=Tue Jan 30 11:14:34 2024
+##bcftools_normCommand=norm -O v -m -any --check-ref w -f /mnt/lustre/scratch/CBRA/data/indexed_genomes/bwa/hs37d5/hs37d5.fa -o /home/jpflorido/GBPA/projects/secondaryfindings/temp/0270-049-ENOD.labeled_normalized_int.vcf /home/jpflorido/GBPA/projects/secondaryfindings/examples/0270-049-ENOD.labeled.vcf.gz; Date=Tue Jan 30 12:47:58 2024
+##bcftools_normCommand=norm --rm-dup none -Oz -o /home/jpflorido/GBPA/projects/secondaryfindings/temp/0270-049-ENOD.labeled_normalized.vcf /home/jpflorido/GBPA/projects/secondaryfindings/temp/0270-049-ENOD.labeled_normalized_int.vcf; Date=Tue Jan 30 12:48:40 2024
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	0270-049-ENOD
 1	17359386	.	T	C	52.6	LowDepth	AC=1;AF=0.5;AN=2;BaseQRankSum=2;DP=8;ExcessHet=3.0103;FS=0;MLEAC=1;MLEAF=0.5;MQ=60;MQRankSum=0;QD=6.58;ReadPosRankSum=0;SOR=0.169	GT:AD:DP:GQ:PL	0/1:6,2:8:60:60,0,188
 1	17359676	.	C	A	2953.03	PASS	AC=2;AF=1;AN=2;DP=97;ExcessHet=3.0103;FS=0;MLEAC=2;MLEAF=1;MQ=60;QD=30.44;SOR=1.044	GT:AD:DP:GQ:PL	1/1:0,97:97:99:2967,291,0
