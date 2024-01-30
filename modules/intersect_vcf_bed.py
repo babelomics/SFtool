@@ -44,7 +44,7 @@ def intersect_vcf_with_bed(norm_path, category, assembly, categories_path):
         bed = BedTool(bed_path)
         
         # Realizar la intersección utilizando pybedtools
-        intersected_variants = vcf.intersect(bed, u=True)
+        intersected_variants = vcf.intersect(bed, u=True, header=True)
         
         # Guardar las variantes intersectadas en un nuevo archivo VCF
         intersected_variants.saveas(output_vcf_path)
