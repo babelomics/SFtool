@@ -57,7 +57,7 @@ def main():
     out_path = config_data["out_path"]
     intervar_path = config_data["intervar_path"]
     bcftools_path = config_data["bcftools_path"]
-    reference_genome_37_path = config_data["reference_genome_37_path"]
+
     gene_to_phenotype_file = config_data["gene_to_phenotype_file"]
 
     """ 
@@ -76,8 +76,16 @@ def main():
     evidence = args.evidence
     assembly = str(args.assembly)
     hpos_file = args.hpos_file
-    
-    # Obtener la preferencia del usuario para las categorías a analizar (PR, RR, FG)
+
+
+    if assembly == '37':
+        reference_genome = config_data["reference_genome_37_path"]
+    elif assembly == '38':
+        reference_genome = config_data["reference_genome_38_path"]
+
+
+
+# Obtener la preferencia del usuario para las categorías a analizar (PR, RR, FG)
     categories_usr = input("Elija las categorías a analizar (PR, RR, FG separados por comas): ") ####cambiar al config
     categories = [category.strip().lower() for category in categories_usr.split(",")]
     
@@ -148,13 +156,13 @@ def main():
     """
     Normalizar VCF de entrada
     """
-    norm_vcf = normalize_vcf(vcf_file, temp_path, assembly, bcftools_path, reference_genome_37_path)
+    norm_vcf_file = normalize_vcf(vcf_file, temp_path, bcftools_path, reference_genome)
     
     """
     Realizar la intersección con los archivos BED
     """
     for category in categories:
-        intersect_vcf_with_bed(norm_vcf, category, assembly, categories_path)
+        intersect_vcf_with_bed(norm_vcf_file, category, assembly, categories_path)
     
     """
     Ejecutar los módulos que correspondan:
@@ -163,21 +171,21 @@ def main():
     if "pr" in categories:
         # Ejecutar el módulo de riesgo personal (PR)
         print("Ejecutando módulo de riesgo personal...")
-        pr_results = run_pers_repro_risk_module(norm_vcf, assembly, mode, evidence, clinvar_db, intervar_path, 'pr')
+        pr_results = run_pers_repro_risk_module(norm_vcf_file, assembly, mode, evidence, clinvar_db, intervar_path, 'pr')
     else:
         pr_results = None
         
     if "rr" in categories:
         # Ejecutar el módulo de riesgo reproductivo (RR)
         print("Ejecutando módulo de riesgo reproductivo...")
-        rr_results = run_pers_repro_risk_module(norm_vcf, assembly, mode, evidence, clinvar_db, intervar_path, 'rr')
+        rr_results = run_pers_repro_risk_module(norm_vcf_file, assembly, mode, evidence, clinvar_db, intervar_path, 'rr')
     else:
         rr_results = None        
         
     if "fg" in categories:
         # Ejecutar el módulo farmacogenético (FG)
         print("Ejecutando módulo farmacogenético...")
-        fg_results, haplot_results = run_pharmacogenomic_risk_module(categories_path, norm_vcf, assembly, temp_path)
+        fg_results, haplot_results = run_pharmacogenomic_risk_module(categories_path, norm_vcf_file, assembly, temp_path)
     else:
         fg_results = None    
         haplot_results = None

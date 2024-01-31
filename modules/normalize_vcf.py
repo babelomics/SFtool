@@ -8,9 +8,9 @@ import os
 import gzip
 import subprocess
 
-def normalize_vcf(input_vcf_path, temp_path, assembly, bcftools_path, reference_genome_37_path):
+def normalize_vcf(input_vcf_path, temp_path, bcftools_path, reference_genome_path):
     """
-    Normaliza un archivo VCF de entrada utilizando bcftools.
+    VCF normalization
     
     Args:
         input_vcf_path (str): La ruta al archivo VCF de entrada que se va a normalizar.
@@ -23,35 +23,44 @@ def normalize_vcf(input_vcf_path, temp_path, assembly, bcftools_path, reference_
     """
     # split multiallelic (-m -) y left-alignment.
     try:
-        # Ruta del archivo de salida
-        output_vcf_path = f"{temp_path}{input_vcf_path.split('/')[-1].split('.vcf')[0]}_normalized_int.vcf"
-        output2_vcf_path = f"{temp_path}{input_vcf_path.split('/')[-1].split('.vcf')[0]}_normalized.vcf" 
-        
-        # Verificar si el archivo VCF está comprimido
-        if input_vcf_path.endswith(".gz"):
-            # Verificar si el archivo VCF necesita ser indexado
+
+        filename, file_extension = os.path.splitext(input_vcf_path)
+        just_filename = os.path.basename(input_vcf_path)
+
+
+        compressed = False
+        if file_extension == ".gz":
+            compressed = True
             if not (os.path.exists(input_vcf_path + ".csi") or os.path.exists(input_vcf_path + ".tbi")):
-                # Indexar el archivo VCF si no está indexado
+                # Index VCF file if not indexed
                 index_command = [bcftools_path + "bcftools", "index", input_vcf_path]
                 subprocess.run(index_command, check=True)
-        
-        # Comando para normalizar con bcftools
-        if assembly == '37':
-            bcftools_command = [bcftools_path + "bcftools", "norm", "-O", "v", "-m", "-any", "--check-ref", "w", "-f", reference_genome_37_path, "-o", output_vcf_path, input_vcf_path]
-        elif assembly == '38':
-            bcftools_command = [bcftools_path + "bcftools", "norm", "-O", "v", "-m", "-any", "--check-ref", "w", "-f", "./Homo_sapiens.GRCh38.dna.primary_assembly.fa", "-o", output_vcf_path, input_vcf_path]
 
-        # Ejecutar el comando utilizando subprocess
+        # Output files
+        if compressed:
+            output_vcf_path = os.path.join(temp_path, just_filename.split(".vcf.gz")[0] + ".tmp.vcf.gz")
+            output2_vcf_path = os.path.join(temp_path, just_filename.split(".vcf.gz")[0] + ".norm.vcf.gz")
+        else:
+            output_vcf_path = os.path.join(temp_path, just_filename.split(".vcf")[0] + ".tmp.vcf")
+            output2_vcf_path = os.path.join(temp_path, just_filename.split(".vcf")[0] + ".norm.vcf")
+
+        
+        # bcftools normalization command
+
+        bcftools_command = [bcftools_path + "bcftools", "norm", "-O", "z", "-m", "-any", "--check-ref", "w",  "-f", reference_genome_path, "-o", output_vcf_path, input_vcf_path]
+
+        # Normalize with bcftools
         subprocess.run(bcftools_command, check=True)
         
-        # Eliminar duplicados con bcftools
+        # Remove duplicates with bcftools
         rm_dup_command = [bcftools_path + "bcftools", "norm", "--rm-dup", "none", "-Oz", "-o", output2_vcf_path, output_vcf_path]
         subprocess.run(rm_dup_command, check=True)
         
-        print("Normalización con bcftools completada.")
-        
+        print("bcftools normalization completed.")
+
+        os.remove(output_vcf_path)
         return(output2_vcf_path)
 
     except Exception as e:
-        print(f"Error durante la normalización con bcftools: {e}")
+        print(f"Error given by bcftools normalization: {e}")
 
