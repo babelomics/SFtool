@@ -23,10 +23,8 @@ def normalize_vcf(input_vcf_path, temp_path, bcftools_path, reference_genome_pat
     """
     # split multiallelic (-m -) y left-alignment.
     try:
-
         filename, file_extension = os.path.splitext(input_vcf_path)
         just_filename = os.path.basename(input_vcf_path)
-
 
         compressed = False
         if file_extension == ".gz":

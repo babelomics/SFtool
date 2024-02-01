@@ -86,7 +86,7 @@ def main():
 
 
 # Obtener la preferencia del usuario para las categorías a analizar (PR, RR, FG)
-    categories_usr = input("Elija las categorías a analizar (PR, RR, FG separados por comas): ") ####cambiar al config
+    categories_usr = input("Elija las categorías a analizar (PR, RR, FG separados por comas): ")
     categories = [category.strip().lower() for category in categories_usr.split(",")]
     
     
@@ -154,15 +154,16 @@ def main():
     # Comprobar si Annovar está en el path: TO DO
     
     """
-    Normalizar VCF de entrada
+    VCF normalization
     """
     norm_vcf_file = normalize_vcf(vcf_file, temp_path, bcftools_path, reference_genome)
     
     """
-    Realizar la intersección con los archivos BED
+    Normalized VCF and BED intersection for each category
     """
     for category in categories:
-        intersect_vcf_with_bed(norm_vcf_file, category, assembly, categories_path)
+        category_bed_file = os.path.join(categories_path + category.upper(), category + '_genes_grch' + assembly + '.bed')
+        intersect_vcf_with_bed(norm_vcf_file, category_bed_file, temp_path, category)
     
     """
     Ejecutar los módulos que correspondan:
