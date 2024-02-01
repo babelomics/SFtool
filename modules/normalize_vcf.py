@@ -6,7 +6,9 @@ Created on Sat Aug 26 22:15:15 2023
 """
 import os
 import gzip
+import bgzip
 import subprocess
+
 
 def normalize_vcf(input_vcf_path, temp_path, bcftools_path, reference_genome_path):
     """
@@ -16,33 +18,25 @@ def normalize_vcf(input_vcf_path, temp_path, bcftools_path, reference_genome_pat
         input_vcf_path (str): La ruta al archivo VCF de entrada que se va a normalizar.
         temp_path (str): La ruta al directorio temporal donde se guardarán los archivos intermedios.
         bcftools_path (str): path a bcftools
-        reference_genome_37_path (str): path to reference genome (hs37d5)
+        reference_genome_path (str): path to reference genome
     
     Returns:
         str: La ruta del archivo VCF normalizado. Este archivo se encuentra en el directorio temporal.
     """
     # split multiallelic (-m -) y left-alignment.
     try:
-        filename, file_extension = os.path.splitext(input_vcf_path)
+
         just_filename = os.path.basename(input_vcf_path)
 
-        compressed = False
-        if file_extension == ".gz":
-            compressed = True
-            if not (os.path.exists(input_vcf_path + ".csi") or os.path.exists(input_vcf_path + ".tbi")):
-                # Index VCF file if not indexed
-                index_command = [bcftools_path + "bcftools", "index", input_vcf_path]
-                subprocess.run(index_command, check=True)
+        if not (os.path.exists(input_vcf_path + ".csi") or os.path.exists(input_vcf_path + ".tbi")):
+            # Index VCF file if not indexed
+            index_command = [bcftools_path + "bcftools", "index", input_vcf_path]
+            subprocess.run(index_command, check=True)
 
         # Output files
-        if compressed:
-            output_vcf_path = os.path.join(temp_path, just_filename.split(".vcf.gz")[0] + ".tmp.vcf.gz")
-            output2_vcf_path = os.path.join(temp_path, just_filename.split(".vcf.gz")[0] + ".norm.vcf.gz")
-        else:
-            output_vcf_path = os.path.join(temp_path, just_filename.split(".vcf")[0] + ".tmp.vcf")
-            output2_vcf_path = os.path.join(temp_path, just_filename.split(".vcf")[0] + ".norm.vcf")
+        output_vcf_path = os.path.join(temp_path, just_filename.split(".vcf.gz")[0] + ".tmp.vcf.gz")
+        output2_vcf_path = os.path.join(temp_path, just_filename.split(".vcf.gz")[0] + ".norm.vcf.gz")
 
-        
         # bcftools normalization command
 
         bcftools_command = [bcftools_path + "bcftools", "norm", "-O", "z", "-m", "-any", "--check-ref", "w",  "-f", reference_genome_path, "-o", output_vcf_path, input_vcf_path]
