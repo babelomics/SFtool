@@ -28,7 +28,7 @@ def annotate_fg_variants(categories_path, norm_vcf, assembly, temp_path):
 
     try:
         # Cargar archivo fg_json con variantes farmacogenéticas
-        fg_json_path = f'{categories_path}FG/fg_risk_variants_grch{assembly}.json'
+        fg_json_path = f'{categories_path}FG/fg_risk_genes_GRCh{assembly}.json'
         with open(fg_json_path, 'r') as file:
             fg_json = json.load(file)
 

@@ -119,7 +119,7 @@ def write_bed_file(assembly, genes_lst, category, categories_path):
         gene_coords.append((gene_pos['Chromosome'], int(gene_pos['Start']), int(gene_pos['End']), gene))
     sorted_coords = natsorted(gene_coords)
     
-    filename = f"{categories_path}{category.upper()}/{category}_genes_grch{assembly}.bed"
+    filename = f"{categories_path}{category.upper()}/{category}_risk_genes_GRCh{assembly}.bed"
     with open(filename, "w") as bed_file:
         for chrom, start, end, gene in sorted_coords:
             bed_file.write(f"{chrom}\t{start}\t{end}\t{gene}\n")

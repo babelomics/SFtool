@@ -95,17 +95,17 @@ def main():
     """
     # Comprobar si los archivos JSON existen
     # Catálogo de riesgo personal
-    if not os.path.exists(f"{categories_path}/PR/pr_risk_genes.json"):
+    if not os.path.exists(f"{categories_path}/PR/pr_risk_genes_GRCh{assembly}.bed"):
         print("Generando archivos JSON y BED para riesgo personal.") # mejor dentro de la función get_json
         get_json_bed("pr", assembly, categories_path)
         
     # Catálogo de riesgo reproductivo
-    if not os.path.exists(f"{categories_path}/RR/rr_risk_genes.json"):
+    if not os.path.exists(f"{categories_path}/RR/rr_risk_genes_GRCh{assembly}.bed"):
         print("Generando archivos JSON y BED para riesgo reproductivo.") # mejor dentro de la función get_json
         get_json_bed("rr", assembly, categories_path)
         
     # Catálogo de riesgo farmacogenético
-    if not os.path.exists(f"{categories_path}/FG/fg_risk_variants_grch{assembly}.json"):
+    if not os.path.exists(f"{categories_path}/FG/fg_risk_genes_GRCh{assembly}.bed"):
         print("Generando archivos JSON y BED para riesgo farmacogenético.") # mejor dentro de la función get_json
         get_json_bed_fg(assembly, categories_path)
         
@@ -162,7 +162,7 @@ def main():
     Normalized VCF and BED intersection for each category
     """
     for category in categories:
-        category_bed_file = os.path.join(categories_path + category.upper(), category + '_genes_grch' + assembly + '.bed')
+        category_bed_file = os.path.join(categories_path + category.upper(), category + '_risk_genes_GRCh' + assembly + '.bed')
         intersect_vcf_with_bed(norm_vcf_file, category_bed_file, temp_path, category)
     
     """

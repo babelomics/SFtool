@@ -61,7 +61,7 @@ def generate_json_from_fg_csv(csv_file, assembly, categories_path):
         
         #return(variants_dct, variants_lst)
             # Write JSON file
-            out_json = f'{categories_path}FG/fg_risk_variants_grch{assembly}.json'
+            out_json = f'{categories_path}FG/fg_risk_genes_GRCh{assembly}.json'
             with open(out_json, 'w') as json_file:
                 json.dump(variants_dct, json_file, indent = 4)
     
@@ -105,7 +105,7 @@ def generate_bed_from_fg_csv(csv_file, assembly, categories_path):
         # Sort bed_data by chromosome, start position, end position, and allele
         sorted_bed_data = natsorted(bed_data)
         
-        bed_filename = f"{categories_path}FG/fg_variants_grch{assembly}.bed"
+        bed_filename = f"{categories_path}FG/fg_risk_genes_GRCh{assembly}.bed"
         
         with open(bed_filename, "w") as bed_file:
             for entry in sorted_bed_data:
