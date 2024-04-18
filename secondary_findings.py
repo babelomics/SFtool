@@ -25,13 +25,13 @@ import os
 import json
 
 from modules.arguments import arguments
-from modules.get_json_bed import read_csv, get_gene_pos, write_bed_file, get_json_bed
-from modules.get_json_bed_fg import generate_json_from_fg_csv, generate_bed_from_fg_csv, get_json_bed_fg
-from modules.get_clinvar import process_clinvar_data, get_clinvar
+from modules.get_json_bed import get_json_bed
+from modules.get_json_bed_fg import get_json_bed_fg
+from modules.get_clinvar import get_clinvar
 from modules.normalize_vcf import normalize_vcf
 from modules.intersect_vcf_bed import intersect_vcf_with_bed
-from modules.run_fg_module import annotate_fg_variants, check_gene_variants, assign_cyp2c9_diplotype, assign_cyp2c19_diplotype, assign_dpyd_diplotype, assign_nudt15_diplotype, assign_tpmt_diplotype, get_diplotype_phenotype_dictionary, run_pharmacogenomic_risk_module
-from modules.generate_report import combine_variant_and_gene_info, check_inheritance, check_patient_HPO, get_hpos_from_txt, generate_report
+from modules.FG.run_fg_module import run_pharmacogenomic_risk_module
+from modules.generate_report import generate_report
 from modules.run_pers_repro_risk_module import run_pers_repro_risk_module
 from modules.get_versions_paths import get_versions_paths
 
