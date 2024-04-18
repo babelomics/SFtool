@@ -161,9 +161,12 @@ def main():
     """
     Normalized VCF and BED intersection for each category
     """
+
+    input_vcf_files = {}
     for category in categories:
         category_bed_file = os.path.join(categories_path + category.upper(), category + '_risk_genes_GRCh' + assembly + '.bed')
-        intersect_vcf_with_bed(norm_vcf_file, category_bed_file, temp_path, category)
+        generated_vcf_file = intersect_vcf_with_bed(norm_vcf_file, category_bed_file, temp_path, category)
+        input_vcf_files[category] = generated_vcf_file
     
     """
     Ejecutar los módulos que correspondan:
@@ -172,21 +175,21 @@ def main():
     if "pr" in categories:
         # Ejecutar el módulo de riesgo personal (PR)
         print("Ejecutando módulo de riesgo personal...")
-        pr_results = run_pers_repro_risk_module(norm_vcf_file, assembly, mode, evidence, clinvar_db, intervar_path, 'pr')
+        pr_results = run_pers_repro_risk_module(input_vcf_files['pr'], assembly, mode, evidence, clinvar_db, intervar_path, 'pr')
     else:
         pr_results = None
         
     if "rr" in categories:
         # Ejecutar el módulo de riesgo reproductivo (RR)
         print("Ejecutando módulo de riesgo reproductivo...")
-        rr_results = run_pers_repro_risk_module(norm_vcf_file, assembly, mode, evidence, clinvar_db, intervar_path, 'rr')
+        rr_results = run_pers_repro_risk_module(input_vcf_files['rr'], assembly, mode, evidence, clinvar_db, intervar_path, 'rr')
     else:
         rr_results = None        
         
     if "fg" in categories:
         # Ejecutar el módulo farmacogenético (FG)
         print("Ejecutando módulo farmacogenético...")
-        fg_results, haplot_results = run_pharmacogenomic_risk_module(categories_path, norm_vcf_file, assembly, temp_path)
+        fg_results, haplot_results = run_pharmacogenomic_risk_module(categories_path, input_vcf_files['fg'], assembly, temp_path)
     else:
         fg_results = None    
         haplot_results = None

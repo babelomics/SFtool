@@ -8,14 +8,16 @@ import subprocess
 import json
 import pysam
 import csv
+import vcfpy
+import os
 
-def annotate_fg_variants(categories_path, norm_vcf, assembly, temp_path):
+def annotate_fg_variants(categories_path, norm_vcf_fg, assembly, temp_path):
     """
     Anota variantes genéticas utilizando un archivo JSON de variantes farmacogenéticas.
     
     Args:
         categories_path (str): Ruta al directorio que contiene archivos relacionados con las categorías.
-        norm_vcf (str): Ruta al archivo VCF normalizado.
+        norm_vcf_fg (str): Ruta al archivo VCF normalizado e interseccionado.
         assembly (str): Ensamblaje genómico a utilizar.
         temp_path (str): Ruta al directorio que contiene archivos intermedios.
     
@@ -33,37 +35,39 @@ def annotate_fg_variants(categories_path, norm_vcf, assembly, temp_path):
             fg_json = json.load(file)
 
         annotated_variants = []
-    
-        # Abrir el archivo VCF
-        vcf_int_path = norm_vcf.split('_normalized.vcf')[0] + '_fg_intersection.vcf'
-        
-        with open(vcf_int_path, 'r') as vcf_file:
-        #with pysam.VariantFile(vcf_path) as vcf_file:
-            for line in vcf_file:
-                fields = line.split('\t')
-                variant_key = f"{fields[0]}:{fields[1]}:{fields[3]}:{fields[4]}"
-                #variant_key = f"{record.chrom}:{record.pos}:{record.ref}:{record.alts[0]}"
-                variant_info = fg_json['variants'].get(variant_key, None)
-    
-                if variant_info:
-                    annotated_variant = {
-                        "Variant": variant_key,
-                        "GT": fields[9].split(':')[0],
-                        "Gene": variant_info["gene_symbol"],
-                        "rs": variant_info["rs"]
-                    }
-                else:
-                    annotated_variant = {
-                        "Variant": variant_key,
-                        "GT": fields[9].split(':')[0],
-                        "Gene": "No encontrado",
-                        "rs": "No encontrado",
-                    }
-    
-                annotated_variants.append(annotated_variant)
+
+        # Read VCF file
+        vcf_reader = vcfpy.Reader.from_path(norm_vcf_fg)
+        for variant_record in vcf_reader:
+            chrom = str(variant_record.CHROM)
+            pos = str(variant_record.POS)
+            ref = str(variant_record.REF)
+            alt = str(variant_record.ALT[0].value)
+            sample_name = list(variant_record.call_for_sample.keys())[0]
+            variant_key = chrom + ':' + pos + ':' + ref + ':' + alt
+            variant_info = fg_json['variants'].get(variant_key, None)
+
+            if variant_info:
+                annotated_variant = {
+                    "Variant": variant_key,
+                    "GT": variant_record.call_for_sample[sample_name].data.get('GT'),
+                    "Gene": variant_info["gene_symbol"],
+                    "rs": variant_info["rs"]
+                }
+            else:
+                annotated_variant = {
+                    "Variant": variant_key,
+                    "GT": variant_record.call_for_sample[sample_name].data.get('GT'),
+                    "Gene": "Not found",
+                    "rs": "Not found",
+                }
+
+            annotated_variants.append(annotated_variant)
                 
         # Escribir los resultados en un archivo
-        result_file = f'{temp_path}/annotated_variants.txt'
+        just_filename = os.path.basename(norm_vcf_fg)
+        result_file = os.path.join(temp_path, just_filename.split(".norm.FG.vcf.gz")[0] + ".FG.annotated.json")
+
         with open(result_file, 'w') as fout:
             json.dump(annotated_variants, fout)
                 
@@ -609,19 +613,19 @@ def run_pharmacogenomic_risk_module(categories_path, norm_vcf, assembly, temp_pa
         list: Una lista de diccionarios que contienen los resultados de los genes procesados.
     """
     # Anotar variantes fg presentes en el vcf
-    fg_results = annotate_fg_variants(categories_path, norm_vcf, assembly, temp_path)
+    fg_annotated_variants = annotate_fg_variants(categories_path, norm_vcf, assembly, temp_path)
     
     # Crear diccionario con asociaciones diplotipo-fenotipo
-    diplo_pheno_dct = get_diplotype_phenotype_dictionary(categories_path)
+    diplo_pheno_info = get_diplotype_phenotype_dictionary(categories_path)
     
     # Asignar los diplotipos de cada gen
-    results = []
-    results = assign_cyp2c9_diplotype(fg_results, diplo_pheno_dct, results)
-    results = assign_cyp2c19_diplotype(fg_results, diplo_pheno_dct, results)
-    results = assign_dpyd_diplotype(fg_results, diplo_pheno_dct, results)
-    results = assign_nudt15_diplotype(fg_results, diplo_pheno_dct, results)
-    results = assign_tpmt_diplotype(fg_results, diplo_pheno_dct, results)
+    aggregated_fg_results = []
+    aggregated_fg_results = assign_cyp2c9_diplotype(fg_annotated_variants, diplo_pheno_info, aggregated_fg_results)
+    aggregated_fg_results = assign_cyp2c19_diplotype(fg_annotated_variants, diplo_pheno_info, aggregated_fg_results)
+    aggregated_fg_results = assign_dpyd_diplotype(fg_annotated_variants, diplo_pheno_info, aggregated_fg_results)
+    aggregated_fg_results = assign_nudt15_diplotype(fg_annotated_variants, diplo_pheno_info, aggregated_fg_results)
+    aggregated_fg_results = assign_tpmt_diplotype(fg_annotated_variants, diplo_pheno_info, aggregated_fg_results)
     
-    return(fg_results, results)
+    return(fg_annotated_variants, aggregated_fg_results)
     
 

@@ -37,6 +37,8 @@ def intersect_vcf_with_bed(vcf_norm_file, category_bed_file, temp_path, category
         
         # Save intersected VCF file
         intersected_variants.saveas(output_vcf_path)
+
+        return output_vcf_path
         
         print(f"Intersection completed. VCF file saved to {output_vcf_path}")
     except Exception as e:
