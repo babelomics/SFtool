@@ -4,50 +4,40 @@ from modules.FG.misc_fg import assign_phenotype_AC
 
 def assign_nudt15_diplotype(variants, diplo_pheno_dct, aggregated_results):
     """
-    Asigna un diplotipo a NUDT15 basado en las variantes genéticas y almacena los resultados.
+     Assing a diplotype to NUDT15 according to variants found in this gene and recommendations based on SEFF
+     Essential alleles for SEFF: *3
 
-    Args:
-        variants (list): Una lista de diccionarios que contienen información de variantes genéticas.
-        diplo_pheno_dct (dict): Un diccionario que contiene información sobre diplotipos y fenotipos genéticos.
-        aggregated_results (list): Una lista de resultados donde se agregarán los resultados de la asignación.
+     Args:
+         variants (list): A list with a dictionary of variants present in the set of pharmacogenetic genes
+         diplo_pheno_dct (dict): Dictionary with information about diplotype-phenotype relationships
+         aggregated_results (list): A list with results of diplotype information accumulated for each gene
 
-    Returns:
-        list: La lista de resultados actualizada después de agregar el resultado de la asignación del diplotipo de NUDT15.
-    """
-    # Gen
+     Returns:
+         list: List with results of diplotype information accumulateed for each gene, including CUP2C9
+
+
+     """
+    # Gene
     gene = 'NUDT15'
 
-    # Comprobar variantes presentes en gen
+    # Check and get variants for 'gene'
     found, variants_gene = check_gene_variants(variants, gene)
 
-    # Si no se encontró ninguna variante, diplotipo *1/*1
-    if found == False:
+    # Diplotype *1/*1 (reference) if there are no variants on current gene
+    if not found:
         diplotype = '*1/*1'
-
     else:
-        # Chequear *2A:
+        # Check *3
         if 'rs116855232' in variants_gene.keys():
             if len(variants_gene) == 1:
-                if variants_gene['rs116855232'] == '1/1': # en realidad habría que comprobar si es len >1, porque puede que esté en fase con otro alelo
+                if variants_gene['rs116855232'] == '1/1':
                     diplotype = '*3/*3'
                 else:
                     diplotype = '*1/*3'
-            elif len(variants_gene) == 2:
-                if 'rs746071566' in variants_gene.keys():
-                    if variants_gene['rs746071566'] == '1/1' and variants_gene['rs116855232'] == '1/1':
-                        diplotype = '*2/*2'
-                    elif variants_gene['rs746071566'] == '0/1' and variants_gene['rs116855232'] == '1/1': #hbaría que chequear variante si es inserción o del
-                        diplotype = '*2/*3'
-                    elif variants_gene['rs746071566'] == '0/1' and variants_gene['rs116855232'] == '0/1':
-                        diplotype = '*1/*2'
-                    else:
-                        print('Se han encontrado variantes en NUDT15 no consideradas en la asignación de haplotipos en esta herramienta. Revisar manualmente.')
-                else:
-                    print('Se han encontrado variantes en NUDT15 no consideradas en la asignación de haplotipos en esta herramienta. Revisar manualmente.')
-            else:
-                print('Se han encontrado variantes en NUDT15 no consideradas en la asignación de haplotipos en esta herramienta. Revisar manualmente.')
         else:
-            print('Se han encontrado variantes en NUDT15 no consideradas en la asignación de haplotipos en esta herramienta. Revisar manualmente.')
+            diplotype='NA'
+            print('There are variants in ' + gene + ' that are not considered in the diplotype assignment. Please, review variants manually')
+
 
     # Phenotype and Activity Score assignment for the obtained diplotype
     aggregated_results = assign_phenotype_AC(diplotype, gene, diplo_pheno_dct, aggregated_results)

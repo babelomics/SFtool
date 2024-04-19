@@ -3,11 +3,12 @@ import json
 import csv
 import vcfpy
 import os
+import re
 
 
 def check_gene_variants(variants, gene):
     """
-    Verifica la presencia de variantes en un gen específico y recopila información sobre su genotipo.
+    Check the presence of variants in a given pharma gene and genotype info is retrieved
 
     Args:
         variants (list): Una lista de diccionarios que contienen información de variantes genéticas.
@@ -43,19 +44,19 @@ def check_gene_variants(variants, gene):
 
 def annotate_fg_variants(categories_path, norm_vcf_fg, assembly, temp_path):
     """
-    Anota variantes genéticas utilizando un archivo JSON de variantes farmacogenéticas.
+    Annote a list of variants from a VCF file given a JSON file with information about pharma variants
 
     Args:
-        categories_path (str): Ruta al directorio que contiene archivos relacionados con las categorías.
-        norm_vcf_fg (str): Ruta al archivo VCF normalizado e interseccionado.
-        assembly (str): Ensamblaje genómico a utilizar.
-        temp_path (str): Ruta al directorio que contiene archivos intermedios.
+        categories_path (str): Path to directory with files related to pharma category
+        norm_vcf_fg (str): Path to VCF file that contains normalized variants in genes related to pharma
+        assembly (str): Assembly version
+        temp_path (str): Path to temporal directory
 
     Returns:
-        list: Una lista de diccionarios que contienen los resultados de la anotación.
+        list: The list of annotated variants
 
     Raises:
-        FileNotFoundError: Si no se puede encontrar el archivo JSON con variantes farmacogenéticas.
+        FileNotFoundError: I/O error
     """
 
     try:
@@ -108,25 +109,22 @@ def annotate_fg_variants(categories_path, norm_vcf_fg, assembly, temp_path):
         return []
 
 
-def get_diplotype_phenotype_dictionary(categories_path):
+def get_diplotype_phenotype_dictionary(diplotype_phenotype_info_file):
     """
-    Obtener un diccionario de diplotipos con fenotipos y puntuaciones de actividad.
+    Build a dictionary with diplotype-phenotype relationships and their corresponding Activity Score
+
 
     Args:
-        categories_path (str): Ruta al directorio categories.
+        diplotype_phenotype_info_file (str): Path to diplotype-phenotype info file.
 
     Returns:
-        dict: Un diccionario que asigna diplotipos con su información de fenotipo y puntuación de actividad.
+        dict: A dictionary in which a give diplotype has phenotype and activity score info
     """
-    # Nombre del archivo CSV
-    csv_file = f'{categories_path}FG/diplotipo_fenotipo.csv'
 
-    # Definir un diccionario para mapear los diplotipos con su fenotipo y Activity Score
     diplotype_data = {}
 
     try:
-        # Abrir el archivo CSV y cargar los datos en el diccionario
-        with open(csv_file, 'r') as csvfile:
+        with open(diplotype_phenotype_info_file, 'r') as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
                 gene = row["GENE"]
@@ -141,22 +139,38 @@ def get_diplotype_phenotype_dictionary(categories_path):
                     # Si el gen no está en el diccionario, crear una entrada para el gen y agregar el diplotipo
                     diplotype_data[gene] = {diplotype: {"Phenotype": phenotype, "Activity_Score": activity_score}}
     except FileNotFoundError:
-        raise FileNotFoundError(f"El archivo CSV no se encuentra en la ruta especificada: {csv_file}")
+        raise FileNotFoundError(f"El archivo CSV no se encuentra en la ruta especificada: {diplotype_phenotype_info_file}")
 
     return(diplotype_data)
 
 
 def assign_phenotype_AC(diplotype, gene, diplo_pheno_dct, aggregated_results):
     """
+    According to a set of diplotypes in a gene, assign phenotype information and activity scores
 
-    :param diplotype:
-    :param gene:
-    :param diplo_pheno_dct:
-    :param aggregated_results:
-    :return:
+    :param diplotype: dictionary with diplotype information for a given gene
+    :param gene: Gene
+    :param diplo_pheno_dct: dictionary with diplotype-phenotype information
+    :param aggregated_results: aggregated results with diplotype-phenotype information from other genes
+    :return: arregated (from a set of genes) results with diplotype-phenotype information
     """
 
-    if gene in diplo_pheno_dct and diplotype in diplo_pheno_dct[gene]:
+    if gene in diplo_pheno_dct and 'or' in diplotype: # There are questionable diplotypes
+        all_diplotypes = re.findall(r'\*\d+/\*\d+', diplotype)
+        #if any(item in diplo_pheno_dct[gene] for item in all_diplotypes):
+        tmp_phenotype = []
+        tmp_activity_score = []
+        for current_diplotype in all_diplotypes:
+            if current_diplotype in diplo_pheno_dct[gene]:
+                data = diplo_pheno_dct[gene][current_diplotype]
+                tmp_phenotype.append(data['Phenotype'])
+                tmp_activity_score.append(data['Activity_Score'])
+            else:
+                tmp_phenotype.append('NA')
+                tmp_activity_score.append('NA')
+        phenotype = ', '.join(tmp_phenotype[:-1]) + ' or ' + tmp_phenotype[-1]
+        activity_score = ', '.join(tmp_activity_score[:-1]) + ' or ' + tmp_activity_score[-1]
+    elif gene in diplo_pheno_dct and diplotype in diplo_pheno_dct[gene]:
         data = diplo_pheno_dct[gene][diplotype]
         phenotype = data['Phenotype']
         activity_score = data['Activity_Score']

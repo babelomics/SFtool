@@ -13,26 +13,27 @@ from modules.FG.diplotype_scripts.tpmt_diplotype_algorithm import assign_tpmt_di
 from modules.FG.misc_fg import annotate_fg_variants, get_diplotype_phenotype_dictionary
 
     
-def run_pharmacogenomic_risk_module(categories_path, norm_vcf, assembly, temp_path):
+def run_pharmacogenomic_risk_module(categories_path, norm_vcf, assembly, temp_path, diplotype_phenotype_info_file):
     """
-    Ejecuta el módulo de riesgo farmacogenético.
+    Pharma risk module execution
     
     Args:
-        categories_path (str): Ruta al directorio categories.
-        norm_vcf (str): Ruta al archivo VCF dnormalizado.
-        assembly (str): Ensamblaje genómico a utilizar.
-        temp_path (str): Rutal al directorio de archivos intermedios.
+        categories_path (str): Path to categories directory
+        norm_vcf (str): Path to normalized and intersected VCF file for this category
+        assembly (str): Assembly version.
+        temp_path (str): Path to temporary directory
+        diplotype_phenotype_info_file (str): Path to diplotype_phenotype info file
         
     Returns:
-        list: Una lista de diccionarios que contienen los resultados de los genes procesados.
+        list: A list of dictionary with pharma results
     """
-    # Anotar variantes fg presentes en el vcf
+    # Get variants from VCF file related to pharma genes and assign them info with rs and genotype
     fg_annotated_variants = annotate_fg_variants(categories_path, norm_vcf, assembly, temp_path)
     
-    # Crear diccionario con asociaciones diplotipo-fenotipo
-    diplo_pheno_info = get_diplotype_phenotype_dictionary(categories_path)
+    # Create dictionary with diplotype-phenotype associations
+    diplo_pheno_info = get_diplotype_phenotype_dictionary(diplotype_phenotype_info_file)
     
-    # Asignar los diplotipos de cada gen
+    # Asign diplotype to each pharma gene of interest according to SEFF
     aggregated_fg_results = []
     aggregated_fg_results = assign_cyp2c9_diplotype(fg_annotated_variants, diplo_pheno_info, aggregated_fg_results)
     aggregated_fg_results = assign_cyp2c19_diplotype(fg_annotated_variants, diplo_pheno_info, aggregated_fg_results)

@@ -59,6 +59,7 @@ def main():
     bcftools_path = config_data["bcftools_path"]
 
     gene_to_phenotype_file = config_data["gene_to_phenotype_file"]
+    diplotype_phenotype_info_file = config_data["diplotype_phenotype_info_file"]
 
     """ 
     Create clinvar, temp and final_output directories
@@ -189,7 +190,7 @@ def main():
     if "fg" in categories:
         # Ejecutar el módulo farmacogenético (FG)
         print("Ejecutando módulo farmacogenético...")
-        fg_results, haplot_results = run_pharmacogenomic_risk_module(categories_path, input_vcf_files['fg'], assembly, temp_path)
+        fg_results, haplot_results = run_pharmacogenomic_risk_module(categories_path, input_vcf_files['fg'], assembly, temp_path, diplotype_phenotype_info_file)
     else:
         fg_results = None    
         haplot_results = None
