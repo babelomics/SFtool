@@ -34,15 +34,22 @@ def arguments():
 
     # Argument for config file
     parser.add_argument("--config_file", default=None, help="Config file")
+
+    # Categories to be run: PR, RR, FG (by default all categories are selected)
+    parser.add_argument("--categories", type=str, default='PR,RR,FG', help="PR,RR,FG or any combination of those categories or a single one")
     
     try:
-        args = parser.parse_args()      
-        return args
+        args = parser.parse_args()
+        tmp_categories = args.categories.replace(" " ,"")
+        if tmp_categories != 'PR' and tmp_categories != 'RR' and tmp_categories != 'FG' and tmp_categories != 'PR,RR' and tmp_categories != 'PR,FG' and tmp_categories != 'RR,FG' and tmp_categories != 'PR,RR,FG':
+                raise argparse.ArgumentError(args.categories, "Should be a comma separated string with any (or all) of the following categories: PR,RR,FG")
+        else:
+            return args
     
     except:
-        print("\nPor favor, introduzca los argumentos requeridos.")
+        print("\nPlease, introduce required arguments")
         sys.exit()
 
 
-# se podrían manejar por separado los diferentes errores (ver hcatgpo: flinotfounderror, argumenterror, valueerror)
+
 

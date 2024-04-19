@@ -14,17 +14,16 @@ Esta herramienta permite a los usuarios analizar archivos VCF para el manejo aut
     -evidence (int): Nivel de evidencia de ClinVar para el modo avanzado (1-4).#comprobar que lo he puesto de memoria
     -assembly (str): Ensamblaje genómico a utilizar (GRCh37 o GRCh38).
 
-@Author Edurne Urrutia Lafuente
+@Author Javier Perez FLorido, Edurne Urrutia Lafuente
 @Date 2023/08/01
-@email edurlaf@gmail.com
-@github github.com/edurlaf
+@email javier.perez.florido.sspa@juntadeandalucia.es, edurlaf@gmail.com
+@github https://github.com/babelomics/secondaryfindings
 """
 
-#import sys
 import os
 import json
 
-from modules.arguments import arguments
+from modules.misc.arguments import arguments
 from modules.get_json_bed import get_json_bed
 from modules.get_json_bed_fg import get_json_bed_fg
 from modules.get_clinvar import get_clinvar
@@ -39,9 +38,17 @@ def main():
 
 
     """
-    Get the arguments
+    Get the arguments from command line
     """
     args = arguments()
+    vcf_file = args.vcf_file
+    mode = args.mode
+    evidence = args.evidence
+    assembly = str(args.assembly)
+    hpos_file = args.hpos_file
+    categories_usr = args.categories
+    categories = [category.strip().lower() for category in categories_usr.split(",")]
+
 
     """
     Read config file
@@ -50,7 +57,7 @@ def main():
     with open(args.config_file, "r") as config_file:
         config_data = json.load(config_file)
     
-    # Obtener los valores del archivo de configuración
+    # Get values from config file
     categories_path = config_data["categories_path"]
     clinvar_path = config_data["clinvar_path"]
     temp_path = config_data["temp_path"]
@@ -62,21 +69,11 @@ def main():
     diplotype_phenotype_info_file = config_data["diplotype_phenotype_info_file"]
 
     """ 
-    Create clinvar, temp and final_output directories
-    """    
-    # Comprobar si los directorios 'clinvar', 'temp' y 'final_output' existen y crearlos si no
+    Create clinvar, temp and final_output directories (if they dont exist)
+    """
     for folder in [clinvar_path, temp_path, out_path]:
         if not os.path.exists(folder):
             os.mkdir(folder)       
-    
-
-    
-    # Argumentos del usuario
-    vcf_file = args.vcf_file
-    mode = args.mode
-    evidence = args.evidence
-    assembly = str(args.assembly)
-    hpos_file = args.hpos_file
 
 
     if assembly == '37':
@@ -84,13 +81,6 @@ def main():
     elif assembly == '38':
         reference_genome = config_data["reference_genome_38_path"]
 
-
-
-# Obtener la preferencia del usuario para las categorías a analizar (PR, RR, FG)
-    categories_usr = input("Elija las categorías a analizar (PR, RR, FG separados por comas): ")
-    categories = [category.strip().lower() for category in categories_usr.split(",")]
-    
-    
     """
     Generate JSON and BED files 
     """
