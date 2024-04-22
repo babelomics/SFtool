@@ -28,11 +28,10 @@ from modules.misc.get_json_bed import get_json_bed
 from modules.misc.get_json_bed_fg import get_json_bed_fg
 from modules.misc.clinvar_utils import clinvar_manager
 from modules.FG.run_fg_module import run_pharmacogenomic_risk_module
-from modules.generate_report import generate_report
 from modules.PR_RR.run_pers_repro_risk_module import run_pers_repro_risk_module
-from modules.get_versions_paths import get_versions_paths
 from modules.misc.check_dependencies import check_dependencies
 from modules.misc.vcf_utils import normalize_vcf, intersect_vcf_with_bed
+from modules.misc.report_utils import generate_report
 
 def main():
 
@@ -120,7 +119,6 @@ def main():
     """
     Normalized VCF and BED intersection for each category
     """
-
     input_vcf_files = {}
     for category in categories:
         category_bed_file = os.path.join(categories_path + category.upper(), category + '_risk_genes_GRCh' + assembly + '.bed')
@@ -150,18 +148,11 @@ def main():
         fg_results = None    
         haplot_results = None
 
+    """
+    Create report
+    """
+    generate_report(pr_results, rr_results, fg_results, haplot_results, categories_path, out_path, categories, vcf_file, hpos_file, gene_to_phenotype_file, args, config_data, clinvar_db)
 
-    """
-    Get versions and paths
-    """
-    versions_paths = get_versions_paths(args, config_data, clinvar_db)
-
-
-    """
-    Generar el informe de salida
-    """
-    out_file = generate_report(pr_results, rr_results, fg_results, haplot_results, categories_path, out_path, categories, vcf_file, hpos_file, gene_to_phenotype_file, versions_paths)
-    print("Informe de resultados generado.\n ---Finalizado---")
 
     
         

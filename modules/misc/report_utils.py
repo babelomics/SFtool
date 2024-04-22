@@ -2,11 +2,70 @@
 """
 Created on Mon Sep 25 23:26:14 2023
 
-@author: kindi
+@author: Edurne Urrutia, Javier Pérez Florido
 """
 
 import json
 import pandas as pd
+import os
+import subprocess
+
+
+def get_versions_paths(program_arguments, config_data, clinvar_db):
+
+    # HPO
+    if program_arguments.hpos_file is None:
+        hpos_patient_list="Not provided"
+    else:
+        hpos_list_temp = get_hpos_from_txt(program_arguments.hpos_file)
+        hpos_patient_list=",".join(str(hpo) for hpo in hpos_list_temp)
+
+    # Intervar version
+    try:
+        intervar_file_path = os.path.join(config_data["intervar_path"], "Intervar.py")
+        cmd = [intervar_file_path, "--version"]
+
+        intervar_process = subprocess.Popen(cmd, stdout= subprocess.PIPE)
+        intervar_out, intervar_err = intervar_process.communicate()
+
+    except subprocess.CalledProcessError as e:
+        print(f"Error running InterVar: {e.output}")
+
+    # Bcftools version
+    try:
+        bcftools_file_path = os.path.join(config_data["bcftools_path"], "bcftools")
+        cmd = [bcftools_file_path, "--version"]
+
+        bcftools_process = subprocess.Popen(cmd, stdout= subprocess.PIPE)
+        bcftools_out, bcftools_err = bcftools_process.communicate()
+
+    except subprocess.CalledProcessError as e:
+        print(f"Error running InterVar: {e.output}")
+
+
+
+    versions_paths={
+        "SF module": "0.1",
+        "SF module mode": program_arguments.mode,
+        "Input VCF": program_arguments.vcf_file,
+        "Temporal dir": config_data["temp_path"],
+        "Output dir": config_data["out_path"],
+        "HPO list": hpos_patient_list,
+        "Human assembly": "hg19" if program_arguments.assembly == 37 else "hg38",
+        "Reference genome path":  config_data["reference_genome_37_path"] if program_arguments.assembly == 37 else config_data["reference_genome_38_path"],
+        "Clinvar version": "Not used (basic mode)" if program_arguments.mode == "basic" else os.path.splitext(os.path.basename(clinvar_db))[0].split("_")[-1],
+        "Clinvar path": clinvar_db,
+        "Clinvar Evidence level": str(program_arguments.evidence),
+        "Intervar version": str(intervar_out).split(" ")[1] + " " + str(intervar_out).split(" ")[2].split("\\n")[0],
+        "Intervar path": config_data["intervar_path"],
+        "bcftools version": str(bcftools_out).split(" ")[1].split("\\n")[0],
+        "bcftools path": config_data["bcftools_path"],
+        "HPO genes to phenotype version": os.path.splitext(os.path.basename(config_data["gene_to_phenotype_file"]))[0].split("_")[-1],
+        "HPO genes to phenotype path": config_data["gene_to_phenotype_file"]
+
+    }
+
+    return versions_paths
 
 def combine_variant_and_gene_info(variant_info, gene_info):
     """
@@ -49,18 +108,18 @@ def check_inheritance(results, category, categories_path):
 
     Returns:
         dict: Un diccionario de variantes a informar siguiendo las reglas de herencia definidas.
-    """    
+    """
 
     try:
-        # Cargar el archivo JSON de categoría de genes    
+        # Cargar el archivo JSON de categoría de genes
         genes_cat_path = f"{categories_path}{category.upper()}/{category}_risk_genes.json"
         genes_cat = None
         with open(genes_cat_path, "r") as genes_cat_file:
             genes_cat = json.load(genes_cat_file)
-        
-        # Crear diccionario de variantes a informar 
+
+        # Crear diccionario de variantes a informar
         reported_variants = {}
-    
+
         # Recorrer claves del diccionario de resultados combinados
         for variant_key, variant_info in results.items():
             variant_gene = variant_info["Gene"]
@@ -68,14 +127,14 @@ def check_inheritance(results, category, categories_path):
             for gene in genes_cat['genes']:
                 if gene['gene_symbol'] ==  variant_gene:
                     inher = gene["inheritance"]
-                          
+
                     # Si herencia es dominante (AD), semidominante o ligado al X, o si la categoría es RR, se informa la variante
                     if inher in ['AD', 'SD', 'XL'] or category == 'rr':
                         # Combina la información de la variante y el gen
                         combined_info = combine_variant_and_gene_info(variant_info, gene)
                         # Agrega la información combinada a reported_variants
                         reported_variants[variant_key] = combined_info
-                    
+
                     # Si la herencia es recesiva, comprobar genotipo y/o otras variantes en mismo gen
                     elif inher == 'AR':
                         # if gene = 'HFE':
@@ -86,28 +145,28 @@ def check_inheritance(results, category, categories_path):
                             combined_info = combine_variant_and_gene_info(variant_info, gene)
                             # Agrega la información combinada a reported_variants
                             reported_variants[variant_key] = combined_info
-                            
-                        # Si la variante está en heterocigosis, sólo se reportará si se encuentra otra variante en el mismo gen    
+
+                        # Si la variante está en heterocigosis, sólo se reportará si se encuentra otra variante en el mismo gen
                         elif variant_info["Genotype"] == 'het':
                             # Verifica si hay otra variante en el mismo gen
                             other_variant_in_gene = False
                             for other_variant_key in results:
                                 other_variant_info = results[other_variant_key]
                                 if (
-                                    other_variant_info["Gene"] == variant_gene
-                                    and other_variant_key != variant_key
+                                        other_variant_info["Gene"] == variant_gene
+                                        and other_variant_key != variant_key
                                 ):
-                                    other_combined_info = combine_variant_and_gene_info(other_variant_info, gene)                                
+                                    other_combined_info = combine_variant_and_gene_info(other_variant_info, gene)
                                     combined_info = combine_variant_and_gene_info(variant_info, gene)
-    
+
                                     # Agrega la información de ambas variantes a reported_variants
                                     reported_variants[variant_key] = combined_info
                                     reported_variants[other_variant_key] = other_combined_info
-        return(reported_variants)     
+        return(reported_variants)
     except Exception as e:
         print(f"Error en check_inheritance: {str(e)}")
         return {}
- 
+
 # def get_hpo_dct(categories_path):
 
 #     hpo_file = f"{categories_path}phenotype_to_genes.txt"
@@ -116,36 +175,36 @@ def check_inheritance(results, category, categories_path):
 #     with open('hpo_file', 'r') as file:
 #         # Salta la primera línea si contiene encabezados
 #         next(file)
-        
+
 #         # Iterar a través de las líneas del archivo
 #         for line in file:
 #             # Dividir cada línea en columnas usando tabulaciones o espacios en blanco como delimitadores
 #             fields = line.strip().split('\t')
-            
+
 #             # Extraer los valores de cada columna
 #             hpo_id, hpo_name, ncbi_gene_id, gene_symbol, disease_id = fields
-            
+
 #             # Comprobar si el HPO ya está en el diccionario, y si no, crea un nuevo diccionario
 #             if hpo_id not in hpo_data:
 #                 hpo_data[hpo_id] = {
 #                     "hpo_name": hpo_name,
 #                     "gene_info": []
 #                 }
-            
+
 #             # Agrega información del gen y la enfermedad al diccionario correspondiente
 #             hpo_data[hpo_id]["gene_info"].append({
 #                 "ncbi_gene_id": ncbi_gene_id,
 #                 "gene_symbol": gene_symbol,
 #                 "disease_id": disease_id
 #             })
-               
+
 #     return(hpo_data)
 
 def check_patient_HPO(reported_results, hpos_user, categories_path, gene_to_phenotype_file):
     """
     Comprueba si los HPOs del usuario coinciden con los resultados reportados.
 
-    Args:        
+    Args:
         reported_results (dict): Resultados de diagnóstico reportados.
         user_hpos (list): Lista de HPOs proporcionada por el usuario.
         categories_path (str): Ruta al directorio categories.
@@ -155,19 +214,19 @@ def check_patient_HPO(reported_results, hpos_user, categories_path, gene_to_phen
     """
     # Inicializar un diccionario vacío para almacenar los datos
     gene_hpo_dict = {}
-    
+
     # Abrir el archivo de texto para lectura
     with open(gene_to_phenotype_file, 'r') as file:
         # Leer la primera línea (encabezado) para omitirla
         next(file)
-        
+
         # Iterar sobre las líneas del archivo
         for line in file:
             # Dividir cada línea en campos separadas por tabulaciones
             fields = line.strip().split('\t')
             gene_symbol = fields[1]
             hpo_id = fields[2]
-            
+
             # Si el gene_symbol ya está en el diccionario, agregar el hpo_id a la lista existente
             if gene_symbol in gene_hpo_dict:
                 gene_hpo_dict[gene_symbol].append(hpo_id)
@@ -186,19 +245,19 @@ def check_patient_HPO(reported_results, hpos_user, categories_path, gene_to_phen
                     reported_results[result]['related_HPOs'] = hpo #habria que mirar que hacer si hay mas de un hpo que coincide
                 else:
                     reported_results[result]['related_HPOs'] += ', ' + hpo
-            
+
     return reported_results
 
 def get_hpos_from_txt(hpos_file):
     """
     Lee un archivo de texto que contiene HPOs y devuelve una lista de HPOs.
-    
+
     Args:
         hpos_txt (str): Ruta al archivo de texto que contiene los HPOs, uno por línea.
-    
+
     Returns:
         List[str]: Lista de HPOs leídos del archivo.
-    
+
     Raises:
         FileNotFoundError: Si el archivo especificado no se encuentra.
     """
@@ -209,12 +268,12 @@ def get_hpos_from_txt(hpos_file):
         with open(hpos_file, "r") as file:
             hpos = [line.strip() for line in file.readlines()]
         return hpos
-    
+
     except FileNotFoundError:
         print(f"El archivo {hpos_file} no se encontró.")
         return []
 
-def generate_report(pr_results, rr_results, fg_results, haplot_results, categories_path, out_path, categories, vcf_file, hpos_txt, gene_to_phenotype_file, versions_path):
+def generate_report(pr_results, rr_results, fg_results, haplot_results, categories_path, out_path, categories, vcf_file, hpos_txt, gene_to_phenotype_file, args, config_data, clinvar_db):
     """
     Escribe los resultados de las categorías PR, RR y FG en un archivo Excel.
 
@@ -225,6 +284,10 @@ def generate_report(pr_results, rr_results, fg_results, haplot_results, categori
         out_path (str): Ruta al archivo de salida.
     """
     try:
+
+        # Get versions
+        versions_path = get_versions_paths(args, config_data, clinvar_db)
+
         # Obtener lista de HPOs
         hpos_user = get_hpos_from_txt(hpos_txt)
         outfile = f"{out_path}{vcf_file.split('/')[-1].split('.vcf')[0]}_final_results.xlsx"
@@ -240,21 +303,21 @@ def generate_report(pr_results, rr_results, fg_results, haplot_results, categori
                     pr_final = check_patient_HPO(reported_results, hpos_user, categories_path, gene_to_phenotype_file)  # pendiente de desarrollar, warning si los términos orpha se corresponden con los hpo del paciente
                     results_df =  pd.DataFrame.from_dict(pr_final, orient='index')
                     results_df.to_excel(writer, sheet_name= category.upper() + ' results', index=True)
-                    
+
                 elif category == 'rr':
                     reported_results = check_inheritance(rr_results, category, categories_path)
                     rr_final = check_patient_HPO(reported_results, hpos_user, categories_path, gene_to_phenotype_file)  # pendiente de desarrollar, warning si los términos orpha se corresponden con los hpo del paciente
                     results_df =  pd.DataFrame.from_dict(rr_final, orient='index')
                     results_df.to_excel(writer, sheet_name= category.upper() + ' results', index=True)
-        
+
                 else:
                     fg_df = pd.DataFrame(fg_results)
                     fg_df.to_excel(writer, sheet_name='FG results', index=False)
-                    
+
                     haplot_df = pd.DataFrame(haplot_results)
                     haplot_df.to_excel(writer, sheet_name='FG Diplotype-Phenotype', index=False)
-                
+
         print(f"Los resultados se han guardado en '{outfile}'.")
-        
+
     except Exception as e:
         print(f"Error en write_report: {str(e)}")
