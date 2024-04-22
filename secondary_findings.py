@@ -33,6 +33,7 @@ from modules.FG.run_fg_module import run_pharmacogenomic_risk_module
 from modules.generate_report import generate_report
 from modules.run_pers_repro_risk_module import run_pers_repro_risk_module
 from modules.get_versions_paths import get_versions_paths
+from modules.check_dependencies import check_dependencies
 
 def main():
 
@@ -108,15 +109,10 @@ def main():
         clinvar_db = None
 
     """
-    Comprobar dependencias
+    Check dependencies
     """
-    # Comprobar si InterVar está en el path
-    if not os.path.exists(intervar_path):
-        print("InterVar no está instalado. Por favor, instálalo para continuar.")
+    check_dependencies(intervar_path)
 
-    # Comprobar si bcftools está en el path : TO DO
-    # Comprobar si Annovar está en el path: TO DO
-    
     """
     VCF normalization
     """

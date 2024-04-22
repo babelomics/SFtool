@@ -5,8 +5,6 @@ Created on Sat Aug 26 22:15:15 2023
 @author: kindi
 """
 import os
-import gzip
-import bgzip
 import subprocess
 
 
