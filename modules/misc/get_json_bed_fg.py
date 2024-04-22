@@ -4,38 +4,30 @@ Created on Sat Aug 12 22:45:05 2023
 
 @author: kindi
 """
-"""
-falta hacer csv con assembly 38, y su bed y json correspondientes. También falta ver si funciona bien.
-"""
-import os
 import csv
 import json
-#from pybedtools import BedTool #DEBERÍA MIRARLO PARA ORDENAR LOS CROMOSOMAS
 from natsort import natsorted
 
 
 def generate_json_from_fg_csv(csv_file, assembly, categories_path):
     """
-    Genera un archivo JSON a partir de un archivo CSV de datos farmacogenéticos.
+    Generate a JSON file from a CSV file containing pharmacogenetic data
     
     Args:
-        csv_file (str): Ruta al archivo CSV de entrada.
-        assembly (str): Versión de ensamblaje (por ejemplo, "37").
-        categories_path: Ruta al directorio categories.
+        csv_file (str): Path to CSV input file
+        assembly (str): Reference genome version ("37" or "38").
+        categories_path: Path to categories directory
     
     Returns:
         None
     """
     try:
-        genes_data = []
         
         # Create dictionary and gene list to store info
         variants_dct = {
-        "category": "Hallazgos secundarios de riesgo farmacogenetico",
-        "variants": {}
+            "category": "Pharmacogenetic secondary findings",
+            "variants": {}
         }
-        
-        variants_lst = []
     
         # Read CSV file and store it in the dictionary
         with open(csv_file, 'r') as file:
@@ -57,9 +49,7 @@ def generate_json_from_fg_csv(csv_file, assembly, categories_path):
                         'rs': row['dbSNP'],
                         }
                     variants_dct["variants"][variant] = variant_info
-                #variants_lst.append(variant)
-        
-        #return(variants_dct, variants_lst)
+
             # Write JSON file
             out_json = f'{categories_path}FG/fg_risk_genes_GRCh{assembly}.json'
             with open(out_json, 'w') as json_file:
@@ -73,12 +63,12 @@ def generate_json_from_fg_csv(csv_file, assembly, categories_path):
 
 def generate_bed_from_fg_csv(csv_file, assembly, categories_path):
     """
-    Genera un archivo BED a partir de un archivo CSV de datos farmacogenéticos.
+    Create a BED file from a CSV file with pharmacogenetic data
     
     Args:
-        csv_file (str): Ruta al archivo CSV de entrada.
-        assembly (str): Versión de ensamblaje (por ejemplo, "37").
-        categories_path: Ruta al directorio categories.
+        csv_file (str): Path to CSV input file
+        assembly (str): Reference genome version ("37" or "38").
+        categories_path: Path to category directory
     
     Returns:
         None
@@ -119,14 +109,16 @@ def generate_bed_from_fg_csv(csv_file, assembly, categories_path):
 
 def get_json_bed_fg(assembly, categories_path):
     """
-    Función principal que procesa un archivo CSV de datos farmacogenéticos y genera archivos JSON y BED.
+    Main function that reads a CSV file with pharmacogenetic info and create a JSON and a BED file
 
     Args:
-        assembly (str): Versión de ensamblaje (por ejemplo, "37").
+        assembly (str): reference genome version ("37" or "38").
 
     Returns:
         None
     """
+    print("Creating BED and JSON files for FG catalogue.")
+
     try:
         csv_file = f"{categories_path}FG/fg_risk_genes_GRCh{assembly}.csv"
         generate_json_from_fg_csv(csv_file, assembly, categories_path)

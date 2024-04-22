@@ -24,9 +24,9 @@ import os
 import json
 
 from modules.misc.arguments import arguments
-from modules.get_json_bed import get_json_bed
-from modules.get_json_bed_fg import get_json_bed_fg
-from modules.get_clinvar import get_clinvar
+from modules.misc.get_json_bed import get_json_bed
+from modules.misc.get_json_bed_fg import get_json_bed_fg
+from modules.misc.clinvar_manager import clinvar_manager
 from modules.normalize_vcf import normalize_vcf
 from modules.intersect_vcf_bed import intersect_vcf_with_bed
 from modules.FG.run_fg_module import run_pharmacogenomic_risk_module
@@ -60,20 +60,13 @@ def main():
     # Get values from config file
     categories_path = config_data["categories_path"]
     clinvar_path = config_data["clinvar_path"]
+    clinvar_ddbb_version = config_data["clinvar_ddbb_version"]
     temp_path = config_data["temp_path"]
     out_path = config_data["out_path"]
     intervar_path = config_data["intervar_path"]
     bcftools_path = config_data["bcftools_path"]
-
     gene_to_phenotype_file = config_data["gene_to_phenotype_file"]
     diplotype_phenotype_info_file = config_data["diplotype_phenotype_info_file"]
-
-    """ 
-    Create clinvar, temp and final_output directories (if they dont exist)
-    """
-    for folder in [clinvar_path, temp_path, out_path]:
-        if not os.path.exists(folder):
-            os.mkdir(folder)       
 
 
     if assembly == '37':
@@ -81,56 +74,36 @@ def main():
     elif assembly == '38':
         reference_genome = config_data["reference_genome_38_path"]
 
+    """ 
+    Create several directories: clinvar, temp and final_output directories (if they dont exist)
+    """
+    for folder in [clinvar_path, temp_path, out_path]:
+        if not os.path.exists(folder):
+            os.mkdir(folder)       
+
     """
     Generate JSON and BED files 
     """
-    # Comprobar si los archivos JSON existen
-    # Catálogo de riesgo personal
+    # Check whether BED file (and consequently, JSON file) for each category exist. If not, create them
+    # Personal risk catalogue
     if not os.path.exists(f"{categories_path}/PR/pr_risk_genes_GRCh{assembly}.bed"):
-        print("Generando archivos JSON y BED para riesgo personal.") # mejor dentro de la función get_json
         get_json_bed("pr", assembly, categories_path)
         
-    # Catálogo de riesgo reproductivo
+    # Reproductive risk catalogue
     if not os.path.exists(f"{categories_path}/RR/rr_risk_genes_GRCh{assembly}.bed"):
-        print("Generando archivos JSON y BED para riesgo reproductivo.") # mejor dentro de la función get_json
         get_json_bed("rr", assembly, categories_path)
         
-    # Catálogo de riesgo farmacogenético
+    # Pharma risk catalogue
     if not os.path.exists(f"{categories_path}/FG/fg_risk_genes_GRCh{assembly}.bed"):
-        print("Generando archivos JSON y BED para riesgo farmacogenético.") # mejor dentro de la función get_json
         get_json_bed_fg(assembly, categories_path)
         
     
     """
-    Get ClinVar database
+    In advanced mode, check/update clinVar database
     """
-    # Si el modo es avanzado, comprobar si se ha descargado la BD ClinVar
+    # If "advanced" mode, check whether Clinvar Database exists
     if mode == 'advanced':
-        clinvar_files = [file for file in os.listdir(clinvar_path) if file.startswith("clinvar_database_GRCh" + str(assembly))]
-        
-        # Si hay archivos clinvar, seleccionar el más reciente
-        if clinvar_files:
-            clinvar_files.sort(reverse=True)
-            last_clinvar = clinvar_files[0]
-
-            # Obtener la versión del nombre del archivo
-            last_version = last_clinvar.split('_')[3].split('.')[0]      
-            #print(f"El archivo ClinVar más reciente encontrado es {archivo_mas_reciente}.")
-            print(f"La versión actual del archivo ClinVar es {last_version}.")
-        
-            # Preguntar al usuario si desea actualizar el archivo
-            answr = input("¿Deseas actualizarlo? (S/N): ")       
-            if answr.lower() == "s":
-                # Descargar el archivo actualizado
-                clinvar_db = get_clinvar(clinvar_path)
-            else:
-                print("No se actualizará el archivo ClinVar.")
-                clinvar_db = f"{clinvar_path}{last_clinvar}"
-        # Si no se encuentran archivos ClinVar, descargarlo y guardarlo
-        else:
-            print("No se encontraron archivos ClinVar en el directorio.")
-            print("El archivo ClinVar se descargará.")
-            clinvar_db = get_clinvar(clinvar_path)
+        clinvar_db = clinvar_manager(clinvar_path, clinvar_ddbb_version, assembly)
     else:
         clinvar_db = None
 

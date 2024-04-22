@@ -13,21 +13,21 @@ import shutil
 
 def process_clinvar_data(assembly, release_date, clinvar_path):
     """
-    Descarga y procesa los datos de CLINVAR para una versión de ensamblaje específica.
+    Download and process CLINVAR database for a given assembly version
     
     Args:
-        assembly (str): La versión de ensamblaje para la cual se desean los datos (por ejemplo, 'GRCh37' o 'GRCh38').
-        release_date (datetime.datetime): La fecha de lanzamiento de los datos de CLINVAR.
-        clinvar_path: Ruta al directorio clinvar.
+        assembly (str): Assembly version. Either GRCh37 or GRCh38
+        release_date (datetime.datetime): Clinvar release date
+        clinvar_path: Path to clinvar directory
     
     Returns:
-        str: El nombre del archivo de salida que contiene los datos procesados.
+        str: Output file with processed data
     
     Raises:
-        Exception: Si ocurre un error durante el procesamiento de los datos.
+        Exception: When an error occurs
 
     """
-    # Nombres de las columnas de interés
+    # Columns of interest
     columns_of_interest_names = ["Type", "Name", "GeneSymbol",
                                  "ClinicalSignificance", "ClinSigSimple", "RS# (dbSNP)", "VariationID",
                                  "PhenotypeIDS", "PhenotypeList", "Assembly", 
@@ -35,10 +35,10 @@ def process_clinvar_data(assembly, release_date, clinvar_path):
                                  "SubmitterCategories", "PositionVCF", 
                                  "ReferenceAlleleVCF", "AlternateAlleleVCF"]
     
-    # Nombre del archivo de salida
+    # Output file
     output_file = f"{clinvar_path}clinvar_database_{assembly}_{release_date.strftime('%Y%m%d')}.txt"
     
-    # Procesar el archivo CLINVAR
+    # Process CLINVAR file
     with gzip.open(f"{clinvar_path}variant_summary.txt.gz", "rt") as gz_file, open(output_file, "w") as output:
         csv_writer = csv.writer(output, delimiter="\t")
         header_line = gz_file.readline().strip()
@@ -51,35 +51,36 @@ def process_clinvar_data(assembly, release_date, clinvar_path):
                 assembly_column_index = idx
                 break
     
-        # Agregar las columnas de interés al archivo de salida
+        # Add columns of interest to the output file
         csv_writer.writerow(columns_of_interest_names)
     
         for line in gz_file:
             row = line.strip().split("\t")
-            if row[assembly_column_index] == assembly:  # Filtro por ensamblaje (GRCh37 o GRCh38)
+            if row[assembly_column_index] == assembly:  # Filter according to genome version (GRCh37 o GRCh38)
                 relevant_fields = [row[pos] for pos in columns_of_interest_positions]
                 csv_writer.writerow(relevant_fields)
     
     return output_file
 
-def get_clinvar(clinvar_path):
+
+def get_clinvar(clinvar_path, assembly):
     """
-    Descarga y procesa los datos de la base de datos CLINVAR.
+    Download and process Clinvar database
     
     Args:
-        clinvar_path: Ruta al directorio clinvar.
+        clinvar_path: Path to CLINVAR directory database
     """
     try:        
-        # URL del archivo CLINVAR
+        # CLINVAR URL
         clinvar_url = "https://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/variant_summary.txt.gz"
         
-        # Abrir la URL
+        # Open URL
         response = urllib.request.urlopen(clinvar_url)
 
-        # Verificar si la respuesta fue exitosa (código de estado HTTP 200)
+        # Check whether response is OK (HTTP 200 code)
         if response.status != 200:
-            print(f"Error al descargar el archivo CLINVAR. Código de estado HTTP: {response.status}")
-            return
+            print(f"Error downloading CLINVAR. HTTP code: {response.status}")
+            exit(1)
         
         # Open a local file for writing in binary mode
         out_rawfile = f"{clinvar_path}variant_summary.txt.gz"
@@ -88,30 +89,52 @@ def get_clinvar(clinvar_path):
             shutil.copyfileobj(response, output_file)
         print(f"File downloaded to {out_rawfile}")
         
-        # Obtener la fecha de release del archivo CLINVAR desde la URL
+        # Get Clinvar release date
         last_modified = response.headers['Last-Modified']
         if last_modified is None:
-            print("No se pudo obtener la fecha de release del archivo CLINVAR.")
-            return
+            print("Clinvar release date cannot be obtained")
+            exit(1)
         
         release_date = datetime.strptime(last_modified, '%a, %d %b %Y %H:%M:%S %Z')
         
-        # Procesar el archivo CLINVAR para GRCh37
-        grch37_output_file = process_clinvar_data("GRCh37", release_date, clinvar_path)
-        print(f"Archivo CLINVAR GRCh37 descargado y procesado. Versión: {release_date.strftime('%Y%m%d')}")
+        # Process CLINVAR file for the assembly
+        if assembly == "37":
+            clinvar_output_file = process_clinvar_data("GRCh37", release_date, clinvar_path)
+            print(f"CLINVAR GRCh37 file is downloaded and processed. Version: {release_date.strftime('%Y%m%d')}")
+        else:  # Assembly 38
+            clinvar_output_file = process_clinvar_data("GRCh38", release_date, clinvar_path)
+            print(f"CLINVAR GRCh38 file is downloaded and processed. Version: {release_date.strftime('%Y%m%d')}")
         
-        # Procesar el archivo CLINVAR para GRCh38
-        grch38_output_file = process_clinvar_data("GRCh38", release_date, clinvar_path)
-        print(f"Archivo CLINVAR GRCh38 descargado y procesado. Versión: {release_date.strftime('%Y%m%d')}")
-        
-        # Eliminar el archivo descargado en formato gz
+        # Remove donwloaded file
         os.remove(f"{clinvar_path}variant_summary.txt.gz")
-        
-        # # Eliminar versiones anteriores si existen
-        # for filename in os.listdir(clinvar_path):
-        #     if (filename.startswith("clinvar_database_") and filename.endswith(".txt")) and filename != grch37_output_file and filename != grch38_output_file:
-        #         os.remove(filename)
-        return(grch37_output_file) #si al final eintervar tamb funciona con genoma 38, cambiar esto en función del assembly
+
+        return clinvar_output_file
     
     except Exception as e:
-        print(f"Ocurrió un error: {str(e)}")
+        print(f"Error found: {str(e)}")
+
+
+
+
+def clinvar_manager(clinvar_path, clinvar_ddbb_version, assembly):
+    """
+
+    Manage clinvar database: get version contains in the config file or download the latest version
+
+    :param clinvar_path: directory path where Clinvar dabatase is stored
+    :param clinvar_ddbb_version: clinvar version. Either a date in the form of YYYYMMDD or 'latest' for downloading the latest one
+    :param assembly: reference genome version, either 37 or 38
+    :return:
+    """
+
+
+    if clinvar_ddbb_version == "latest": # Download the latest version
+        clinvar_db = get_clinvar(clinvar_path, assembly)
+    else:  # Use the version contained in the config file
+        clinvar_file = os.path.join(clinvar_path, "clinvar_database_GRCh" + str(assembly) + "_" + clinvar_ddbb_version + ".txt")
+        if os.path.exists(clinvar_file):
+            clinvar_db = clinvar_file
+        else:
+            print(clinvar_file + " does not exist")
+            exit(1)
+    return clinvar_db

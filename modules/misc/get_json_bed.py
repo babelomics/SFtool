@@ -4,31 +4,28 @@ Created on Tue Aug  8 19:07:52 2023
 
 @author: kindi
 """
-
-import os
 import csv
 import json
-#from pybedtools import BedTool #DEBERÍA MIRARLO PARA ORDENAR LOS CROMOSOMAS en vez de usar natsorted
 from biomart import BiomartServer
 from natsort import natsorted
 
 def read_csv(in_csv, category):
     """
-    Lee un archivo CSV y almacena la información en un diccionario.
+    Read a CSV file and store information in a dictionary
     
     Args:
-        in_csv (str): Ruta al archivo CSV.
+        in_csv (str): Path to CSV file
     
     Returns:
-        dict, list: Un diccionario que contiene la información leída y una lista de símbolos de genes.
+        dict, list: A dictionary with information from CSV file and a list of gene symbol
     """
     # Create dictionary and gene list to store info
     if category == 'pr':
         cat_str = 'personal'
     elif category == 'rr':
-        cat_str = 'reproductivo'
+        cat_str = 'reproductive'
     genes_dct = {
-    "category": f"Hallazgos secundarios de riesgo {cat_str}",
+    "category": f"Secondary findings of {cat_str} risk",
     "genes": []
     }
     
@@ -54,14 +51,14 @@ def read_csv(in_csv, category):
 
 def get_gene_pos(gene_symbol, assembly):
     """
-    Obtiene la posición de un gen en una versión de ensamblaje específica.
+    Get gene positions in a given genome assembly reference using BIOMART
     
     Args:
-        gene_symbol (str): Símbolo del gen.
-        assembly (str): Versión de ensamblaje ("37" o "38").
+        gene_symbol (str): Gene symbol
+        assembly (str): Genome assembly version ("37" or "38").
     
     Returns:
-        dict: Información de posición del gen.
+        dict: Gene position
     """
     if assembly == "37":
         server = BiomartServer("http://grch37.ensembl.org/biomart")
@@ -87,19 +84,19 @@ def get_gene_pos(gene_symbol, assembly):
 
 def write_bed_file(assembly, genes_lst, category, categories_path):
     """
-    Escribe información de genes en un archivo BED.
+    Write gene information to a BED format file
     
     Args:
-        assembly (str): Versión de ensamblaje ("37" o "38").
-        genes_lst (list): Lista de símbolos de genes.
-        category (str): Categoría de genes.
-        categories_path (str): Ruta al directorio categories.
+        assembly (str): reference genome version ("37" or "38").
+        genes_lst (list): Gene symbol list
+        category (str): category
+        categories_path (str): Path to category directory
     
     Returns:
         None
     """
     gene_coords = []
-    #### Hay genes que cambian de nombre según el genoma de referencia, pensar como generalizar esto
+    #### FURTHER WORK: Hay genes que cambian de nombre según el genoma de referencia, pensar como generalizar esto
     for gene in genes_lst:
         if gene == 'MMUT' and assembly == '37':
             gene = 'MUT'
@@ -126,27 +123,29 @@ def write_bed_file(assembly, genes_lst, category, categories_path):
 
 def get_json_bed(category, assembly, categories_path):
     """
-    Función principal que procesa un archivo CSV y genera archivos JSON y BED.
+    Main function: from a CSV file, creates a JSON and a BED files
     
     Args:
-        category (str): Categoría de genes.
-        assembly (str): Versión de ensamblaje ("37" o "38").
-        categories_path (str): Ruta al directorio categories.
+        category (str): category, either PR or RR
+        assembly (str): assembly version ("37" or "38").
+        categories_path (str): Path to category directory
         
     Returns:
         None
     """
-    
+
+    print("Creating BED and JSON files for " + category.upper() + "catalogue.")
+
     # CSV infile:
     in_csv = f"{categories_path}{category.upper()}/{category}_risk_genes.csv"
     
     # Read CSV and store it in the dictionary
     genes_dct, genes_lst = read_csv(in_csv, category)
     
-    # Write JSON file
+    # Write a JSON file
     out_json = f"{categories_path}{category.upper()}/{category}_risk_genes.json"
     with open(out_json, 'w') as json_file:
         json.dump(genes_dct, json_file, indent = 4)
     
-    # Write BED files   
+    # Write a BED file
     write_bed_file(assembly, genes_lst, category, categories_path)
