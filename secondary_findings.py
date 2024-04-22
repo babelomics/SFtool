@@ -27,13 +27,12 @@ from modules.misc.arguments import arguments
 from modules.misc.get_json_bed import get_json_bed
 from modules.misc.get_json_bed_fg import get_json_bed_fg
 from modules.misc.clinvar_manager import clinvar_manager
-from modules.normalize_vcf import normalize_vcf
-from modules.intersect_vcf_bed import intersect_vcf_with_bed
 from modules.FG.run_fg_module import run_pharmacogenomic_risk_module
 from modules.generate_report import generate_report
 from modules.run_pers_repro_risk_module import run_pers_repro_risk_module
 from modules.get_versions_paths import get_versions_paths
-from modules.check_dependencies import check_dependencies
+from modules.misc.check_dependencies import check_dependencies
+from modules.misc.vcf_utils import normalize_vcf, intersect_vcf_with_bed
 
 def main():
 
@@ -129,7 +128,7 @@ def main():
         input_vcf_files[category] = generated_vcf_file
     
     """
-    Ejecutar los módulos que correspondan:
+    Execute modules selected by the user according to categories
     """
     # Verificar y ejecutar los módulos elegidos por el usuario
     if "pr" in categories:
@@ -153,8 +152,6 @@ def main():
     else:
         fg_results = None    
         haplot_results = None
-    # Informar al usuario que los módulos han sido ejecutados
-    print("Módulos de análisis completados.")
 
 
     """
