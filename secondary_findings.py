@@ -26,10 +26,10 @@ import json
 from modules.misc.arguments import arguments
 from modules.misc.get_json_bed import get_json_bed
 from modules.misc.get_json_bed_fg import get_json_bed_fg
-from modules.misc.clinvar_manager import clinvar_manager
+from modules.misc.clinvar_utils import clinvar_manager
 from modules.FG.run_fg_module import run_pharmacogenomic_risk_module
 from modules.generate_report import generate_report
-from modules.run_pers_repro_risk_module import run_pers_repro_risk_module
+from modules.PR_RR.run_pers_repro_risk_module import run_pers_repro_risk_module
 from modules.get_versions_paths import get_versions_paths
 from modules.misc.check_dependencies import check_dependencies
 from modules.misc.vcf_utils import normalize_vcf, intersect_vcf_with_bed
@@ -130,24 +130,21 @@ def main():
     """
     Execute modules selected by the user according to categories
     """
-    # Verificar y ejecutar los módulos elegidos por el usuario
+    # Run modules selected by user
     if "pr" in categories:
-        # Ejecutar el módulo de riesgo personal (PR)
-        print("Ejecutando módulo de riesgo personal...")
+        # Run Personal Risk (PR) module
         pr_results = run_pers_repro_risk_module(input_vcf_files['pr'], assembly, mode, evidence, clinvar_db, intervar_path, 'pr')
     else:
         pr_results = None
         
     if "rr" in categories:
-        # Ejecutar el módulo de riesgo reproductivo (RR)
-        print("Ejecutando módulo de riesgo reproductivo...")
+        # Run Reproductive Risk (RR) module
         rr_results = run_pers_repro_risk_module(input_vcf_files['rr'], assembly, mode, evidence, clinvar_db, intervar_path, 'rr')
     else:
         rr_results = None        
         
     if "fg" in categories:
-        # Ejecutar el módulo farmacogenético (FG)
-        print("Ejecutando módulo farmacogenético...")
+        # Run Pharmacogeentic (FG) module
         fg_results, haplot_results = run_pharmacogenomic_risk_module(categories_path, input_vcf_files['fg'], assembly, temp_path, diplotype_phenotype_info_file)
     else:
         fg_results = None    

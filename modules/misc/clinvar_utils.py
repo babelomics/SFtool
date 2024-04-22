@@ -2,7 +2,7 @@
 """
 Created on Sun Aug 13 15:12:18 2023
 
-@author: kindi
+@author: Javier Perez Florido, Edurne Urrutia
 """
 import os
 import gzip
@@ -10,6 +10,79 @@ import csv
 import urllib.request
 from datetime import datetime
 import shutil
+
+def map_review_status(review_status):
+    """
+    Mapea el estado de revisión (review status) a un nivel de evidencia (evidence level) equivalente.
+
+    Args:
+        review_status (str): Estado de revisión en texto.
+
+    Returns:
+        int: Nivel de evidencia equivalente en número.
+    """
+    # Mapear "Review status" a número de estrellas
+    mapping = {
+        "practice guideline": 4,
+        "reviewed by expert panel": 3,
+        "criteria provided, multiple submitters, no conflicts": 2,
+        "criteria provided, conflicting interpretations": 1,
+        "criteria provided, single submitter": 1,
+        "no assertion for the individual variant": 0,
+        "no assertion criteria provided": 0,
+        "no assertion provided": 0
+    }
+    return mapping.get(review_status.lower(), 0)  # Valor predeterminado es 0 si no se encuentra en el mapeo
+
+def run_clinvar(evidence_level, clinvar_db, assembly):
+    """
+    Run clinvar using the database according to an evidence level
+
+    Args:
+        evidence_level (int): Evidence level for variants
+        clinvar_db (str): Path to CLINVAR database
+        assembly (str): Reference genome version
+
+    Returns:
+        dict: A dictionary that contains variants from Clinvar and their related information.
+
+    Raises:
+        Exception: An exception occurs when an error arises in Clinvar
+    """
+    try:
+        clinvar_path = f"{clinvar_db.split('GRCh')[0]}GRCh{assembly}_{clinvar_db.split('_')[-1]}"
+
+        # Read Clinvar database
+        clinvar_dct = {}  # Un diccionario para almacenar la información de CLINVAR
+
+        with open(clinvar_path, "r") as db_file:
+            for line in db_file:
+                line = line.rstrip()
+                if line == "":
+                    continue
+                fields = line.strip().split("\t")
+                variant = f"{fields[10]}:{fields[15]}:{fields[16]}:{fields[17]}"
+                gene = fields[2]
+                clinical_significance = fields[3]
+                clinsigsimple = fields[4]
+                rs_id = fields[5]
+                review_status = fields[13]
+                stars = map_review_status(review_status)
+                if stars >= int(evidence_level):
+                    clinvar_id = fields[6]
+                    clinvar_dct[variant] = {
+                        "Gene": gene,
+                        "ClinicalSignificance": clinical_significance,
+                        "ClinSigSimple": clinsigsimple,
+                        "rs": rs_id,
+                        "ReviewStatus": '(' + str(stars) + ') ' + review_status,
+                        "ClinvarID": clinvar_id
+                    }
+        return(clinvar_dct)
+
+    except Exception as e:
+        print(f"Error when filtering variants: {e}")
+
 
 def process_clinvar_data(assembly, release_date, clinvar_path):
     """

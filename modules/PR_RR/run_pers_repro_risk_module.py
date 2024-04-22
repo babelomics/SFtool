@@ -4,22 +4,26 @@ Created on Thu Jan 25 2024
 
 @author: jpflorido
 """
-from modules.utils import run_intervar, parse_intervar_output, map_review_status, run_clinvar, combine_results, write_category_results_to_tsv
-
+from modules.misc.intervar_utils import run_intervar, parse_intervar_output
+from modules.misc.clinvar_utils import run_clinvar
+from modules.misc.vcf_utils import combine_results
+from modules.misc.utils import write_category_results_to_tsv
 
 
 def run_pers_repro_risk_module(norm_vcf, assembly, mode, evidence_level, clinvar_db, intervar_path, category):
     """
-    Ejecuta el módulo de riesgo personal según el modo seleccionado.
+    Run Personal Risk or Reproductive Risgk module
 
     Args:
-        vcf_path (str): Ruta al archivo VCF de entrada.
-        assembly (str): Ensamblaje genómico a utilizar.
-        mode (str): Modo de ejecución ("basic" o "advanced").
-        evidence_level (int): Nivel de evidencia deseado.
-        category (str): Categoría de genes para la anotación.
-        clinvar_db (str): Ruta al archivo de base de datos de CLINVAR.
+        vcf_path (str): Path to normalized and intersected VCF file
+        assembly (str): Reference genome version
+        mode (str): Execution mode ("basic" or "advanced").
+        evidence_level (int): Evidence level
+        category (str): Gene category for annotation
+        clinvar_db (str): Path to CLINVAR database
     """
+
+    print("Running " + category.upper() + "risk module")
 
     # Intervar is always run
     run_intervar(norm_vcf, category, assembly, intervar_path)
