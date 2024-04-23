@@ -5,6 +5,8 @@ import configparser
 
 def check_dependencies(intervar_path, bcftools_path):
 
+    print("Checking dependencies...")
+
     # Check whether InterVar is installed
     if not os.path.exists(os.path.join(intervar_path, "Intervar.py")):
         print("InterVar is not installed. Exiting")

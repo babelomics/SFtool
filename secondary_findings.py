@@ -24,8 +24,7 @@ import os
 import json
 
 from modules.misc.arguments import arguments
-from modules.misc.get_json_bed import get_json_bed
-from modules.misc.get_json_bed_fg import get_json_bed_fg
+from modules.misc.build_json_bed_files import build_json_bed_files
 from modules.misc.clinvar_utils import clinvar_manager
 from modules.FG.run_fg_module import run_pharmacogenomic_risk_module
 from modules.PR_RR.run_pers_repro_risk_module import run_pers_repro_risk_module
@@ -90,15 +89,15 @@ def main():
     # Check whether BED file (and consequently, JSON file) for each category exist. If not, create them
     # Personal risk catalogue
     if not os.path.exists(f"{categories_path}/PR/pr_risk_genes_GRCh{assembly}.bed"):
-        get_json_bed("pr", assembly, categories_path)
+        build_json_bed_files("pr", assembly, categories_path)
         
     # Reproductive risk catalogue
     if not os.path.exists(f"{categories_path}/RR/rr_risk_genes_GRCh{assembly}.bed"):
-        get_json_bed("rr", assembly, categories_path)
+        build_json_bed_files("rr", assembly, categories_path)
         
     # Pharma risk catalogue
     if not os.path.exists(f"{categories_path}/FG/fg_risk_genes_GRCh{assembly}.bed"):
-        get_json_bed_fg(assembly, categories_path)
+        build_json_bed_files("fg", assembly, categories_path)
         
     
     """
