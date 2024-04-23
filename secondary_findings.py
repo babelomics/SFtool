@@ -76,7 +76,13 @@ def main():
     """
     for folder in [clinvar_path, temp_path, out_path]:
         if not os.path.exists(folder):
-            os.mkdir(folder)       
+            os.mkdir(folder)
+
+    """
+    Check dependencies
+    """
+    check_dependencies(intervar_path, bcftools_path)
+
 
     """
     Generate JSON and BED files 
@@ -104,10 +110,6 @@ def main():
     else:
         clinvar_db = None
 
-    """
-    Check dependencies
-    """
-    check_dependencies(intervar_path)
 
     """
     VCF normalization

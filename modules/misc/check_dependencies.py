@@ -19,11 +19,10 @@ def check_dependencies(intervar_path, bcftools_path):
     # convert2annovar, table_annovar and annotate_variation
 
     config = configparser.ConfigParser()
-    config.sections()
 
     config.read(os.path.join(intervar_path, "config.ini"))
 
-    if not os.path.exists(config['Annovar']['convert2annovar']) or not os.path.exists(config['Annovar']['table_annovar']) or os.path.exists(config['Annovar']['annotate_variation']):
+    if not os.path.exists(config.get('Annovar', 'convert2annovar')) or not os.path.exists(config.get('Annovar','table_annovar')) or not os.path.exists(config.get('Annovar','annotate_variation')):
         print("Annovar files (convert2annovar.pl or table_annovar.pl or annotate_variation.pl) do not exist. Exiting")
         exit(1)
 

@@ -8,5 +8,5 @@
   "reference_genome_37_path":  "/mnt/lustre/scratch/CBRA/data/indexed_genomes/bwa/hs37d5/hs37d5.fa",
   "gene_to_phenotype_file": "/home/jpflorido/GBPA/projects/secondaryfindings/categories/hpo_genes_to_phenotype_16012024.txt",
   "diplotype_phenotype_info_file": "/home/jpflorido/GBPA/projects/secondaryfindings/categories/FG/diplotype_phenotype_info_180424.csv",
-  "clinvar_ddbb_version": "20240107"
+  "clinvar_ddbb_version": "20240421"
 }
