@@ -39,14 +39,12 @@ def main():
     """
     Get the arguments from command line
     """
-    args = arguments()
+    [args, categories] = arguments()
     vcf_file = args.vcf_file
     mode = args.mode
     evidence = args.evidence
     assembly = str(args.assembly)
     hpos_file = args.hpos_file
-    categories_usr = args.categories
-    categories = [category.strip().lower() for category in categories_usr.split(",")]
 
 
     """
