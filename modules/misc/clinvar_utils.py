@@ -10,6 +10,7 @@ import csv
 import urllib.request
 from datetime import datetime
 import shutil
+from modules.misc.build_json_bed_files import read_csv
 
 def map_review_status(review_status):
     """
@@ -34,7 +35,7 @@ def map_review_status(review_status):
     }
     return mapping.get(review_status.lower(), 0)  # Valor predeterminado es 0 si no se encuentra en el mapeo
 
-def run_clinvar(evidence_level, clinvar_db, assembly):
+def run_clinvar(evidence_level, clinvar_db, categories_path, category):
     """
     Run clinvar using the database according to an evidence level
 
@@ -42,6 +43,8 @@ def run_clinvar(evidence_level, clinvar_db, assembly):
         evidence_level (int): Evidence level for variants
         clinvar_db (str): Path to CLINVAR database
         assembly (str): Reference genome version
+        categories_path (str): path to directory for categories information
+        category (str): either pr or rr
 
     Returns:
         dict: A dictionary that contains variants from Clinvar and their related information.
@@ -50,34 +53,40 @@ def run_clinvar(evidence_level, clinvar_db, assembly):
         Exception: An exception occurs when an error arises in Clinvar
     """
     try:
-        clinvar_path = f"{clinvar_db.split('GRCh')[0]}GRCh{assembly}_{clinvar_db.split('_')[-1]}"
+        # Select genes for current category
+
+        in_csv = f"{categories_path}{category.upper()}/{category.lower()}_risk_genes.csv"
+
+        # Read CSV and store it in a dictionary
+        genes_dct, genes_lst = read_csv(in_csv, category)
 
         # Read Clinvar database
-        clinvar_dct = {}  # Un diccionario para almacenar la información de CLINVAR
+        clinvar_dct = {}  #  dictionary to store information from CLINVAR
 
-        with open(clinvar_path, "r") as db_file:
+        with open(clinvar_db, "r") as db_file:
             for line in db_file:
                 line = line.rstrip()
                 if line == "":
                     continue
                 fields = line.strip().split("\t")
-                variant = f"{fields[10]}:{fields[15]}:{fields[16]}:{fields[17]}"
                 gene = fields[2]
-                clinical_significance = fields[3]
-                clinsigsimple = fields[4]
-                rs_id = fields[5]
-                review_status = fields[13]
-                stars = map_review_status(review_status)
-                if stars >= int(evidence_level):
-                    clinvar_id = fields[6]
-                    clinvar_dct[variant] = {
-                        "Gene": gene,
-                        "ClinicalSignificance": clinical_significance,
-                        "ClinSigSimple": clinsigsimple,
-                        "rs": rs_id,
-                        "ReviewStatus": '(' + str(stars) + ') ' + review_status,
-                        "ClinvarID": clinvar_id
-                    }
+                if gene in genes_lst: # Only parse genes for the corresponding category
+                    variant = f"{fields[10]}:{fields[15]}:{fields[16]}:{fields[17]}"
+                    clinical_significance = fields[3]
+                    clinsigsimple = fields[4]
+                    rs_id = fields[5]
+                    review_status = fields[13]
+                    stars = map_review_status(review_status)
+                    if stars >= int(evidence_level):
+                        clinvar_id = fields[6]
+                        clinvar_dct[variant] = {
+                            "Gene": gene,
+                            "ClinicalSignificance": clinical_significance,
+                            "ClinSigSimple": clinsigsimple,
+                            "rs": rs_id,
+                            "ReviewStatus": '(' + str(stars) + ') ' + review_status,
+                            "ClinvarID": clinvar_id
+                        }
         return(clinvar_dct)
 
     except Exception as e:

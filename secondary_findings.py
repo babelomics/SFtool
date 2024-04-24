@@ -130,13 +130,13 @@ def main():
     # Run modules selected by user
     if "pr" in categories:
         # Run Personal Risk (PR) module
-        pr_results = run_pers_repro_risk_module(input_vcf_files['pr'], assembly, mode, evidence, clinvar_db, intervar_path, 'pr')
+        pr_results = run_pers_repro_risk_module(input_vcf_files['pr'], assembly, mode, evidence, clinvar_db, intervar_path, 'pr', categories_path)
     else:
         pr_results = None
         
     if "rr" in categories:
         # Run Reproductive Risk (RR) module
-        rr_results = run_pers_repro_risk_module(input_vcf_files['rr'], assembly, mode, evidence, clinvar_db, intervar_path, 'rr')
+        rr_results = run_pers_repro_risk_module(input_vcf_files['rr'], assembly, mode, evidence, clinvar_db, intervar_path, 'rr', categories_path)
     else:
         rr_results = None        
         

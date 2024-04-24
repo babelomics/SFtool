@@ -1,20 +1,20 @@
 Phenotype,OMIM gene,Gene,OMIM Disorder,Inheritance
-Sickle cell anemia ?-thalassemia,141900,HBB,"603903, 613985",AR
+Sickle cell anemia ?-thalassemia,141900,HBB,603903; 613985,AR
 Xeroderma pigmentosum,613208,XPC,278720,AR
-Oculocutaneous albinism type 1A and 1B,606933,TYR,"203100, 606952",AR
+Oculocutaneous albinism type 1A and 1B,606933,TYR,203100; 606952,AR
 Congenital adrenal hyperplasia due to 21-hydroxylase deficiency,613815,CYP21A2,201910,AR
 Phenylketonuria,612349,PAH,261600,AR
 Cystic fibrosis,602421,CFTR,219700,AR
-Ehlers–Danlos-like syndrome due to tenascin-X deficiency,600985,TNXB,606408,AR
-Tay–Sachs disease,606869,HEXA,272800,AR
+Ehlersï¿½Danlos-like syndrome due to tenascin-X deficiency,600985,TNXB,606408,AR
+Tayï¿½Sachs disease,606869,HEXA,272800,AR
 Nonsyndromic hearing loss recessive 1A; Nonsyndromic hearing loss dominant 3A,121011,GJB2,220290; 601544,AR; AD
-Smith–Lemli–Opitz syndrome,602858,DHCR7,270400,AR
+Smithï¿½Lemliï¿½Opitz syndrome,602858,DHCR7,270400,AR
 Wilson disease,277900,ATP7B,606882,AR
 Canavan disease,608034,ASPA,271900,AR
 Medium-chain acyl-coenzyme A dehydrogenase deficiency,607008,ACADM,201450,AR
 Finnish congenital nephrotic syndrome,602716,NPHS1,256300,AR
 Carbohydrate-deficient glycoprotein syndrome type Ia,601785,PMM2,212065,AR
-"Cardiomyopathy, dilated, 1X; Walker–Warburg congenital muscular dystrophy",607440,FKTN,611615; 253800,AR
+"Cardiomyopathy, dilated, 1X; Walkerï¿½Warburg congenital muscular dystrophy",607440,FKTN,611615; 253800,AR
 Deafness autosomal recessive 4; Pendred syndrome,605646,SLC26A4,600791; 274600,AR
 "Cerebrooculofacioskeletal syndrome 2; Trichothiodystrophy 1, photosensitive",126340,ERCC2,610756; 601675,AR
 Short-rib thoracic dysplasia 3 with or without polydactyly,603297,DYNC2H1,613091,AR
@@ -32,9 +32,9 @@ Fraser syndrome,604597,GRIP1,617667,AR
 Maple syrup urine disease,248611,BCKDHB,245600,AR
 Spinocerebellar ataxia 10,613726,ANO10,613728,AR
 "Schindler disease, type 1; Schindler disease, type 3",104170,NAGA,609241,AR
-"Niemann–Pick disease, type A; Niemann–Pick disease, type B",607608,SMPD1,257200; 607616,AR
+"Niemannï¿½Pick disease, type A; Niemannï¿½Pick disease, type B",607608,SMPD1,257200; 607616,AR
 "Usher syndrome, type 2A",608400,USH2A,276901,AR
-Methylmalonic aciduria–methylmalonyl–CoA mutase deficiency,609058,MMUT,251000,AR
+Methylmalonic aciduriaï¿½methylmalonylï¿½CoA mutase deficiency,609058,MMUT,251000,AR
 "Carnitine palmitoyltransferase II deficiency, infantile; Carnitine palmitoyltransferase II deficiency, lethal neonatal",600650,CPT2,600649; 608836,AR
 Joubert syndrome 3,608894,AHI1,608629,AR
 "Congenital disorder of glycosylation type 1, Retinitis pigmentosa 59",608172,DHDDS,613861,AR
@@ -51,7 +51,7 @@ Aspartylglucosaminuria,613228,AGA,208400,AR
 "Deafness, autosomal recessive 23; Usher syndrome, type 1F",605514,PCDH15,609533; 602083,AR
 Tyrosinemia type I,613871,FAH,276700,AR
 Autoimmune polyendocrinopathy syndrome type I,607358,AIRE,240300,AR
-Bardet–Biedl syndrome 2; Retinitis pigmentosa 74,606151,BBS2,615981; 616562,AR
+Bardetï¿½Biedl syndrome 2; Retinitis pigmentosa 74,606151,BBS2,615981; 616562,AR
 Cerebrotendinous xanthomatosis,606530,CYP27A1,213700,AR
 Congenital hydrocephalus 1,611204,CCDC88C,236600,AR
 Trimethylaminuria,136132,FMO3,602079,AR
@@ -70,9 +70,9 @@ Hyper-IgD syndrome; Mevalonic aciduria,251170,MVK,260920; 610377,AR
 Autosomal recessive polycystic kidney disease,606702,PKHD1,263200,AR
 Biotinidase deficiency,609019,BTD,253260,AR
 "Hypophosphatasia, adult; Hypophosphatasia, childhood and infantile",171760,ALPL,146300; 241510,AR
-Bardet–Biedl syndrome 1,209901,BBS1,209900,AR
+Bardetï¿½Biedl syndrome 1,209901,BBS1,209900,AR
 "Congenital myotonia, autosomal recessive form",118425,CLCN1,255700,AR
-"Vitamin D–dependent rickets, type 1",609506,CYP27B1,264700,AR
+"Vitamin Dï¿½dependent rickets, type 1",609506,CYP27B1,264700,AR
 Mitochondrial DNA depletion syndrome 4A; Mitochondrial DNA depletion syndrome 4B,174763,POLG,203700; 613662,AR
 3-methylcrotonyl CoA carboxylase 2 deficiency,609014,MCCC2,210210,AR
 Megalencephalic leukoencephalopathy with subcortical cysts,605908,MLC1,604004,AR
@@ -80,13 +80,13 @@ Megalencephalic leukoencephalopathy with subcortical cysts,605908,MLC1,604004,AR
 Joubert syndrome 9; Meckel syndrome 6,612013,CC2D2A,612285; 612284,AR
 "Epiphyseal dysplasia, multiple, 4; Achondrogenesis Ib",606718,SLC26A2,226900; 600972,AR
 "Homocystinuria, B6 responsive and nonresponsive",236200,CBS,236200,AR
-Donnai–Barrow syndrome,600073,LRP2,222448,AR
-"Mucopolysaccharidosis, Ih (Hurler S); Mucopolysaccharidosis, Ih/s (Hurler–Scheie S)",252800,IDUA,607014; 607015,AR
-"Muscular dystrophy–dystroglycanopathy, type A, 5; Muscular dystrophy–dystroglycanopathy, type B, 5",606596,FKRP,613153; 606612,AR
+Donnaiï¿½Barrow syndrome,600073,LRP2,222448,AR
+"Mucopolysaccharidosis, Ih (Hurler S); Mucopolysaccharidosis, Ih/s (Hurlerï¿½Scheie S)",252800,IDUA,607014; 607015,AR
+"Muscular dystrophyï¿½dystroglycanopathy, type A, 5; Muscular dystrophyï¿½dystroglycanopathy, type B, 5",606596,FKRP,613153; 606612,AR
 Aicardi Goutieres syndrome 2,610326,RNASEH2B,610181,AR
 Pontocerebellar hypoplasia type 6,611524,RARS2,611523,AR
 Friedreich ataxia,606829,FXN,229300,AR
-Spinal muscular,600354,SMN1,"253300, 253550; 253400, 271150",AR
+Spinal muscular,600354,SMN1,253300; 253550; 253400; 271150,AR
 Adrenoleukodystrophy (ALD),300371,ABCD1,300100,XL
 "Mental retardation, X-linked, associated with fragile site FRAXE",300806,AFF2,309548,XL
 Developmental and epileptic encephalopathy 1 (DEE1),300382,ARX,308350,XL

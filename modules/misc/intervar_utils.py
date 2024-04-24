@@ -21,8 +21,7 @@ def run_intervar(norm_vcf, category, assembly, intervar_path):
     """
     try:
         # Path to VCF intersected and output directory
-        input_vcf = f"{norm_vcf.split('normalized')[0]}{category}_intersection.vcf"
-        output_file = f"{norm_vcf.split('normalized')[0]}{category}"
+        output_file = f"{norm_vcf.split('norm.' + category.upper() + '.vcf.gz')[0]}{category.upper()}"
 
         if assembly == '37':
             assembly_int = "hg19"
@@ -35,7 +34,7 @@ def run_intervar(norm_vcf, category, assembly, intervar_path):
         cmd = [
             intervar_file_path,
             "-b", assembly_int,
-            "-i", input_vcf,
+            "-i", norm_vcf,
             "--input_type", "VCF",
             "-o", output_file
         ]
@@ -44,16 +43,18 @@ def run_intervar(norm_vcf, category, assembly, intervar_path):
         with subprocess.Popen(cmd, stderr=subprocess.STDOUT, text=True, cwd=intervar_path) as process:
             output, _ = process.communicate()
 
+        intervar_output_file = f"{norm_vcf.split('norm.' + category.upper() + '.vcf.gz')[0]}{category.upper()}.{assembly_int}_multianno.txt.intervar"
+        return intervar_output_file
+
     except subprocess.CalledProcessError as e:
         print(f"Error when running Intervar: {e.output}")
 
-def parse_intervar_output(norm_vcf, category, mode, assembly):
+def parse_intervar_output(intervar_output_file, mode, assembly):
     """
     Parse Intervar output file and get interesting fields
 
     Args:
-        norm_vcf (str): Path to normalized VCF file
-        category (str): Gene category for annotation
+        intervar_output_file (str): Path to intervar output file
         mode (str): basic or advanced
         assembly (str): Reference genome version
 
@@ -66,7 +67,6 @@ def parse_intervar_output(norm_vcf, category, mode, assembly):
     elif assembly == '38':
         assembly_int = 'hg38'
 
-    intervar_output_file = f"{norm_vcf.split('normalized')[0]}{category}.{assembly_int}_multianno.txt.intervar"
     intervar_results = {}
 
     with open(intervar_output_file, "r") as intervar_file:

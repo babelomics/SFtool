@@ -93,34 +93,27 @@ def intersect_vcf_with_bed(vcf_norm_file, category_bed_file, temp_path, category
     except Exception as e:
         print(f"Error during the VCF intersection {e}")
 
-def combine_results(vcf_norm, category, intervar_results, clinvar_results):
+def combine_results(vcf_norm, intervar_results, clinvar_results):
     """
-    Combina los resultados de Intervar y ClinVar en una sola línea por variante.
+    Combine results from Intervar and Clinvar into a single line per variant
 
     Args:
-        vcf_norm (str): Ruta al archivo VCF normalizado.
-        category (str): Categoría de genes para la anotación.
-        intervar_results (dict): Resultados de Intervar.
-        clinvar_results (dict): Base de datos de ClinVar.
+        vcf_norm (str): Path to normalized and intersected VCF file
+        intervar_results (dict): Intervar results
+        clinvar_results (dict): Clinvar results
 
     Returns:
-        dict: Un diccionario con los resultados combinados.
+        dict: A diccionary with combined results
     """
     combined_results = {}
 
-    # para combinar los resultados de intervar y clinvar, aunque lo ideal sería recorrer
-    # las listas, intervar cambia la anotación, eliminando el nt de referencia en las indels
-    # por lo que no es posible encontrar esa variante en clinvar (no siempre hay rs disponible)
-    # así que hay que recorrer el vcf de interseccion
+    # Since Intervar removes reference nucleotide in indels, the best way to combine results
+    # is to parse VCF file and search for a variant in Intervar and Clinvar results
 
-
-
-    # Archivo VCF de intersección
-    vcf_path = f"{vcf_norm.split('normalized')[0]}{category}_intersection.vcf"
 
     try:
         # Read VCF file
-        vcf_reader = vcfpy.Reader.from_path(vcf_path)
+        vcf_reader = vcfpy.Reader.from_path(vcf_norm)
         for variant_record in vcf_reader:
             chrom = str(variant_record.CHROM)
             pos = str(variant_record.POS)
@@ -144,7 +137,7 @@ def combine_results(vcf_norm, category, intervar_results, clinvar_results):
 
             intervar_info = intervar_results.get(variant_int)
 
-            # Busca la variante en los resultados de ClinVar
+            # Search variant in Clinvar dictionary
             clinvar_info = clinvar_results.get(variant_key)
 
             if clinvar_info is not None:
@@ -169,7 +162,7 @@ def combine_results(vcf_norm, category, intervar_results, clinvar_results):
                         "IntervarConsequence": intervar_info["IntervarConsequence"]
                     }
             else:
-                # Conserva la info de intervar si no hay info de clinvar
+                # If there is no info in Clinvar, get info from Intervar
                 if (intervar_info and intervar_info["IntervarClassification"] in ["Pathogenic", "Likely pathogenic"]):
                     combined_results[variant_key] = {
                         "Gene": intervar_info["Gene"],
@@ -186,5 +179,5 @@ def combine_results(vcf_norm, category, intervar_results, clinvar_results):
     except Exception as e:
         raise Exception(f"Error al combinar resultados: {e}")
 
-    return(combined_results)
+    return combined_results
 
