@@ -11,6 +11,7 @@ from modules.FG.diplotype_scripts.nudt15_diplotype_algorithm import assign_nudt1
 from modules.FG.diplotype_scripts.tpmt_diplotype_algorithm import assign_tpmt_diplotype
 
 from modules.FG.misc_fg import annotate_fg_variants, get_diplotype_phenotype_dictionary
+from modules.FG.misc_fg import write_fg_results_to_tsv
 
     
 def run_pharmacogenomic_risk_module(categories_path, norm_vcf, assembly, temp_path, diplotype_phenotype_info_file):
@@ -40,7 +41,12 @@ def run_pharmacogenomic_risk_module(categories_path, norm_vcf, assembly, temp_pa
     aggregated_fg_results = assign_dpyd_diplotype(fg_annotated_variants, diplo_pheno_info, aggregated_fg_results)
     aggregated_fg_results = assign_nudt15_diplotype(fg_annotated_variants, diplo_pheno_info, aggregated_fg_results)
     aggregated_fg_results = assign_tpmt_diplotype(fg_annotated_variants, diplo_pheno_info, aggregated_fg_results)
-    
+
+    # Write Pharma results to TSV files
+    output_file_variants = f"{norm_vcf.split('norm.FG.vcf.gz')[0]}FG.tsv"
+    output_file_diplopheno = f"{norm_vcf.split('norm.FG.vcf.gz')[0]}FG.DiploPheno.tsv"
+    write_fg_results_to_tsv(fg_annotated_variants, aggregated_fg_results, output_file_variants, output_file_diplopheno)
+
     return(fg_annotated_variants, aggregated_fg_results)
     
 

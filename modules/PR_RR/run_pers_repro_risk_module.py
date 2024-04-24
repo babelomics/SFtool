@@ -38,5 +38,6 @@ def run_pers_repro_risk_module(norm_vcf, assembly, mode, evidence_level, clinvar
         category_results = intervar_clinvar_results
 
     # Write results of this category to a file
-    write_category_results_to_tsv(category_results, norm_vcf, category)
-    return(category_results)
+    output_file = f"{norm_vcf.split('norm.' + category.upper() + '.vcf.gz')[0]}{category.upper()}.SF.tsv"
+    write_category_results_to_tsv(category_results, output_file)
+    return category_results

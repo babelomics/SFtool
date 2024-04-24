@@ -12,7 +12,13 @@ import subprocess
 
 
 def get_versions_paths(program_arguments, config_data, clinvar_db):
-
+    """
+    Get versions of third-party tools from SF tool and program arguments to be shown in the final report
+    :param program_arguments: SF tools arguments
+    :param config_data: Configuration data
+    :param clinvar_db: Clinvar database path
+    :return:
+    """
     # HPO
     if program_arguments.hpos_file is None:
         hpos_patient_list="Not provided"
@@ -273,25 +279,33 @@ def get_hpos_from_txt(hpos_file):
         print(f"El archivo {hpos_file} no se encontró.")
         return []
 
-def generate_report(pr_results, rr_results, fg_results, haplot_results, categories_path, out_path, categories, vcf_file, hpos_txt, gene_to_phenotype_file, args, config_data, clinvar_db):
+def generate_report(pr_results, rr_results, fg_results, haplot_results, config_data, args, clinvar_db, categories):
     """
-    Escribe los resultados de las categorías PR, RR y FG en un archivo Excel.
+    Write results for all categories to an excel file
 
     Args:
-        pr_results (dict): Resultados de la categoría PR.
-        rr_results (dict): Resultados de la categoría RR.
-        fg_results (dict): Resultados de la categoría FG.
-        out_path (str): Ruta al archivo de salida.
+        pr_results (dict): Results from Personal Risk module
+        rr_results (dict): Results from Reproductive Risk module
+        fg_results (dict): Results from Pharmacogenetic category module
+        out_path (str): Path to output directory
     """
     try:
+
+        categories_path = config_data["categories_path"]
+        out_path = config_data["out_path"]
+        vcf_file = args.vcf_file
+        hpos_file = args.hpos_file
+        gene_to_phenotype_file = config_data["gene_to_phenotype_file"]
 
         # Get versions
         versions_path = get_versions_paths(args, config_data, clinvar_db)
 
-        # Obtener lista de HPOs
-        hpos_user = get_hpos_from_txt(hpos_txt)
-        outfile = f"{out_path}{vcf_file.split('/')[-1].split('.vcf')[0]}_final_results.xlsx"
-        # Crear un objeto ExcelWriter para el archivo Excel
+        # Get HPO list
+        hpos_user= []
+        if versions_path['HPO list'] != "Not provided":
+            hpos_user = get_hpos_from_txt(hpos_file)
+        outfile = f"{out_path}{vcf_file.split('/')[-1].split('.vcf')[0]}.SF.xlsx"
+
         with pd.ExcelWriter(outfile) as writer:
             # Write versions and paths
             summary_df = pd.DataFrame.from_dict(versions_path, orient="index")
@@ -317,7 +331,7 @@ def generate_report(pr_results, rr_results, fg_results, haplot_results, categori
                     haplot_df = pd.DataFrame(haplot_results)
                     haplot_df.to_excel(writer, sheet_name='FG Diplotype-Phenotype', index=False)
 
-        print(f"Los resultados se han guardado en '{outfile}'.")
+        print(f"Results have been written to '{outfile}'.")
 
     except Exception as e:
-        print(f"Error en write_report: {str(e)}")
+        print(f"Error found when generating final report: {str(e)}")

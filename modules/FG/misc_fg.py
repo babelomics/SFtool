@@ -4,41 +4,38 @@ import csv
 import vcfpy
 import os
 import re
+import pandas as pd
 
 
 def check_gene_variants(variants, gene):
     """
-    Check the presence of variants in a given pharma gene and genotype info is retrieved
+    Check the presence of variants in a given pharma gene. Genotype info is retrieved if variant exists
 
     Args:
-        variants (list): Una lista de diccionarios que contienen información de variantes genéticas.
-        gene (str): El nombre del gen objetivo a buscar en las variantes.
+        variants (list): A list of dictionaries that contain information of genetic variants
+        gene (str): Gene name to be found
 
     Returns:
-        tuple: Una tupla que contiene dos elementos:
-            - found (bool): True si se encontró al menos una variante en el gen objetivo, False en caso contrario.
-            - variants_gene (dict): Un diccionario que almacena el genotipo de las variantes encontradas en el gen, donde
-              la clave es el rsID de la variante y el valor es el genotipo.
+        tuple: tuple with two elements:
+            - found (bool): True if at least a variant is found in the given gene. False otherwise
+            - variants_gene (dict): Dictionary that stores genotype for the variants found in the gene. Key is rs and genotype is the corresponding value for the key
 
     Raises:
-        TypeError: Si 'variants' no es una lista o si 'gene' no es una cadena de caracteres.
+        TypeError: Error if 'variants' is not a list or if 'gene' is not a string
     """
-    # Control de errores para los argumentos de entrada
+    # Error control
     if not isinstance(variants, list):
-        raise TypeError("El argumento 'variants' debe ser una lista de variantes genéticas.")
+        raise TypeError("Argument 'variants' must be a list of genetic variants.")
     if not isinstance(gene, str):
-        raise TypeError("El argumento 'gene' debe ser una cadena de caracteres que representa el gen objetivo.")
+        raise TypeError("Argument 'gene' must be a string.")
 
-    # Flag para verificar si se encontró una variante en el gen objetivo
     found = False
-    # Crear diccionario para almacenar genotipo de variantes del gene       #igual mejor guardar la variante también, para el caso de indels con mismo rs y diferente nº de repeticiones
     variants_gene = {}
 
-    # Iterar a través de las variantes
     for variant in variants:
-        if variant['Gene'] == gene:
+        if variant['Gene Symbol'] == gene:
             found = True
-            variants_gene[variant['rs']] = variant['GT']
+            variants_gene[variant['rs']] = variant['Genotype']
 
     return found, variants_gene
 
@@ -60,7 +57,7 @@ def annotate_fg_variants(categories_path, norm_vcf_fg, assembly, temp_path):
     """
 
     try:
-        # Cargar archivo fg_json con variantes farmacogenéticas
+        # Load JSON file with the list of pharma variants
         fg_json_path = f'{categories_path}FG/fg_risk_genes_GRCh{assembly}.json'
         with open(fg_json_path, 'r') as file:
             fg_json = json.load(file)
@@ -81,31 +78,24 @@ def annotate_fg_variants(categories_path, norm_vcf_fg, assembly, temp_path):
             if variant_info:
                 annotated_variant = {
                     "Variant": variant_key,
-                    "GT": variant_record.call_for_sample[sample_name].data.get('GT'),
-                    "Gene": variant_info["gene_symbol"],
+                    "Genotype": variant_record.call_for_sample[sample_name].data.get('GT'),
+                    "Gene Symbol": variant_info["gene_symbol"],
                     "rs": variant_info["rs"]
                 }
             else:
                 annotated_variant = {
                     "Variant": variant_key,
-                    "GT": variant_record.call_for_sample[sample_name].data.get('GT'),
-                    "Gene": "Not found",
+                    "Genotype": variant_record.call_for_sample[sample_name].data.get('GT'),
+                    "Gene Symbol": "Not found",
                     "rs": "Not found",
                 }
 
             annotated_variants.append(annotated_variant)
 
-        # Escribir los resultados en un archivo
-        just_filename = os.path.basename(norm_vcf_fg)
-        result_file = os.path.join(temp_path, just_filename.split(".norm.FG.vcf.gz")[0] + ".FG.annotated.json")
-
-        with open(result_file, 'w') as fout:
-            json.dump(annotated_variants, fout)
-
         return annotated_variants
 
     except FileNotFoundError as e:
-        print(f"Error: {e}")
+        print(f"Error when annotating pharma variants: {e}")
         return []
 
 
@@ -131,17 +121,17 @@ def get_diplotype_phenotype_dictionary(diplotype_phenotype_info_file):
                 diplotype = row["DIPLOTYPE"]
                 phenotype = row["Phenotype"]
                 activity_score = row["Activity_Score"]
-                # Verificar si el gen ya está en el diccionario
+                # Check whether the gene is already in the dictionary
                 if gene in diplotype_data:
-                    # Si el gen ya está en el diccionario, agregar el nuevo diplotipo
+                    # If gene exists in dictionary, add another diplotype
                     diplotype_data[gene][diplotype] = {"Phenotype": phenotype, "Activity_Score": activity_score}
                 else:
-                    # Si el gen no está en el diccionario, crear una entrada para el gen y agregar el diplotipo
+                    # If gene does not exist in dictionary, create a new entry and add the corresponding diplotype
                     diplotype_data[gene] = {diplotype: {"Phenotype": phenotype, "Activity_Score": activity_score}}
     except FileNotFoundError:
         raise FileNotFoundError(f"El archivo CSV no se encuentra en la ruta especificada: {diplotype_phenotype_info_file}")
 
-    return(diplotype_data)
+    return diplotype_data
 
 
 def assign_phenotype_AC(diplotype, gene, diplo_pheno_dct, aggregated_results):
@@ -157,7 +147,6 @@ def assign_phenotype_AC(diplotype, gene, diplo_pheno_dct, aggregated_results):
 
     if gene in diplo_pheno_dct and 'or' in diplotype: # There are questionable diplotypes
         all_diplotypes = re.findall(r'\*\d+/\*\d+', diplotype)
-        #if any(item in diplo_pheno_dct[gene] for item in all_diplotypes):
         tmp_phenotype = []
         tmp_activity_score = []
         for current_diplotype in all_diplotypes:
@@ -178,12 +167,30 @@ def assign_phenotype_AC(diplotype, gene, diplo_pheno_dct, aggregated_results):
         phenotype = 'NA'
         activity_score = 'NA'
 
-    # Agregar los resultados a la lista de diccionarios
+    # Append results to the list dictionary
     aggregated_results.append({
-        'Gene': gene,
-        'Diplotipo': diplotype,
+        'Gene Symbol': gene,
+        'Diplotype': diplotype,
         'Phenotype': phenotype,
         'Activity Score': activity_score
     })
 
     return aggregated_results
+
+def write_fg_results_to_tsv(fg_annotated_variants, aggregated_fg_results, output_file_variants, output_file_diplopheno):
+    """
+    Write pharmacogenietic results to two TSV files
+
+    :param fg_annotated_variants: Dictionary with variants found in VCF file that are in the Pharma list
+    :param aggregated_fg_results: Dictionary with variants in CYP2C9, CYP2C19, DPYD, NUDT15 and TPMT genes with Diplotype and Phenotype info
+    :param output_file_variants: Output TSV file for fg_annotated_variants
+    :param output_file_diplopheno: Output TSV file for aggregated_fg_results
+    :return:
+    """
+
+
+    fg_df = pd.DataFrame(fg_annotated_variants)
+    fg_df.to_csv(output_file_variants, index=False, sep='\t')
+
+    haplot_df = pd.DataFrame(aggregated_fg_results)
+    haplot_df.to_csv(output_file_diplopheno, index=False, sep='\t')

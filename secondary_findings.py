@@ -43,7 +43,6 @@ def main():
     mode = args.mode
     evidence = args.evidence
     assembly = str(args.assembly)
-    hpos_file = args.hpos_file
 
 
     """
@@ -141,7 +140,7 @@ def main():
         rr_results = None        
         
     if "fg" in categories:
-        # Run Pharmacogeentic (FG) module
+        # Run Pharmacogenetic (FG) module
         fg_results, haplot_results = run_pharmacogenomic_risk_module(categories_path, input_vcf_files['fg'], assembly, temp_path, diplotype_phenotype_info_file)
     else:
         fg_results = None    
@@ -150,7 +149,7 @@ def main():
     """
     Create report
     """
-    generate_report(pr_results, rr_results, fg_results, haplot_results, categories_path, out_path, categories, vcf_file, hpos_file, gene_to_phenotype_file, args, config_data, clinvar_db)
+    generate_report(pr_results, rr_results, fg_results, haplot_results, config_data, args, clinvar_db, categories)
 
 
     
