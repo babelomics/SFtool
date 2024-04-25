@@ -60,7 +60,6 @@ def main():
     out_path = config_data["out_path"]
     intervar_path = config_data["intervar_path"]
     bcftools_path = config_data["bcftools_path"]
-    gene_to_phenotype_file = config_data["gene_to_phenotype_file"]
     diplotype_phenotype_info_file = config_data["diplotype_phenotype_info_file"]
 
 
