@@ -35,7 +35,7 @@ def map_review_status(review_status):
     }
     return mapping.get(review_status.lower(), 0)  # Valor predeterminado es 0 si no se encuentra en el mapeo
 
-def run_clinvar(evidence_level, clinvar_db, categories_path, category):
+def run_clinvar(evidence_level, clinvar_db, category, category_geneset_file):
     """
     Run clinvar using the database according to an evidence level
 
@@ -43,8 +43,8 @@ def run_clinvar(evidence_level, clinvar_db, categories_path, category):
         evidence_level (int): Evidence level for variants
         clinvar_db (str): Path to CLINVAR database
         assembly (str): Reference genome version
-        categories_path (str): path to directory for categories information
         category (str): either pr or rr
+        category_geneset_file (str): Path to CSV file for the given category
 
     Returns:
         dict: A dictionary that contains variants from Clinvar and their related information.
@@ -54,11 +54,8 @@ def run_clinvar(evidence_level, clinvar_db, categories_path, category):
     """
     try:
         # Select genes for current category
-
-        in_csv = f"{categories_path}{category.upper()}/{category.lower()}_risk_genes.csv"
-
         # Read CSV and store it in a dictionary
-        genes_dct, genes_lst = read_csv(in_csv, category)
+        genes_dct, genes_lst = read_csv(category_geneset_file, category)
 
         # Read Clinvar database
         clinvar_dct = {}  #  dictionary to store information from CLINVAR
@@ -211,8 +208,10 @@ def clinvar_manager(clinvar_path, clinvar_ddbb_version, assembly):
 
 
     if clinvar_ddbb_version == "latest": # Download the latest version
+        print("Downloading the latest version of Clinvar...")
         clinvar_db = get_clinvar(clinvar_path, assembly)
     else:  # Use the version contained in the config file
+        print("Using existing Clinvar database (version " + clinvar_ddbb_version +")...")
         clinvar_file = os.path.join(clinvar_path, "clinvar_database_GRCh" + str(assembly) + "_" + clinvar_ddbb_version + ".txt")
         if os.path.exists(clinvar_file):
             clinvar_db = clinvar_file

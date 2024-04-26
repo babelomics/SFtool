@@ -25,6 +25,7 @@ def normalize_vcf(input_vcf_path, temp_path, bcftools_path, reference_genome_pat
     """
     # split multiallelic (-m -) y left-alignment.
     try:
+        print("Normalizing " + input_vcf_path + " file...")
 
         just_filename = os.path.basename(input_vcf_path)
 
@@ -74,6 +75,8 @@ def intersect_vcf_with_bed(vcf_norm_file, category_bed_file, temp_path, category
         Exception: An error is rised if an error occurrs with the intersection
     """
     try:
+
+        print("Intersecting VCF file with BED file ( " + category.upper() + " category)...")
         just_filename = os.path.basename(vcf_norm_file)
         output_vcf_path = os.path.join(temp_path, just_filename.split(".vcf.gz")[0] + "." + category.upper() + ".vcf.gz")
 

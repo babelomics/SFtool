@@ -61,6 +61,9 @@ def main():
     intervar_path = config_data["intervar_path"]
     bcftools_path = config_data["bcftools_path"]
     diplotype_phenotype_info_file = config_data["diplotype_phenotype_info_file"]
+    personal_risk_geneset_file = config_data["personal_risk_geneset_file"]
+    reproductive_risk_geneset_file = config_data["reproductive_risk_geneset_file"]
+    pharmacogenetic_risk_variant_GRCh37_file = config_data["pharmacogenetic_risk_variant_GRCh37_file"]
 
 
     if assembly == '37':
@@ -87,15 +90,15 @@ def main():
     # Check whether BED file (and consequently, JSON file) for each category exist. If not, create them
     # Personal risk catalogue
     if not os.path.exists(f"{categories_path}/PR/pr_risk_genes_GRCh{assembly}.bed"):
-        build_json_bed_files("pr", assembly, categories_path)
+        build_json_bed_files("pr", assembly, categories_path, personal_risk_geneset_file)
         
     # Reproductive risk catalogue
     if not os.path.exists(f"{categories_path}/RR/rr_risk_genes_GRCh{assembly}.bed"):
-        build_json_bed_files("rr", assembly, categories_path)
+        build_json_bed_files("rr", assembly, categories_path, reproductive_risk_geneset_file)
         
     # Pharma risk catalogue
     if not os.path.exists(f"{categories_path}/FG/fg_risk_genes_GRCh{assembly}.bed"):
-        build_json_bed_files("fg", assembly, categories_path)
+        build_json_bed_files("fg", assembly, categories_path, pharmacogenetic_risk_variant_GRCh37_file)
         
     
     """
@@ -128,13 +131,13 @@ def main():
     # Run modules selected by user
     if "pr" in categories:
         # Run Personal Risk (PR) module
-        pr_results = run_pers_repro_risk_module(input_vcf_files['pr'], assembly, mode, evidence, clinvar_db, intervar_path, 'pr', categories_path)
+        pr_results = run_pers_repro_risk_module(input_vcf_files['pr'], assembly, mode, evidence, clinvar_db, intervar_path, 'pr', personal_risk_geneset_file)
     else:
         pr_results = None
         
     if "rr" in categories:
         # Run Reproductive Risk (RR) module
-        rr_results = run_pers_repro_risk_module(input_vcf_files['rr'], assembly, mode, evidence, clinvar_db, intervar_path, 'rr', categories_path)
+        rr_results = run_pers_repro_risk_module(input_vcf_files['rr'], assembly, mode, evidence, clinvar_db, intervar_path, 'rr', reproductive_risk_geneset_file)
     else:
         rr_results = None        
         

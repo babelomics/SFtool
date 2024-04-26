@@ -11,6 +11,36 @@ import os
 import subprocess
 
 
+def check_specific_criteria(gene, variant, variant_key, assembly):
+    """
+    Check specific features for given gene: either specific consequence or specific variant
+
+    :param gene: gene information from current catalogue
+    :param variant: variant information under study
+    :param variant_key: specific genomic variant under study
+    :param assembly: genome assembly version, either 37 or 38
+    :return: TRUE if criteria is met, else, FALSE
+    """
+
+    meet_criteria = True
+
+    if gene["specific_consequence"] != "":
+        variant_consequences = variant["IntervarConsequence"].split(",")
+        gene_consequences = gene["specific_consequence"].split(",")
+
+        # If required consequence from gene information is not present in the variant consequence, criteria is not meet (variant is discarded)
+        if len(set(variant_consequences) & set(gene_consequences)) == 0:
+            meet_criteria = False
+    elif gene["specific_variant_GRCh" + str(assembly)] != "":
+        specific_variant = gene["specific_variant_GRCh" + str(assembly)].split(',')[0]
+        specific_genotype = gene["specific_variant_GRCh" + str(assembly)].split(',')[1]
+
+        if specific_variant != variant_key and specific_genotype.lower() != variant["Genotype"]:
+            meet_criteria = False
+
+    return meet_criteria
+
+
 def get_versions_paths(program_arguments, config_data, clinvar_db):
     """
     Get versions of third-party tools from SF tool and program arguments to be shown in the final report
@@ -103,7 +133,7 @@ def combine_variant_and_gene_info(variant_info, gene_info):
     }
     return combined_info
 
-def check_inheritance(results, category, categories_path):
+def check_inheritance(results, category, categories_path, assembly):
     """
     Check inheritance for the set of variants according to the category (personal risk or reproductive risk) and generate a dictionary with variants to be
     informed according to inheritance specified for genes in the corresponding catalogue
@@ -111,6 +141,8 @@ def check_inheritance(results, category, categories_path):
     Args:
         results (dict): A dictionary with results from PR or RR module
         category (str): category: either PR or RR
+        categories_path (str): Path to categories directory
+        assembly (str): genome reference assembly. Either 37 or 38
 
     Returns:
         dict: A dictionary with the variants to be informed according to the inheritance defined for the set of genes in the catalogue
@@ -134,35 +166,37 @@ def check_inheritance(results, category, categories_path):
                 if gene['gene_symbol'] ==  variant_gene:
                     inher = gene["inheritance"]
 
-                    # For Personal Risk module, report variant if autosomic Dominant (AD), SemiDominant (SD) and X-linked (XL) inheritance mode. For Reproductive Risk category, report variant in any case
-                    if inher in ['AD', 'SD', 'XL'] or category == 'rr':
-                        # Combina la información de la variante y el gen
-                        combined_info = combine_variant_and_gene_info(variant_info, gene)
-                        # Agrega la información combinada a reported_variants
-                        reported_variants[variant_key] = combined_info
-
-                    # For Autosomic Recessive, check genotype and/or other variants in the same gene
-                    elif inher == 'AR':
-                        # For a variant in HOM, report variant
-                        if variant_info["Genotype"] == 'hom':
-                            # Combine information for gene and variant
+                    # Check for specific consequence or genomic variant
+                    if check_specific_criteria(gene, variant_info, variant_key, assembly):
+                        # For Personal Risk module, report variant if autosomic Dominant (AD), SemiDominant (SD) and X-linked (XL) inheritance mode. For Reproductive Risk category, report variant in any case
+                        if inher in ['AD', 'SD', 'XL'] or category == 'rr':
+                            # Combina la información de la variante y el gen
                             combined_info = combine_variant_and_gene_info(variant_info, gene)
-                            # Add merged information to the dictionary
+                            # Agrega la información combinada a reported_variants
                             reported_variants[variant_key] = combined_info
 
-                        # For a variant in HET, only report if there is another variant in the same gene
-                        elif variant_info["Genotype"] == 'het':
-                            # Look for another variant in the same gene
-                            other_variant_in_gene = False
-                            for other_variant_key in results:
-                                other_variant_info = results[other_variant_key]
-                                if other_variant_info["Gene"] == variant_gene and other_variant_key != variant_key:
-                                    other_combined_info = combine_variant_and_gene_info(other_variant_info, gene)
-                                    combined_info = combine_variant_and_gene_info(variant_info, gene)
+                        # For Autosomic Recessive, check genotype and/or other variants in the same gene
+                        elif inher == 'AR':
+                            # For a variant in HOM, report variant
+                            if variant_info["Genotype"] == 'hom':
+                                # Combine information for gene and variant
+                                combined_info = combine_variant_and_gene_info(variant_info, gene)
+                                # Add merged information to the dictionary
+                                reported_variants[variant_key] = combined_info
 
-                                    # Add merged information of the two variants of the gene to the dictionary
-                                    reported_variants[variant_key] = combined_info
-                                    reported_variants[other_variant_key] = other_combined_info
+                            # For a variant in HET, only report if there is another variant in the same gene
+                            elif variant_info["Genotype"] == 'het':
+                                # Look for another variant in the same gene
+                                other_variant_in_gene = False
+                                for other_variant_key in results:
+                                    other_variant_info = results[other_variant_key]
+                                    if other_variant_info["Gene"] == variant_gene and other_variant_key != variant_key:
+                                        other_combined_info = combine_variant_and_gene_info(other_variant_info, gene)
+                                        combined_info = combine_variant_and_gene_info(variant_info, gene)
+
+                                        # Add merged information of the two variants of the gene to the dictionary
+                                        reported_variants[variant_key] = combined_info
+                                        reported_variants[other_variant_key] = other_combined_info
         return reported_variants
     except Exception as e:
         print(f"Error in check_inheritance function: {str(e)}")
@@ -208,7 +242,7 @@ def check_patient_HPO(reported_results, hpos_user, gene_to_phenotype_file):
                     reported_results[result]['related_HPOs_for_sample'] = hpo
                 else:
                     if hpo not in reported_results[result]['related_HPOs_for_sample'].split(','):
-                        reported_results[result]['related_HPOs_for_sample'] += ', ' + hpo
+                        reported_results[result]['related_HPOs_for_sample'] += ',' + hpo
 
     return reported_results
 
@@ -254,6 +288,7 @@ def generate_report(pr_results, rr_results, fg_results, haplot_results, config_d
         vcf_file = args.vcf_file
         hpos_file = args.hpos_file
         gene_to_phenotype_file = config_data["gene_to_phenotype_file"]
+        assembly = args.assembly
 
         # Get versions
         versions_path = get_versions_paths(args, config_data, clinvar_db)
@@ -271,13 +306,13 @@ def generate_report(pr_results, rr_results, fg_results, haplot_results, config_d
 
             for category in categories:
                 if category == 'pr':
-                    reported_results = check_inheritance(pr_results, category, categories_path)
-                    pr_final = check_patient_HPO(reported_results, hpos_user, gene_to_phenotype_file)  # pendiente de desarrollar, warning si los términos orpha se corresponden con los hpo del paciente
+                    reported_results = check_inheritance(pr_results, category, categories_path, assembly)
+                    pr_final = check_patient_HPO(reported_results, hpos_user, gene_to_phenotype_file)
                     results_df = pd.DataFrame.from_dict(pr_final, orient='index')
                     results_df.to_excel(writer, sheet_name= category.upper() + ' results', index=True)
                 elif category == 'rr':
-                    reported_results = check_inheritance(rr_results, category, categories_path)
-                    rr_final = check_patient_HPO(reported_results, hpos_user, gene_to_phenotype_file)  # pendiente de desarrollar, warning si los términos orpha se corresponden con los hpo del paciente
+                    reported_results = check_inheritance(rr_results, category, categories_path, assembly)
+                    rr_final = check_patient_HPO(reported_results, hpos_user, gene_to_phenotype_file)
                     results_df = pd.DataFrame.from_dict(rr_final, orient='index')
                     results_df.to_excel(writer, sheet_name= category.upper() + ' results', index=True)
                 else:

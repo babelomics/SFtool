@@ -10,7 +10,7 @@ from modules.misc.vcf_utils import combine_results
 from modules.misc.utils import write_category_results_to_tsv
 
 
-def run_pers_repro_risk_module(norm_vcf, assembly, mode, evidence_level, clinvar_db, intervar_path, category, categories_path):
+def run_pers_repro_risk_module(norm_vcf, assembly, mode, evidence_level, clinvar_db, intervar_path, category, category_geneset_file):
     """
     Run Personal Risk or Reproductive Risgk module
 
@@ -21,7 +21,7 @@ def run_pers_repro_risk_module(norm_vcf, assembly, mode, evidence_level, clinvar
         evidence_level (int): Evidence level
         category (str): Gene category for annotation
         clinvar_db (str): Path to CLINVAR database
-        categories_path (str): path to directory where all categories are stored
+        category_geneset_file (str): Path to CSV file for the given category
     """
 
     print("Running " + category.upper() + "risk module")
@@ -33,7 +33,7 @@ def run_pers_repro_risk_module(norm_vcf, assembly, mode, evidence_level, clinvar
         category_results = intervar_results
     elif mode == "advanced":
         # Advanced mode: run Clinvar and combine results with Intervar
-        clinvar_results = run_clinvar(evidence_level, clinvar_db, categories_path, category)
+        clinvar_results = run_clinvar(evidence_level, clinvar_db, category, category_geneset_file)
         intervar_clinvar_results = combine_results(norm_vcf, intervar_results, clinvar_results)
         category_results = intervar_clinvar_results
 

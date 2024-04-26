@@ -43,7 +43,10 @@ def read_csv(in_csv, category):
                 'ACMG_version': row.get('ACMG SF List Version', '') ,
                 'OMIM_disorder': row['OMIM Disorder'],
                 'inheritance': row['Inheritance'],
-                'variants_to_report': row.get('Variants to Report', '')
+                'variants_to_report': row.get('Variants to Report', ''),
+                'specific_variant_GRCh38': row.get('Specific variant GRCh38', ''),
+                'specific_variant_GRCh37': row.get('Specific variant GRCh37', ''),
+                'specific_consequence': row.get('Specific consequence', ''),
             }
             genes_dct["genes"].append(gene_info)
             genes_lst.append(gene_symbol)
@@ -228,7 +231,7 @@ def generate_bed_from_fg_csv(csv_file, assembly, categories_path):
         print(f"An error occurred: {str(e)}")
 
 
-def build_json_bed_files(category, assembly, categories_path):
+def build_json_bed_files(category, assembly, categories_path, category_geneset_file):
     """
     Main function: from a CSV file, creates a JSON and a BED files
 
@@ -236,6 +239,7 @@ def build_json_bed_files(category, assembly, categories_path):
         category (str): category, either PR or RR
         assembly (str): assembly version ("37" or "38").
         categories_path (str): Path to category directory
+        category_geneset_file (str): Path to CSV file for the given category
 
     Returns:
         None
@@ -245,11 +249,8 @@ def build_json_bed_files(category, assembly, categories_path):
 
     try:
         if category == 'pr' or category == 'rr':
-            # CSV infile:
-            in_csv = f"{categories_path}{category.upper()}/{category}_risk_genes.csv"
-
             # Read CSV and store it in the dictionary
-            genes_dct, genes_lst = read_csv(in_csv, category)
+            genes_dct, genes_lst = read_csv(category_geneset_file, category)
 
             # Write a BED file
             write_bed_file(assembly, genes_lst, category, categories_path)
@@ -259,11 +260,9 @@ def build_json_bed_files(category, assembly, categories_path):
             with open(out_json, 'w') as json_file:
                 json.dump(genes_dct, json_file, indent = 4)
                 print(f"JSON file '{out_json}' generated successfully.")
-
         else:  # fg risk category
-            csv_file = f"{categories_path}FG/fg_risk_genes_GRCh{assembly}.csv"
-            generate_json_from_fg_csv(csv_file, assembly, categories_path)
-            generate_bed_from_fg_csv(csv_file, assembly, categories_path)
+            generate_json_from_fg_csv(category_geneset_file, assembly, categories_path)
+            generate_bed_from_fg_csv(category_geneset_file, assembly, categories_path)
 
     except Exception as e:
         print(f"An error occurred: {str(e)}")
