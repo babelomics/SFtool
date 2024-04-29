@@ -6,7 +6,7 @@ Herramienta para el manejo automático de hallazgos secundarios.
 Esta herramienta permite a los usuarios analizar archivos VCF para el manejo automático de hallazgos secundarios relacionados con riesgo personal, riesgo reproductivo y farmacogenético.
 
 @Dependencies InterVar and AnnoVar 
-@Usage python3 secondary_findings.py input_file.vcf --mode <Option: 'basic' or 'advanced'> --evidence <integer> --assembly <Option: '37' or '38'> 
+@Usage python3 SFtool.py input_file.vcf --mode <Option: 'basic' or 'advanced'> --evidence <integer> --assembly <Option: '37' or '38'>
 @Arguments:
     -vcf (str): Ruta al archivo VCF de entrada.
     -outpath (str): Ruta al directorio donde se guardarán los resultados.
