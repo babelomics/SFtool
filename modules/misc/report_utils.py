@@ -87,6 +87,7 @@ def get_versions_paths(program_arguments, config_data, clinvar_db):
         "Personal risk catalogue file": config_data["personal_risk_geneset_file"],
         "Reproductive risk catalogue file": config_data["reproductive_risk_geneset_file"],
         "Pharmacogenetic risk catalogue file": config_data["pharmacogenetic_risk_variant_GRCh37_file"],
+        "Diplotype-Phenotype file": config_data["diplotype_phenotype_info_file"],
         "Temporal dir": config_data["temp_path"],
         "Output dir": config_data["out_path"],
         "HPO list": hpos_patient_list,
