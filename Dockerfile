@@ -21,6 +21,11 @@ RUN apt-get update \
     python3.12 \
     python3-pip
 
+
+RUN mkdir -p /docker_files
+COPY ./docker_files/config_docker.json /docker_files
+
+RUN mkdir -p /docker_dependencies
 WORKDIR "/docker_dependencies"
 ADD https://github.com/samtools/bcftools/releases/download/1.20/bcftools-1.20.tar.bz2 bcftools-1.20.tar.bz2
 RUN tar -xf bcftools-1.20.tar.bz2
@@ -30,7 +35,7 @@ RUN make
 RUN make install
 RUN rm /docker_dependencies/bcftools-1.20.tar.bz2
 
-COPY ./docker_downloads/annovar.latest.tar.gz /docker_dependencies/
+COPY docker_files/annovar.latest.tar.gz /docker_dependencies/
 WORKDIR "/docker_dependencies"
 RUN tar xvzf annovar.latest.tar.gz
 RUN rm annovar.latest.tar.gz
@@ -60,6 +65,8 @@ RUN pip3 install pandas vcfpy biomart natsort pybedtools --break-system-packages
 
 RUN mkdir -p /docker_directories/categories/
 COPY categories /docker_directories/categories
+
+
 
 ADD https://zenodo.org/records/11146836/files/clinvar_database_GRCh37_20240421.txt?download=1 /docker_dependencies/clinvar/clinvar_database_GRCh37_20240421.txt
 WORKDIR "/docker_dependencies/clinvar/"
