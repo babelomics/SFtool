@@ -61,6 +61,7 @@ RUN pip3 install pandas vcfpy biomart natsort pybedtools --break-system-packages
 RUN mkdir -p /docker_directories/categories/
 COPY categories /docker_dependencies/categories
 ADD https://zenodo.org/records/11146836/files/clinvar_database_GRCh37_20240421.txt?download=1 /docker_dependencies/clinvar/clinvar_database_GRCh37_20240421.txt
+WORKDIR "/docker_dependencies/clinvar/"
 RUN chmod 755 clinvar_database_GRCh37_20240421.txt
 RUN mkdir -p /docker_directories/tmp/
 RUN mkdir -p /docker_directories/final_output/
