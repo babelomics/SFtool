@@ -28,13 +28,16 @@ WORKDIR "/docker_dependencies/bcftools-1.20"
 RUN ./configure --prefix=/
 RUN make
 RUN make install
-RUN rm /docker_dependencies/bcftools-1-20.tar.bz2
+RUN rm /docker_dependencies/bcftools-1.20.tar.bz2
 
 COPY ./docker_downloads/annovar.latest.tar.gz /docker_dependencies/
 WORKDIR "/docker_dependencies"
 RUN tar xvzf annovar.latest.tar.gz
 RUN rm annovar.latest.tar.gz
 
+
+RUN mkdir -p /docker_directories/ref_genomes/37
+RUN mkdir -p /docker_directories/ref_genomes/38
 ADD https://zenodo.org/records/8045374/files/hs37d5.genome.tgz?download=1 /docker_dependencies/ref_genomes/37/hs37d5.genome.tgz
 WORKDIR "/docker_dependencies/ref_genomes/37/"
 RUN tar xvzf hs37d5.genome.tgz
