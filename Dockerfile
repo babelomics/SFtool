@@ -22,9 +22,9 @@ RUN apt-get update \
     python3-pip
 
 WORKDIR "/docker_dependencies"
-ADD https://github.com/samtools/bcftools/releases/download/1.20/bcftools-1.20.tar.bz2 bcftools-1-20.tar.bz2
+ADD https://github.com/samtools/bcftools/releases/download/1.20/bcftools-1.20.tar.bz2 bcftools-1.20.tar.bz2
+RUN tar -xf bcftools-1.20.tar.bz2
 WORKDIR "/docker_dependencies/bcftools-1.20"
-RUN tar -xf bcftools-1-20.tar.bz2
 RUN ./configure --prefix=/
 RUN make
 RUN make install
