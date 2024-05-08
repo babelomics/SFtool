@@ -6,19 +6,23 @@ ENV TZ=Europe/Madrid
 RUN apt-get update \
     && apt install -y \
     build-essential \
+    checkinstall \
     curl \
     cmake \
     git \
     help2man \
     lsb-release \
-    python3 \
-    python3-pip \
     rpm \
     zlib1g-dev \
     libbz2-dev \
     liblzma-dev \
     libcurl4-openssl-dev \
-    libssl-dev
+    libssl-dev \
+    python3.12 \
+    python3-pip
+
+
+
 
 
 ADD https://github.com/samtools/bcftools/releases/download/1.20/bcftools-1.20.tar.bz2 bcftools-1-20.tar.bz2
