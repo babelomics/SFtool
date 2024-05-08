@@ -29,22 +29,22 @@ RUN make
 RUN make install
 RUN rm /bcftools-1-20.tar.bz2
 
-COPY ./docker_dependencies/annovar.latest.tar.gz /docker_dependencies/
-WORKDIR "/docker_dependencies"
+COPY ./docker_downloads/annovar.latest.tar.gz /docker_downloads/
+WORKDIR "/docker_downloads"
 RUN tar xvzf annovar.latest.tar.gz
 RUN rm annovar.latest.tar.gz
 
-ADD https://zenodo.org/records/8045374/files/hs37d5.genome.tgz?download=1 /docker_dependencies/hs37d5.genome.tgz
+ADD https://zenodo.org/records/8045374/files/hs37d5.genome.tgz?download=1 /docker_downloads/hs37d5.genome.tgz
 RUN tar xvzf hs37d5.genome.tgz
 RUN rm hs37d5.genome.tgz
 
-ADD https://github.com/WGLab/InterVar/archive/refs/tags/v2.2.1.tar.gz /docker_dependencies/InterVar-2.2.1.tar.gz
+ADD https://github.com/WGLab/InterVar/archive/refs/tags/v2.2.1.tar.gz /docker_downloads/InterVar-2.2.1.tar.gz
 RUN tar -xf InterVar-2.2.1.tar.gz
-WORKDIR "/docker_dependencies/InterVar-2.2.1"
-RUN sed -i 's/.\/convert2annovar.pl/\/docker_dependencies\/annovar\/convert2annovar.pl/g' config.ini
-RUN sed -i 's/.\/table_annovar.pl/\/docker_dependencies\/annovar\/table_annovar.pl/g' config.ini
-RUN sed -i 's/.\/annotate_variation.pl/\/docker_dependencies\/annovar\/annotate_variation.pl/g' config.ini
-ENV PATH "$PATH:/docker_dependencies/InterVar-2.2.1/"
+WORKDIR "/docker_downloads/InterVar-2.2.1"
+RUN sed -i 's/.\/convert2annovar.pl/\/docker_downloads\/annovar\/convert2annovar.pl/g' config.ini
+RUN sed -i 's/.\/table_annovar.pl/\/docker_downloads\/annovar\/table_annovar.pl/g' config.ini
+RUN sed -i 's/.\/annotate_variation.pl/\/docker_downloads\/annovar\/annotate_variation.pl/g' config.ini
+ENV PATH "$PATH:/docker_downloads/InterVar-2.2.1/"
 WORKDIR "/"
 
 RUN pip3 install pandas vcfpy biomart natsort pybedtools
