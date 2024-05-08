@@ -90,7 +90,7 @@ def assign_dpyd_diplotype(variants, diplo_pheno_dct, aggregated_results):
             else:
                 if len(variants_gene) == 2:
                     diplotype = '*1/HapB3'
-                elif len(variants_gene) == 3:
+                elif len(variants_gene) >=2:
                     diplotype='NA'
                     print('There are variants in ' + gene + ' that are not considered in the diplotype assignment. Please, review variants manually')
         else:

@@ -86,8 +86,8 @@ def annotate_fg_variants(categories_path, norm_vcf_fg, assembly, temp_path):
                 annotated_variant = {
                     "Variant": variant_key,
                     "Genotype": variant_record.call_for_sample[sample_name].data.get('GT'),
-                    "Gene Symbol": "Not found",
-                    "rs": "Not found",
+                    "Gene Symbol": "Not found in list of pharmacogenetic variants",
+                    "rs": "Not found in list of pharmacogenetic variants",
                 }
 
             annotated_variants.append(annotated_variant)
