@@ -38,8 +38,8 @@ RUN rm annovar.latest.tar.gz
 
 RUN mkdir -p /docker_directories/ref_genomes/37
 RUN mkdir -p /docker_directories/ref_genomes/38
-ADD https://zenodo.org/records/8045374/files/hs37d5.genome.tgz?download=1 /docker_dependencies/ref_genomes/37/hs37d5.genome.tgz
-WORKDIR "/docker_dependencies/ref_genomes/37/"
+ADD https://zenodo.org/records/8045374/files/hs37d5.genome.tgz?download=1 /docker_directories/ref_genomes/37/hs37d5.genome.tgz
+WORKDIR "/docker_directories/ref_genomes/37/"
 RUN tar xvzf hs37d5.genome.tgz
 RUN rm hs37d5.genome.tgz
 
@@ -58,8 +58,10 @@ WORKDIR "/"
 
 RUN pip3 install pandas vcfpy biomart natsort pybedtools --break-system-packages
 
-COPY categories /docker_dependencies
+RUN mkdir -p /docker_directories/categories/
+COPY categories /docker_dependencies/categories
 ADD https://zenodo.org/records/11146836/files/clinvar_database_GRCh37_20240421.txt?download=1 /docker_dependencies/clinvar/clinvar_database_GRCh37_20240421.txt
+RUN chmod 755 clinvar_database_GRCh37_20240421.txt
 RUN mkdir -p /docker_directories/tmp/
 RUN mkdir -p /docker_directories/final_output/
 
