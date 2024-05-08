@@ -43,7 +43,9 @@ WORKDIR "/docker_dependencies/ref_genomes/37/"
 RUN tar xvzf hs37d5.genome.tgz
 RUN rm hs37d5.genome.tgz
 
-ADD https://github.com/WGLab/InterVar/archive/refs/tags/v2.2.1.tar.gz /docker_dependencies/InterVar-2.2.1.tar.gz
+
+WORKDIR "/docker_dependencies"
+ADD https://github.com/WGLab/InterVar/archive/refs/tags/v2.2.1.tar.gz InterVar-2.2.1.tar.gz
 RUN tar -xf InterVar-2.2.1.tar.gz
 WORKDIR "/docker_dependencies/InterVar-2.2.1"
 RUN sed -i 's/.\/convert2annovar.pl/\/docker_dependencies\/annovar\/convert2annovar.pl/g' config.ini
