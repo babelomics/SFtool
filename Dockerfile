@@ -47,7 +47,7 @@ RUN sed -i 's/.\/annotate_variation.pl/\/docker_downloads\/annovar\/annotate_var
 ENV PATH "$PATH:/docker_downloads/InterVar-2.2.1/"
 WORKDIR "/"
 
-RUN pip3 install pandas vcfpy biomart natsort pybedtools
+RUN python -m pip install pandas vcfpy biomart natsort pybedtools
 
 
 WORKDIR "/"
