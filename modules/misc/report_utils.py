@@ -81,8 +81,8 @@ def get_versions_paths(program_arguments, config_data, clinvar_db):
 
 
     versions_paths={
-        "SF module": "0.1",
-        "SF module mode": program_arguments.mode,
+        "SF tool version": "0.1",
+        "SF tool mode": program_arguments.mode,
         "Input VCF": program_arguments.vcf_file,
         "Personal risk catalogue file": config_data["personal_risk_geneset_file"],
         "Reproductive risk catalogue file": config_data["reproductive_risk_geneset_file"],
