@@ -1,15 +1,15 @@
 {
-  "categories_path": "/docker_dependencies/categories/",
+  "categories_path": "/docker_directories/categories/",
   "clinvar_path": "/docker_dependencies/clinvar/",
   "intervar_path": "/docker_dependencies/InterVar-2.2.1/",
   "temp_path": "/docker_directories/tmp/",
   "out_path": "/docker_directories/final_output/",
   "bcftools_path":  "/docker_dependencies/bcftools-1.20/",
-  "reference_genome_37_path":  "/docker_dependencies/ref_genomes/37/hs37d5.fa",
-  "gene_to_phenotype_file": "/docker_dependencies/categories/genes_to_phenotype_02052024.txt",
+  "reference_genome_37_path":  "/docker_directories/ref_genomes/37/hs37d5.fa",
+  "gene_to_phenotype_file": "/docker_directories/categories/genes_to_phenotype_02052024.txt",
   "clinvar_ddbb_version": "20240421",
-  "personal_risk_geneset_file": "/docker_dependencies/categories/PR/pr_risk_genes_ACMG_SF_v3.1.csv",
-  "reproductive_risk_geneset_file" : "/docker_dependencies/categories/RR/rr_risk_genes_ACMG_CS_v2021.csv",
-  "pharmacogenetic_risk_variant_GRCh37_file" : "/docker_dependencies/categories/FG/fg_risk_genes_GRCh37_v2022.csv",
-  "diplotype_phenotype_info_file": "/docker_dependencies/categories/FG/diplotype_phenotype_info_180424.csv"
+  "personal_risk_geneset_file": "/docker_directories/categories/PR/pr_risk_genes_ACMG_SF_v3.1.csv",
+  "reproductive_risk_geneset_file" : "/docker_directories/categories/RR/rr_risk_genes_ACMG_CS_v2021.csv",
+  "pharmacogenetic_risk_variant_GRCh37_file" : "/docker_directories/categories/FG/fg_risk_genes_GRCh37_v2022.csv",
+  "diplotype_phenotype_info_file": "/docker_directories/categories/FG/diplotype_phenotype_info_180424.csv"
 }
