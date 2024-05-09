@@ -1,0 +1,61 @@
+#!/bin/bash -l
+
+# Input arguments
+function parseArgs(){
+
+        config_file="/docker_files/config_docker.json"
+        mode="advanced"
+        categories="PR,RR,FG"
+        evidence=1
+        assembly=37
+        hpos_file='-'
+
+  arg=$1
+  while [[ "$arg" != "" ]]
+  do
+    case "$1" in
+      "--config_file")
+       shift
+       config_file=$1
+       ;;
+       "--mode")
+       shift
+       mode=$1
+       ;;
+       "--categories")
+       shift
+       categories=$1
+       ;;
+       "--evidence")
+       shift
+       evidence=$1
+       ;;
+       "--assembly")
+       shift
+       assembly=$1
+       ;;
+       "--hpos_file")
+       shift
+       hpos_file=$1
+       ;;
+       "--vcf_file")
+       shift
+       vcf_file=$1
+       ;;
+      *)
+       echo 'Unknown argument '$1
+       shift
+    esac
+    shift
+    arg=$1
+  done
+}
+
+
+parseArgs $@
+
+if [ "$hpos_file" = "-" ]; then
+  SFtool.py --config_file $config_file --mode $mode --categories $categories --evidence $evidence --assembly $assembly $vcf_file
+else
+  SFtool.py --config_file $config_file --mode $mode --categories $categories --evidence $evidence --assembly $assembly --hpos_file $hpos_file $vcf_file
+fi
