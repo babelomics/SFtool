@@ -69,9 +69,6 @@ ADD https://zenodo.org/records/11146836/files/clinvar_database_GRCh37_20240421.t
 WORKDIR "/docker_dependencies/clinvar/"
 RUN chmod 755 clinvar_database_GRCh37_20240421.txt
 
-RUN mkdir -p /docker_directories/tmp/
-RUN mkdir -p /docker_directories/final_output/
-
 RUN mkdir -p /release_build/
 
 WORKDIR "."
