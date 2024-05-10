@@ -3,7 +3,7 @@
   "clinvar_path": "/docker_dependencies/clinvar/",
   "intervar_path": "/docker_dependencies/InterVar-2.2.1/",
   "bcftools_path":  "/docker_dependencies/bcftools-1.20/",
-  "reference_genome_37_path":  "/docker_directories/ref_genomes/37/hs37d5.fa",
+  "reference_genome_37_path":  "/docker_directories/ref_genomes/37/hs37d5/hs37d5.fa",
   "gene_to_phenotype_file": "/docker_directories/categories/genes_to_phenotype_02052024.txt",
   "clinvar_ddbb_version": "20240421",
   "personal_risk_geneset_file": "/docker_directories/categories/PR/pr_risk_genes_ACMG_SF_v3.1.csv",

@@ -48,7 +48,7 @@ def main():
     temp_path = os.path.join(out_path,'tmp')
 
     if not os.path.exists(temp_path):
-        os.mkdir(temp_path)
+        os.makedirs(temp_path)
 
 
 
