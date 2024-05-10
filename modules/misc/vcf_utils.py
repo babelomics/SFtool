@@ -32,7 +32,7 @@ def normalize_vcf(input_vcf_path, temp_path, bcftools_path, reference_genome_pat
         if not (os.path.exists(input_vcf_path + ".csi") or os.path.exists(input_vcf_path + ".tbi")):
             # Index VCF file if not indexed
             index_command = [bcftools_path + "bcftools", "index", input_vcf_path]
-            subprocess.run(index_command, check=True)
+            subprocess.run(index_command, check=True, capture_output=True)
 
         # Output files
         output_vcf_path = os.path.join(temp_path, just_filename.split(".vcf.gz")[0] + ".tmp.vcf.gz")

@@ -45,7 +45,7 @@ def main():
     evidence = args.evidence
     assembly = str(args.assembly)
     out_path = args.output_dir
-    temp_path = os.path.join(out_path,'/tmp/')
+    temp_path = os.path.join(out_path,'tmp')
 
     if not os.path.exists(temp_path):
         os.mkdir(temp_path)
