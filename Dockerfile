@@ -65,6 +65,7 @@ RUN sed -i 's/.\/convert2annovar.pl/\/docker_dependencies\/annovar\/convert2anno
 RUN sed -i 's/.\/table_annovar.pl/\/docker_dependencies\/annovar\/table_annovar.pl/g' config.ini
 RUN sed -i 's/.\/annotate_variation.pl/\/docker_dependencies\/annovar\/annotate_variation.pl/g' config.ini
 WORKDIR "/docker_dependencies/InterVar-2.2.1/"
+RUN chmod -R 777 .
 RUN chmod 755 Intervar.py
 ENV PATH "$PATH:/docker_dependencies/InterVar-2.2.1/"
 WORKDIR "/docker_dependencies"
