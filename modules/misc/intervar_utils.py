@@ -33,6 +33,7 @@ def run_intervar(norm_vcf, category, assembly, intervar_path):
         intervar_file_path = os.path.join(intervar_path, "Intervar.py")
         cmd = ["python3",
             intervar_file_path,
+            "-d", intervar_path + '/humandb/'
             "-b", assembly_int,
             "-i", norm_vcf,
             "--input_type", "VCF",

@@ -19,7 +19,14 @@ RUN apt-get update \
     libcurl4-openssl-dev \
     libssl-dev \
     python3.12 \
-    python3-pip
+    python3-pip \
+    locales
+
+RUN sed -i '/es_ES.UTF-8/s/^# //g' /etc/locale.gen && \
+    locale-gen
+ENV LANG es_ES.UTF-8
+ENV LANGUAGE es_ES.UTF-8
+ENV LC_ALL es_ES.UTF-8
 
 RUN mkdir -p /docker_files
 COPY ./docker_files/config_docker.json /docker_files
