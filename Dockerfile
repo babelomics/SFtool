@@ -34,6 +34,13 @@ RUN make
 RUN make install
 RUN rm /docker_dependencies/bcftools-1.20.tar.bz2
 
+WORKDIR "/docker_dependencies"
+ADD https://github.com/arq5x/bedtools2/releases/download/v2.31.1/bedtools-2.31.1.tar.gz bedtools-2.31.1.tar.gz
+RUN tar -xf bedtools-2.31.1.tar.gz
+WORKDIR "/docker_dependencies/bedtools2"
+RUN make
+ENV PATH "$PATH:/docker_dependencies/bedtools2/bin/"
+
 COPY docker_files/annovar.latest.tar.gz /docker_dependencies/
 WORKDIR "/docker_dependencies"
 RUN tar xvzf annovar.latest.tar.gz
