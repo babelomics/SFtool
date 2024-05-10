@@ -55,7 +55,7 @@ function parseArgs(){
 parseArgs $@
 
 if [ "$hpos_file" = "-" ]; then
-  SFtool.py --config_file $config_file --mode $mode --categories $categories --evidence $evidence --assembly $assembly $vcf_file
+  python3 SFtool.py --config_file $config_file --mode $mode --categories $categories --evidence $evidence --assembly $assembly $vcf_file
 else
-  SFtool.py --config_file $config_file --mode $mode --categories $categories --evidence $evidence --assembly $assembly --hpos_file $hpos_file $vcf_file
+  python3 SFtool.py --config_file $config_file --mode $mode --categories $categories --evidence $evidence --assembly $assembly --hpos_file $hpos_file $vcf_file
 fi
