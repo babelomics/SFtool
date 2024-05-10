@@ -41,7 +41,7 @@ def check_specific_criteria(gene, variant, variant_key, assembly):
     return meet_criteria
 
 
-def get_versions_paths(program_arguments, config_data, clinvar_db):
+def get_versions_paths(program_arguments, config_data, clinvar_db, out_path):
     """
     Get versions of third-party tools from SF tool and program arguments to be shown in the final report
     :param program_arguments: SF tools arguments
@@ -88,8 +88,8 @@ def get_versions_paths(program_arguments, config_data, clinvar_db):
         "Reproductive risk catalogue file": config_data["reproductive_risk_geneset_file"],
         "Pharmacogenetic risk catalogue file": config_data["pharmacogenetic_risk_variant_GRCh37_file"],
         "Diplotype-Phenotype file": config_data["diplotype_phenotype_info_file"],
-        "Temporal dir": config_data["temp_path"],
-        "Output dir": config_data["out_path"],
+        "Temporal dir": os.path.join(out_path, "temp_path"),
+        "Output dir": out_path,
         "HPO list": hpos_patient_list,
         "Human assembly": "hg19" if program_arguments.assembly == 37 else "hg38",
         "Reference genome path":  config_data["reference_genome_37_path"] if program_arguments.assembly == 37 else config_data["reference_genome_38_path"],
@@ -275,7 +275,7 @@ def get_hpos_from_txt(hpos_file):
         print(f"File {hpos_file} not found.")
         return []
 
-def generate_report(pr_results, rr_results, fg_results, haplot_results, config_data, args, clinvar_db, categories):
+def generate_report(pr_results, rr_results, fg_results, haplot_results, config_data, args, clinvar_db, categories, out_path):
     """
     Write results for all categories to an excel file
 
@@ -288,14 +288,13 @@ def generate_report(pr_results, rr_results, fg_results, haplot_results, config_d
     try:
 
         categories_path = config_data["categories_path"]
-        out_path = config_data["out_path"]
         vcf_file = args.vcf_file
         hpos_file = args.hpos_file
         gene_to_phenotype_file = config_data["gene_to_phenotype_file"]
         assembly = args.assembly
 
         # Get versions
-        versions_path = get_versions_paths(args, config_data, clinvar_db)
+        versions_path = get_versions_paths(args, config_data, clinvar_db, out_path)
 
         # Get HPO list
         hpos_user= []

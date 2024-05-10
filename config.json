@@ -2,8 +2,6 @@
   "categories_path": "/home/jpflorido/GBPA/projects/secondaryfindings/categories/",
   "clinvar_path": "/home/jpflorido/software/clinvar/",
   "intervar_path": "/home/jpflorido/software/InterVar/",
-  "temp_path": "/home/jpflorido/GBPA/projects/secondaryfindings/temp/",
-  "out_path": "/home/jpflorido/GBPA/projects/secondaryfindings/final_output/",
   "bcftools_path":  "/home/jpflorido/software/bcftools-1.16/",
   "reference_genome_37_path":  "/mnt/lustre/scratch/CBRA/data/indexed_genomes/bwa/hs37d5/hs37d5.fa",
   "gene_to_phenotype_file": "/home/jpflorido/GBPA/projects/secondaryfindings/categories/genes_to_phenotype_02052024.txt",

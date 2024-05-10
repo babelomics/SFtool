@@ -33,6 +33,9 @@ def arguments():
     # Argument for config file
     parser.add_argument("--config_file", default=None, help="Configuration file", required=True)
 
+    # Argument for output directory
+    parser.add_argument("--output_dir", default=None, help="Path to output directory where temporal and final results are generated", required=True)
+
     # Categories to be run: PR, RR, FG (by default all categories are selected)
     parser.add_argument("--categories", type=str, default="PR,RR,FG", help="PR,RR,FG or any combination of those categories or a single one. All categories by default")
     

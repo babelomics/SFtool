@@ -9,10 +9,6 @@
             "gene_symbol": "DPYD",
             "rs": "rs67376798"
         },
-        "1:97770920:C:T": {
-            "gene_symbol": "DPYD",
-            "rs": "rs1801160"
-        },
         "1:97915614:C:T": {
             "gene_symbol": "DPYD",
             "rs": "rs3918290"
@@ -33,14 +29,6 @@
             "gene_symbol": "DPYD",
             "rs": "rs55886062"
         },
-        "1:97981395:T:C": {
-            "gene_symbol": "DPYD",
-            "rs": "rs1801159"
-        },
-        "1:97981421:C:T": {
-            "gene_symbol": "DPYD",
-            "rs": "rs1801158"
-        },
         "1:98039419:C:T": {
             "gene_symbol": "DPYD",
             "rs": "rs56038477"
@@ -57,37 +45,17 @@
             "gene_symbol": "DPYD",
             "rs": "rs75017182"
         },
-        "1:98058994:A:C": {
-            "gene_symbol": "DPYD",
-            "rs": "rs115349832"
-        },
-        "1:98058994:A:G": {
-            "gene_symbol": "DPYD",
-            "rs": "rs115349832"
-        },
         "1:98157332:G:A": {
             "gene_symbol": "DPYD",
             "rs": "rs1801266"
-        },
-        "1:98164768:C:T": {
-            "gene_symbol": "DPYD",
-            "rs": "rs6668296"
         },
         "1:98165030:T:C": {
             "gene_symbol": "DPYD",
             "rs": "rs115232898"
         },
-        "1:98187048:C:T": {
-            "gene_symbol": "DPYD",
-            "rs": "rs56276561"
-        },
         "1:98205966:GATGA:G": {
             "gene_symbol": "DPYD",
             "rs": "rs72549309"
-        },
-        "1:98348885:G:A": {
-            "gene_symbol": "DPYD",
-            "rs": "rs1801265"
         },
         "1:201029943:C:T": {
             "gene_symbol": "CACNA1S",

@@ -44,6 +44,12 @@ def main():
     mode = args.mode
     evidence = args.evidence
     assembly = str(args.assembly)
+    out_path = args.output_dir
+    temp_path = os.path.join(out_path,'/tmp/')
+
+    if not os.path.exists(temp_path):
+        os.mkdir(temp_path)
+
 
 
     """
@@ -57,8 +63,6 @@ def main():
     categories_path = config_data["categories_path"]
     clinvar_path = config_data["clinvar_path"]
     clinvar_ddbb_version = config_data["clinvar_ddbb_version"]
-    temp_path = config_data["temp_path"]
-    out_path = config_data["out_path"]
     intervar_path = config_data["intervar_path"]
     bcftools_path = config_data["bcftools_path"]
     diplotype_phenotype_info_file = config_data["diplotype_phenotype_info_file"]
@@ -152,7 +156,7 @@ def main():
     """
     Create report
     """
-    generate_report(pr_results, rr_results, fg_results, haplot_results, config_data, args, clinvar_db, categories)
+    generate_report(pr_results, rr_results, fg_results, haplot_results, config_data, args, clinvar_db, categories, out_path)
 
 
     
