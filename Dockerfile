@@ -40,6 +40,8 @@ RUN tar -xf bedtools-2.31.1.tar.gz
 WORKDIR "/docker_dependencies/bedtools2"
 RUN make
 ENV PATH "$PATH:/docker_dependencies/bedtools2/bin/"
+WORKDIR "/docker_dependencies"
+RUN rm bedtools-2.31.1.tar.gz
 
 COPY docker_files/annovar.latest.tar.gz /docker_dependencies/
 WORKDIR "/docker_dependencies"
@@ -62,6 +64,8 @@ WORKDIR "/docker_dependencies/InterVar-2.2.1"
 RUN sed -i 's/.\/convert2annovar.pl/\/docker_dependencies\/annovar\/convert2annovar.pl/g' config.ini
 RUN sed -i 's/.\/table_annovar.pl/\/docker_dependencies\/annovar\/table_annovar.pl/g' config.ini
 RUN sed -i 's/.\/annotate_variation.pl/\/docker_dependencies\/annovar\/annotate_variation.pl/g' config.ini
+WORKDIR "/docker_dependencies/InterVar-2.2.1/"
+RUN chmod 755 InterVar.py
 ENV PATH "$PATH:/docker_dependencies/InterVar-2.2.1/"
 WORKDIR "/docker_dependencies"
 RUN rm InterVar-2.2.1.tar.gz
