@@ -20,7 +20,8 @@ RUN apt-get update \
     libssl-dev \
     python3.12 \
     python3-pip \
-    locales
+    locales \
+    wget
 
 RUN sed -i '/es_ES.UTF-8/s/^# //g' /etc/locale.gen && \
     locale-gen
