@@ -1,10 +1,4 @@
 examples
-categories/FG/*.json
-categories/FG/*.bed
-categories/RR/*.json
-categories/RR/*.bed
-categories/PR/*.json
-categories/PR/*.bed
 .idea
 modules/__pycache__/
 temp

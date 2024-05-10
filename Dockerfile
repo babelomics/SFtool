@@ -21,7 +21,6 @@ RUN apt-get update \
     python3.12 \
     python3-pip
 
-
 RUN mkdir -p /docker_files
 COPY ./docker_files/config_docker.json /docker_files
 
@@ -79,7 +78,6 @@ WORKDIR "."
 COPY modules /release_build/modules
 COPY SFtool.py /release_build/SFtool.py
 COPY docker_files/SFtool_singularity /release_build/SFtool
-
 ENV PATH "$PATH:/release_build/"
 
 WORKDIR "/"

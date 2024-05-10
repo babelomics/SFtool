@@ -1,0 +1,437 @@
+{
+    "category": "Pharmacogenetic secondary findings",
+    "variants": {
+        "1:97544627:C:A": {
+            "gene_symbol": "DPYD",
+            "rs": "rs1801268"
+        },
+        "1:97547947:T:A": {
+            "gene_symbol": "DPYD",
+            "rs": "rs67376798"
+        },
+        "1:97770920:C:T": {
+            "gene_symbol": "DPYD",
+            "rs": "rs1801160"
+        },
+        "1:97915614:C:T": {
+            "gene_symbol": "DPYD",
+            "rs": "rs3918290"
+        },
+        "1:97915614:C:G": {
+            "gene_symbol": "DPYD",
+            "rs": "rs3918290"
+        },
+        "1:97915621:TG:T": {
+            "gene_symbol": "DPYD",
+            "rs": "rs72549303"
+        },
+        "1:97981343:A:C": {
+            "gene_symbol": "DPYD",
+            "rs": "rs55886062"
+        },
+        "1:97981343:A:T": {
+            "gene_symbol": "DPYD",
+            "rs": "rs55886062"
+        },
+        "1:97981395:T:C": {
+            "gene_symbol": "DPYD",
+            "rs": "rs1801159"
+        },
+        "1:97981421:C:T": {
+            "gene_symbol": "DPYD",
+            "rs": "rs1801158"
+        },
+        "1:98039419:C:T": {
+            "gene_symbol": "DPYD",
+            "rs": "rs56038477"
+        },
+        "1:98039499:C:A": {
+            "gene_symbol": "DPYD",
+            "rs": "rs78060119"
+        },
+        "1:98045449:G:C": {
+            "gene_symbol": "DPYD",
+            "rs": "rs75017182"
+        },
+        "1:98045449:G:T": {
+            "gene_symbol": "DPYD",
+            "rs": "rs75017182"
+        },
+        "1:98058994:A:C": {
+            "gene_symbol": "DPYD",
+            "rs": "rs115349832"
+        },
+        "1:98058994:A:G": {
+            "gene_symbol": "DPYD",
+            "rs": "rs115349832"
+        },
+        "1:98157332:G:A": {
+            "gene_symbol": "DPYD",
+            "rs": "rs1801266"
+        },
+        "1:98164768:C:T": {
+            "gene_symbol": "DPYD",
+            "rs": "rs6668296"
+        },
+        "1:98165030:T:C": {
+            "gene_symbol": "DPYD",
+            "rs": "rs115232898"
+        },
+        "1:98187048:C:T": {
+            "gene_symbol": "DPYD",
+            "rs": "rs56276561"
+        },
+        "1:98205966:GATGA:G": {
+            "gene_symbol": "DPYD",
+            "rs": "rs72549309"
+        },
+        "1:98348885:G:A": {
+            "gene_symbol": "DPYD",
+            "rs": "rs1801265"
+        },
+        "1:201029943:C:T": {
+            "gene_symbol": "CACNA1S",
+            "rs": "rs1800559"
+        },
+        "1:201029943:C:A": {
+            "gene_symbol": "CACNA1S",
+            "rs": "rs1800559"
+        },
+        "1:201061121:G:A": {
+            "gene_symbol": "CACNA1S",
+            "rs": "rs772226819"
+        },
+        "2:234665659:T:G": {
+            "gene_symbol": "UGT1A1",
+            "rs": "rs4124874"
+        },
+        "2:234668570:C:T": {
+            "gene_symbol": "UGT1A1",
+            "rs": "rs887829"
+        },
+        "2:234668880:A:AAT": {
+            "gene_symbol": "UGT1A1",
+            "rs": "rs3064744"
+        },
+        "2:234669144:G:A": {
+            "gene_symbol": "UGT1A1",
+            "rs": "rs4148323"
+        },
+        "6:18130918:T:C": {
+            "gene_symbol": "TPMT",
+            "rs": "rs1142345"
+        },
+        "6:18130918:T:G": {
+            "gene_symbol": "TPMT",
+            "rs": "rs1142345"
+        },
+        "6:18131012:C:T": {
+            "gene_symbol": "TPMT",
+            "rs": "rs1800584"
+        },
+        "6:18139228:C:T": {
+            "gene_symbol": "TPMT",
+            "rs": "rs1800460"
+        },
+        "6:18143955:C:G": {
+            "gene_symbol": "TPMT",
+            "rs": "rs1800462"
+        },
+        "7:99250393:T:TA": {
+            "gene_symbol": "CYP3A5",
+            "rs": "rs41303343"
+        },
+        "7:99262835:C:T": {
+            "gene_symbol": "CYP3A5",
+            "rs": "rs10264272"
+        },
+        "7:99270539:C:T": {
+            "gene_symbol": "CYP3A5",
+            "rs": "rs776746"
+        },
+        "7:99355806:G:GT": {
+            "gene_symbol": "CYP3A4",
+            "rs": "rs67666821"
+        },
+        "7:99361466:C:T": {
+            "gene_symbol": "CYP3A4",
+            "rs": "rs2242480"
+        },
+        "7:99366316:G:A": {
+            "gene_symbol": "CYP3A4",
+            "rs": "rs35599367"
+        },
+        "7:99382096:C:T": {
+            "gene_symbol": "CYP3A4",
+            "rs": "rs2740574"
+        },
+        "10:96521657:C:T": {
+            "gene_symbol": "CYP2C19",
+            "rs": "rs12248560"
+        },
+        "10:96521657:C:A": {
+            "gene_symbol": "CYP2C19",
+            "rs": "rs12248560"
+        },
+        "10:96522463:A:G": {
+            "gene_symbol": "CYP2C19",
+            "rs": "rs28399504"
+        },
+        "10:96522463:A:T": {
+            "gene_symbol": "CYP2C19",
+            "rs": "rs28399504"
+        },
+        "10:96535124:A:G": {
+            "gene_symbol": "CYP2C19",
+            "rs": "rs12769205"
+        },
+        "10:96535173:T:C": {
+            "gene_symbol": "CYP2C19",
+            "rs": "rs41291556"
+        },
+        "10:96535210:G:A": {
+            "gene_symbol": "CYP2C19",
+            "rs": "rs72552267"
+        },
+        "10:96540410:G:A": {
+            "gene_symbol": "CYP2C19",
+            "rs": "rs4986893"
+        },
+        "10:96541616:G:A": {
+            "gene_symbol": "CYP2C19",
+            "rs": "rs4244285"
+        },
+        "10:96541616:G:C": {
+            "gene_symbol": "CYP2C19",
+            "rs": "rs4244285"
+        },
+        "10:96602623:G:A": {
+            "gene_symbol": "CYP2C19",
+            "rs": "rs3758581"
+        },
+        "10:96609775:A:C": {
+            "gene_symbol": "CYP2C19",
+            "rs": "rs17886522"
+        },
+        "10:96612495:C:T": {
+            "gene_symbol": "CYP2C19",
+            "rs": "rs56337013"
+        },
+        "10:96702047:C:T": {
+            "gene_symbol": "CYP2C9",
+            "rs": "rs1799853"
+        },
+        "10:96740981:C:T": {
+            "gene_symbol": "CYP2C9",
+            "rs": "rs28371685"
+        },
+        "10:96741053:A:C": {
+            "gene_symbol": "CYP2C9",
+            "rs": "rs1057910"
+        },
+        "10:96748777:C:T": {
+            "gene_symbol": "CYP2C9",
+            "rs": "rs9332239"
+        },
+        "12:21283322:G:A": {
+            "gene_symbol": "SLCO1B1",
+            "rs": "rs4149015"
+        },
+        "12:21283322:G:C": {
+            "gene_symbol": "SLCO1B1",
+            "rs": "rs4149015"
+        },
+        "12:21329738:A:G": {
+            "gene_symbol": "SLCO1B1",
+            "rs": "rs2306283"
+        },
+        "12:21329813:C:A": {
+            "gene_symbol": "SLCO1B1",
+            "rs": "rs11045819"
+        },
+        "12:21331549:T:C": {
+            "gene_symbol": "SLCO1B1",
+            "rs": "rs4149056"
+        },
+        "12:21391976:A:C": {
+            "gene_symbol": "SLCO1B1",
+            "rs": "rs34671512"
+        },
+        "13:48611918:AGGAGTC:A": {
+            "gene_symbol": "NUDT15",
+            "rs": "rs746071566"
+        },
+        "13:48619855:C:T": {
+            "gene_symbol": "NUDT15",
+            "rs": "rs116855232"
+        },
+        "16:31104878:G:A": {
+            "gene_symbol": "VKORC1",
+            "rs": "rs9934438"
+        },
+        "16:31107689:C:A": {
+            "gene_symbol": "VKORC1",
+            "rs": "rs9923231"
+        },
+        "16:31107689:C:G": {
+            "gene_symbol": "VKORC1",
+            "rs": "rs9923231"
+        },
+        "16:31107689:C:T": {
+            "gene_symbol": "VKORC1",
+            "rs": "rs9923231"
+        },
+        "19:15990431:C:T": {
+            "gene_symbol": "CYP4F2",
+            "rs": "rs2108622"
+        },
+        "19:16008388:A:C": {
+            "gene_symbol": "CYP4F2",
+            "rs": "rs3093105"
+        },
+        "19:38939352:G:A": {
+            "gene_symbol": "RYR1",
+            "rs": "rs121918592"
+        },
+        "19:38939352:G:C": {
+            "gene_symbol": "RYR1",
+            "rs": "rs121918592"
+        },
+        "19:38948185:C:T": {
+            "gene_symbol": "RYR1",
+            "rs": "rs118192172"
+        },
+        "19:38985219:G:A": {
+            "gene_symbol": "RYR1",
+            "rs": "rs118192176"
+        },
+        "19:38990633:G:A": {
+            "gene_symbol": "RYR1",
+            "rs": "rs121918593"
+        },
+        "19:41497129:T:C": {
+            "gene_symbol": "CYP2B6",
+            "rs": "rs34223104"
+        },
+        "19:41497274:C:T": {
+            "gene_symbol": "CYP2B6",
+            "rs": "rs8192709"
+        },
+        "19:41512841:G:A": {
+            "gene_symbol": "CYP2B6",
+            "rs": "rs3745274"
+        },
+        "19:41512841:G:T": {
+            "gene_symbol": "CYP2B6",
+            "rs": "rs3745274"
+        },
+        "19:41515263:A:G": {
+            "gene_symbol": "CYP2B6",
+            "rs": "rs2279343"
+        },
+        "19:41518221:T:C": {
+            "gene_symbol": "CYP2B6",
+            "rs": "rs28399499"
+        },
+        "19:41522715:C:A": {
+            "gene_symbol": "CYP2B6",
+            "rs": "rs3211371"
+        },
+        "19:41522715:C:G": {
+            "gene_symbol": "CYP2B6",
+            "rs": "rs3211371"
+        },
+        "19:41522715:C:T": {
+            "gene_symbol": "CYP2B6",
+            "rs": "rs3211371"
+        },
+        "22:42522613:G:C": {
+            "gene_symbol": "CYP2D6",
+            "rs": "rs1135840"
+        },
+        "22:42522749:G:A": {
+            "gene_symbol": "CYP2D6",
+            "rs": "rs730882251"
+        },
+        "22:42522751:C:T": {
+            "gene_symbol": "CYP2D6",
+            "rs": "rs267608319"
+        },
+        "22:42523610:C:T": {
+            "gene_symbol": "CYP2D6",
+            "rs": "rs59421388"
+        },
+        "22:42523805:C:T": {
+            "gene_symbol": "CYP2D6",
+            "rs": "rs28371725"
+        },
+        "22:42523943:A:G": {
+            "gene_symbol": "CYP2D6",
+            "rs": "rs16947"
+        },
+        "22:42524175:CCTT:C": {
+            "gene_symbol": "CYP2D6",
+            "rs": "rs5030656"
+        },
+        "22:42524243:CT:C": {
+            "gene_symbol": "CYP2D6",
+            "rs": "rs35742686"
+        },
+        "22:42524814:A:G": {
+            "gene_symbol": "CYP2D6",
+            "rs": "rs199535154"
+        },
+        "22:42524816:T:TC": {
+            "gene_symbol": "CYP2D6",
+            "rs": "rs72549354"
+        },
+        "22:42524947:C:T": {
+            "gene_symbol": "CYP2D6",
+            "rs": "rs3892097"
+        },
+        "22:42525085:CA:C": {
+            "gene_symbol": "CYP2D6",
+            "rs": "rs5030655"
+        },
+        "22:42525134:C:T": {
+            "gene_symbol": "CYP2D6",
+            "rs": "rs61736512"
+        },
+        "22:42525772:G:A": {
+            "gene_symbol": "CYP2D6",
+            "rs": "rs28371706"
+        },
+        "22:42525772:G:T": {
+            "gene_symbol": "CYP2D6",
+            "rs": "rs28371706"
+        },
+        "22:42526694:G:A": {
+            "gene_symbol": "CYP2D6",
+            "rs": "rs1065852"
+        },
+        "22:42526763:C:T": {
+            "gene_symbol": "CYP2D6",
+            "rs": "rs769258"
+        },
+        "X:153762634:G:A": {
+            "gene_symbol": "G6PD",
+            "rs": "rs5030868"
+        },
+        "X:153764217:C:T": {
+            "gene_symbol": "G6PD",
+            "rs": "rs1050828"
+        },
+        "MT:1095:T:C": {
+            "gene_symbol": "MT-RNR1",
+            "rs": "rs267606618"
+        },
+        "MT:1494:C:T": {
+            "gene_symbol": "MT-RNR1",
+            "rs": "rs267606619"
+        },
+        "MT:1555:A:G": {
+            "gene_symbol": "MT-RNR1",
+            "rs": "rs267606617"
+        }
+    }
+}
