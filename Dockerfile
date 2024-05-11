@@ -86,7 +86,7 @@ ADD https://zenodo.org/records/11177705/files/mim2gene.txt?download=1 mim2gene.t
 RUN chmod 755 mim2gene.txt
 WORKDIR "/"
 
-RUN pip3 install pandas vcfpy biomart natsort pybedtools --break-system-packages
+RUN pip3 install pandas vcfpy biomart natsort pybedtools openpyxl --break-system-packages
 
 RUN mkdir -p /docker_directories/categories/
 COPY categories /docker_directories/categories
