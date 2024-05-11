@@ -21,7 +21,8 @@ RUN apt-get update \
     python3.12 \
     python3-pip \
     locales \
-    wget
+    wget \
+    zip
 
 RUN sed -i '/es_ES.UTF-8/s/^# //g' /etc/locale.gen && \
     locale-gen
@@ -78,6 +79,10 @@ RUN chmod 755 Intervar.py
 ENV PATH "$PATH:/docker_dependencies/InterVar-2.2.1/"
 WORKDIR "/docker_dependencies"
 RUN rm InterVar-2.2.1.tar.gz
+WORKDIR "/"
+
+WORKDIR "/docker_dependencies/InterVar-2.2.1/intervardb"
+ADD https://zenodo.org/records/11177705/files/mim2gene.txt?download=1 mim2gene.txt
 WORKDIR "/"
 
 RUN pip3 install pandas vcfpy biomart natsort pybedtools --break-system-packages
