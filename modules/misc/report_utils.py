@@ -59,7 +59,7 @@ def get_versions_paths(program_arguments, config_data, clinvar_db, out_path):
     # Intervar version
     try:
         intervar_file_path = os.path.join(config_data["intervar_path"], "Intervar.py")
-        cmd = [intervar_file_path, "--version"]
+        cmd = ["python3", intervar_file_path, "--version"]
 
         intervar_process = subprocess.Popen(cmd, stdout= subprocess.PIPE)
         intervar_out, intervar_err = intervar_process.communicate()
