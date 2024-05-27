@@ -59,7 +59,7 @@ function parseArgs(){
 parseArgs $@
 
 if [ "$hpos_file" = "-" ]; then
-  python3 SFtool.py --config_file $config_file --mode $mode --categories $categories --evidence $evidence --assembly $assembly --output_dir $output_dir $vcf_file
+  python3 /release_build/SFtool.py --config_file $config_file --mode $mode --categories $categories --evidence $evidence --assembly $assembly --output_dir $output_dir $vcf_file
 else
-  python3 SFtool.py --config_file $config_file --mode $mode --categories $categories --evidence $evidence --assembly $assembly --output_dir $output_dir --hpos_file $hpos_file $vcf_file
+  python3 /release_build/SFtool.py --config_file $config_file --mode $mode --categories $categories --evidence $evidence --assembly $assembly --output_dir $output_dir --hpos_file $hpos_file $vcf_file
 fi
