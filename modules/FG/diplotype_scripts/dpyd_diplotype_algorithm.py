@@ -43,7 +43,7 @@ def assign_dpyd_diplotype(variants, diplo_pheno_dct, aggregated_results):
                         print('There are variants in ' + gene + ' that are not considered in the diplotype assignment. Please, review variants manually')
                 else:
                     if 'rs75017182' in variants_gene.keys() and 'rs56038477' in variants_gene.keys():
-                        diplotype = '*2a/HapB3'
+                        diplotype = '*2A/HapB3'
                     else:
                         diplotype='NA'
                         print('There are variants in ' + gene + ' that are not considered in the diplotype assignment. Please, review variants manually')
