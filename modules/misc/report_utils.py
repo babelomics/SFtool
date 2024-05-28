@@ -35,7 +35,7 @@ def check_specific_criteria(gene, variant, variant_key, assembly):
         specific_variant = gene["specific_variant_GRCh" + str(assembly)].split(',')[0]
         specific_genotype = gene["specific_variant_GRCh" + str(assembly)].split(',')[1]
 
-        if specific_variant != variant_key and specific_genotype.lower() != variant["Genotype"]:
+        if specific_variant != variant_key or specific_genotype.lower() != variant["Genotype"]:
             meet_criteria = False
 
     return meet_criteria

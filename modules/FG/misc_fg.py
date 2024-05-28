@@ -146,7 +146,7 @@ def assign_phenotype_AC(diplotype, gene, diplo_pheno_dct, aggregated_results):
     """
 
     if gene in diplo_pheno_dct and 'or' in diplotype: # There are questionable diplotypes
-        all_diplotypes = re.findall(r'\*\d+/\*\d+', diplotype)
+        all_diplotypes = [s.strip().replace(" ", "") for s in diplotype.split('or')]
         tmp_phenotype = []
         tmp_activity_score = []
         for current_diplotype in all_diplotypes:
