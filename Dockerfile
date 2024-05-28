@@ -90,7 +90,17 @@ RUN mkdir -p "/docker_dependencies/InterVar-2.2.1/humandb"
 WORKDIR "/docker_dependencies/InterVar-2.2.1/humandb"
 RUN chmod -R 777 .
 # Download databases to humandb
+RUN perl /docker_dependencies/annovar/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar refGene /docker_dependencies/InterVar-2.2.1//humandb/ \
+RUN perl /docker_dependencies/annovar/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar esp6500siv2_all /docker_dependencies/InterVar-2.2.1//humandb/
+RUN perl /docker_dependencies/annovar/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar 1000g2015aug /docker_dependencies/InterVar-2.2.1//humandb/
+RUN perl /docker_dependencies/annovar/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar avsnp147 /docker_dependencies/InterVar-2.2.1//humandb/
+RUN perl /docker_dependencies/annovar/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar dbnsfp42a /docker_dependencies/InterVar-2.2.1//humandb/
 RUN perl /docker_dependencies/annovar/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar clinvar_20210501 /docker_dependencies/InterVar-2.2.1//humandb/
+RUN perl /docker_dependencies/annovar/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar gnomad_genome /docker_dependencies/InterVar-2.2.1//humandb/
+RUN perl /docker_dependencies/annovar/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar dbscsnv11 /docker_dependencies/InterVar-2.2.1//humandb/
+RUN perl /docker_dependencies/annovar/annotate_variation.pl -buildver hg19 -downdb rmsk /docker_dependencies/InterVar-2.2.1//humandb/
+RUN perl /docker_dependencies/annovar/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar ensGene /docker_dependencies/InterVar-2.2.1//humandb/
+RUN perl /docker_dependencies/annovar/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar knownGene /docker_dependencies/InterVar-2.2.1//humandb/
 WORKDIR "/"
 
 RUN pip3 install pandas vcfpy biomart natsort pybedtools openpyxl --break-system-packages
