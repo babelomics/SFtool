@@ -90,7 +90,7 @@ RUN mkdir -p "/docker_dependencies/InterVar-2.2.1/humandb"
 WORKDIR "/docker_dependencies/InterVar-2.2.1/humandb"
 RUN chmod -R 777 .
 # Download databases to humandb
-RUN perl /docker_dependencies/annovar/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar refGene /docker_dependencies/InterVar-2.2.1//humandb/ \
+RUN perl /docker_dependencies/annovar/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar refGene /docker_dependencies/InterVar-2.2.1//humandb/ 
 RUN perl /docker_dependencies/annovar/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar esp6500siv2_all /docker_dependencies/InterVar-2.2.1//humandb/
 RUN perl /docker_dependencies/annovar/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar 1000g2015aug /docker_dependencies/InterVar-2.2.1//humandb/
 RUN perl /docker_dependencies/annovar/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar avsnp147 /docker_dependencies/InterVar-2.2.1//humandb/
