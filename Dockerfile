@@ -81,6 +81,7 @@ WORKDIR "/docker_dependencies"
 RUN rm InterVar-2.2.1.tar.gz
 WORKDIR "/"
 
+
 WORKDIR "/docker_dependencies/InterVar-2.2.1/intervardb"
 ADD https://zenodo.org/records/11177705/files/mim2gene.txt?download=1 mim2gene.txt
 RUN chmod 755 mim2gene.txt
@@ -88,6 +89,8 @@ WORKDIR "/"
 RUN mkdir -p "/docker_dependencies/InterVar-2.2.1/humandb"
 WORKDIR "/docker_dependencies/InterVar-2.2.1/humandb"
 RUN chmod -R 777 .
+# Download databases to humandb
+RUN perl /docker_dependencies/annovar/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar clinvar_20210501 /docker_dependencies/InterVar-2.2.1//humandb/
 WORKDIR "/"
 
 RUN pip3 install pandas vcfpy biomart natsort pybedtools openpyxl --break-system-packages
