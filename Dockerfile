@@ -83,7 +83,7 @@ WORKDIR "/"
 
 
 WORKDIR "/docker_dependencies/InterVar-2.2.1/intervardb"
-ADD https://zenodo.org/records/11177705/files/mim2gene.txt?download=1 mim2gene.txt
+ADD https://zenodo.org/records/11382175/files/mim2gene.txt?download=1 mim2gene.txt
 RUN chmod 755 mim2gene.txt
 WORKDIR "/"
 RUN mkdir -p "/docker_dependencies/InterVar-2.2.1/humandb"
@@ -108,9 +108,9 @@ RUN pip3 install pandas vcfpy biomart natsort pybedtools openpyxl --break-system
 RUN mkdir -p /docker_directories/categories/
 COPY categories /docker_directories/categories
 
-ADD https://zenodo.org/records/11146836/files/clinvar_database_GRCh37_20240421.txt?download=1 /docker_dependencies/clinvar/clinvar_database_GRCh37_20240421.txt
+ADD https://zenodo.org/records/11382269/files/clinvar_database_GRCh37_20240528.txt?download=1 /docker_dependencies/clinvar/clinvar_database_GRCh37_20240528.txt
 WORKDIR "/docker_dependencies/clinvar/"
-RUN chmod 755 clinvar_database_GRCh37_20240421.txt
+RUN chmod 755 clinvar_database_GRCh37_20240528.txt
 
 RUN mkdir -p /release_build/
 
