@@ -5,7 +5,7 @@
   "bcftools_path":  "/docker_dependencies/bcftools-1.20/",
   "reference_genome_37_path":  "/docker_directories/ref_genomes/37/hs37d5/hs37d5.fa",
   "gene_to_phenotype_file": "/docker_directories/categories/genes_to_phenotype_02052024.txt",
-  "clinvar_ddbb_version": "20240421",
+  "clinvar_ddbb_version": "20240528",
   "personal_risk_geneset_file": "/docker_directories/categories/PR/pr_risk_genes_ACMG_SF_v3.1.csv",
   "reproductive_risk_geneset_file" : "/docker_directories/categories/RR/rr_risk_genes_ACMG_CS_v2021.csv",
   "pharmacogenetic_risk_variant_GRCh37_file" : "/docker_directories/categories/FG/fg_risk_genes_GRCh37_v2022.csv",
