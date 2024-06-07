@@ -143,6 +143,7 @@ def combine_results(vcf_norm, intervar_results, clinvar_results):
             # Search variant in Clinvar dictionary
             clinvar_info = clinvar_results.get(variant_key)
 
+
             if clinvar_info is not None:
 
                 clinvar_clinical_significance_tmp = list(map(str.strip,re.split(';|,|/',clinvar_info["ClinicalSignificance"])))
