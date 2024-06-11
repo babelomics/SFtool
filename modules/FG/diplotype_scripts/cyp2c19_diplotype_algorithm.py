@@ -63,9 +63,22 @@ def assign_cyp2c19_diplotype(variants, diplo_pheno_dct, aggregated_results):
                 diplotype = '*17/*17'
             elif len(variants_gene) == 1 or (len(variants_gene) == 2 and 'rs3758581' in variants_gene.keys()):
                 diplotype = '*1/*17'
+            elif 'rs28399504' in variants_gene.keys() and (variants_gene['rs28399504'] == '0/1') and (variants_gene['rs12248560'] == '0/1'):
+                diplotype = '*1/*4 or *4/*17'
             else:
                 diplotype = 'NA'
                 print('There are variants in ' + gene + ' that are not considered in the diplotype assignment. Please, review variants manually')
+        # Check *4 allele
+        elif 'rs28399504' in variants_gene.keys():
+            if variants_gene['rs28399504'] == '1/1':
+                diplotype = '*4/*4'
+            elif len(variants_gene) == 1 or (len(variants_gene) == 2 and 'rs3758581' in variants_gene.keys()):
+                diplotype = ' *1/*4'
+            else:
+                diplotype = 'NA'
+                print('There are variants in ' + gene + ' that are not considered in the diplotype assignment. Please, review variants manually')
+
+
         else:
             diplotype = 'NA'
             print('There are variants in ' + gene + ' that are not considered in the diplotype assignment. Please, review variants manually')
