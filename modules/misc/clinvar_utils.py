@@ -27,11 +27,11 @@ def map_review_status(review_status):
         "practice guideline": 4,
         "reviewed by expert panel": 3,
         "criteria provided, multiple submitters, no conflicts": 2,
-        "criteria provided, conflicting interpretations": 1,
+        "criteria provided, conflicting classifications": 1,
         "criteria provided, single submitter": 1,
-        "no assertion for the individual variant": 0,
+        "no classification for the individual variant": 0,
         "no assertion criteria provided": 0,
-        "no assertion provided": 0
+        "no classification provided": 0
     }
     return mapping.get(review_status.lower(), 0)  # Valor predeterminado es 0 si no se encuentra en el mapeo
 
@@ -84,6 +84,7 @@ def run_clinvar(evidence_level, clinvar_db, category, category_geneset_file):
                             "ReviewStatus": '(' + str(stars) + ') ' + review_status,
                             "ClinvarID": clinvar_id
                         }
+
         return(clinvar_dct)
 
     except Exception as e:
