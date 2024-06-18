@@ -80,7 +80,7 @@ def run_clinvar(evidence_level, clinvar_db, category, category_geneset_file):
                             "Gene": gene,
                             "ClinicalSignificance": clinical_significance,
                             "ClinSigSimple": clinsigsimple,
-                            "rs": rs_id,
+                            "rs": 'rs'+ rs_id,
                             "ReviewStatus": '(' + str(stars) + ') ' + review_status,
                             "ClinvarID": clinvar_id
                         }
