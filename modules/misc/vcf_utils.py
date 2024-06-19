@@ -152,7 +152,7 @@ def combine_results(vcf_norm, intervar_results, clinvar_results):
                 if (intervar_info and intervar_info["IntervarClassification"] in ["Pathogenic", "Likely pathogenic"]) or \
                         ("pathogenic" in clinvar_clinical_significance) or \
                         ("likely pathogenic" in clinvar_clinical_significance) or \
-                        (("conflicting interpretations of pathogenicity" in clinvar_clinical_significance) and (clinvar_info["ClinSigSimple"]=="1")):
+                        (("conflicting classifications of pathogenicity" in clinvar_clinical_significance) and (clinvar_info["ClinSigSimple"]=="1")):
 
                     combined_results[variant_key] = {
                         "Gene": clinvar_info["Gene"],
