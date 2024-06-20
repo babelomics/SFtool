@@ -223,6 +223,6 @@ where **\<prefix>** is VCF's filename with no extension
 
 ## <a name="contributors">Contributors</a>
 
-* **Javier Pérez Florido** (javier.perez.florido.sspa@juntadeandalucia.es). Platform for Computational Medicine, Fundación Progreso y Salud, Consejería de Salud y Consumo, Junta de Andalucía
+* **Javier Pérez-Florido** (javier.perez.florido.sspa@juntadeandalucia.es). Platform for Computational Medicine, Fundación Progreso y Salud, Consejería de Salud y Consumo, Junta de Andalucía
 * **Rosario Carmona** (rosariom.carmona@juntadeandalucia.es). Centro de Investigación Biomédica en Red de Enfermedades Raras (CIBERER) and Platform for Computational Medicine, Fundación Progreso y Salud, Consejería de Salud y Consumo, Junta de Andalucía
 * **Edurne Urrutia Lafuente** (edurne.urrutia.lafuente@navarra.es). Centro de Investigación Biomédica Navarrabiomed.
