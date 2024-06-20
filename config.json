@@ -1,13 +1,13 @@
 {
-  "categories_path": "/home/jpflorido/GBPA/projects/secondaryfindings/categories/",
+  "categories_path": "/home/jpflorido/GBPA/projects/SFtool/categories/",
   "clinvar_path": "/home/jpflorido/software/clinvar/",
   "intervar_path": "/home/jpflorido/software/InterVar/",
   "bcftools_path":  "/home/jpflorido/software/bcftools-1.16/",
   "reference_genome_37_path":  "/mnt/lustre/scratch/CBRA/data/indexed_genomes/bwa/hs37d5/hs37d5.fa",
-  "gene_to_phenotype_file": "/home/jpflorido/GBPA/projects/secondaryfindings/categories/genes_to_phenotype_02052024.txt",
+  "gene_to_phenotype_file": "/home/jpflorido/GBPA/projects/SFtool/categories/genes_to_phenotype_02052024.txt",
   "clinvar_ddbb_version": "20240528",
-  "personal_risk_geneset_file": "/home/jpflorido/GBPA/projects/secondaryfindings/categories/PR/pr_risk_genes_ACMG_SF_v3.1.csv",
-  "reproductive_risk_geneset_file" : "/home/jpflorido/GBPA/projects/secondaryfindings/categories/RR/rr_risk_genes_ACMG_CS_v2021.csv",
-  "pharmacogenetic_risk_variant_GRCh37_file" : "/home/jpflorido/GBPA/projects/secondaryfindings/categories/FG/fg_risk_genes_GRCh37_v2022.csv",
-  "diplotype_phenotype_info_file": "/home/jpflorido/GBPA/projects/secondaryfindings/categories/FG/diplotype_phenotype_info_180424.csv"
+  "personal_risk_geneset_file": "/home/jpflorido/GBPA/projects/SFtool/categories/PR/pr_risk_genes_ACMG_SF_v3.1.csv",
+  "reproductive_risk_geneset_file" : "/home/jpflorido/GBPA/projects/SFtool/categories/RR/rr_risk_genes_ACMG_CS_v2021.csv",
+  "pharmacogenetic_risk_variant_GRCh37_file" : "/home/jpflorido/GBPA/projects/SFtool/categories/FG/fg_risk_genes_GRCh37_v2022.csv",
+  "diplotype_phenotype_info_file": "/home/jpflorido/GBPA/projects/SFtool/categories/FG/diplotype_phenotype_info_180424.csv"
 }
