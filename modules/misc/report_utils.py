@@ -238,15 +238,16 @@ def check_patient_HPO(reported_results, hpos_user, gene_to_phenotype_file):
     for result in reported_results:
         # Check wether HPOs for a given gene according to gene_to_phenotype_file are in the list of HPOs for a sample
         gene = reported_results[result]['Gene']
-        hpo_results = gene_hpo_dict[gene]
+        hpo_results = gene_hpo_dict.get(gene)
 
-        for hpo in hpo_results:
-            if hpo in hpos_user:
-                if reported_results[result]['related_HPOs_for_sample'] == 'NA':
-                    reported_results[result]['related_HPOs_for_sample'] = hpo
-                else:
-                    if hpo not in reported_results[result]['related_HPOs_for_sample'].split(','):
-                        reported_results[result]['related_HPOs_for_sample'] += ',' + hpo
+        if hpo_results is not None:
+            for hpo in hpo_results:
+                if hpo in hpos_user:
+                    if reported_results[result]['related_HPOs_for_sample'] == 'NA':
+                        reported_results[result]['related_HPOs_for_sample'] = hpo
+                    else:
+                        if hpo not in reported_results[result]['related_HPOs_for_sample'].split(','):
+                            reported_results[result]['related_HPOs_for_sample'] += ',' + hpo
 
     return reported_results
 
