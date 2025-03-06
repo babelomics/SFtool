@@ -505,7 +505,7 @@
             "variants_to_report": "All P and LP. Only loss-of-function variants should be reported as a secondary finding.",
             "specific_variant_GRCh38": "",
             "specific_variant_GRCh37": "",
-            "specific_consequence": "stopgain,stoploss,startloss,frameshift insertion,frameshift deletion"
+            "specific_consequence": "stop_gained,stop_lost,start_lost,frameshift_variant"
         },
         {
             "gene_symbol": "BAG3",

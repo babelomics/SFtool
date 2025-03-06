@@ -7,10 +7,11 @@ Created on Thu Jan 25 2024
 from modules.misc.intervar_utils import run_intervar, parse_intervar_output
 from modules.misc.clinvar_utils import run_clinvar
 from modules.misc.vcf_utils import combine_results
-from modules.misc.utils import write_category_results_to_tsv
+from modules.misc.utils import write_category_results_to_tsv, combine_genebe_clinvar_results
+from modules.misc.geneBe_utils import run_genebe, parse_genebe_output
 
 
-def run_pers_repro_risk_module(norm_vcf, assembly, mode, evidence_level, clinvar_db, intervar_path, category, category_geneset_file):
+def run_pers_repro_risk_module(norm_vcf, assembly, mode, evidence_level, clinvar_db, category, category_geneset_file, genebe_path, java_path, genebe_apikey, genebe_username):
     """
     Run Personal Risk or Reproductive Risgk module
 
@@ -26,16 +27,16 @@ def run_pers_repro_risk_module(norm_vcf, assembly, mode, evidence_level, clinvar
 
     print("Running " + category.upper() + "risk module")
 
-    # Intervar is always run
-    intervar_output_file = run_intervar(norm_vcf, category, assembly, intervar_path)
-    intervar_results = parse_intervar_output(intervar_output_file, mode, assembly)
+    # Run GeneBe
+    genebe_output_file = run_genebe(norm_vcf, category, assembly, genebe_path, java_path, genebe_apikey, genebe_username)
+    genebe_results = parse_genebe_output(genebe_output_file, mode)
     if mode == "basic":
-        category_results = intervar_results
+        category_results = genebe_results
     elif mode == "advanced":
         # Advanced mode: run Clinvar and combine results with Intervar
         clinvar_results = run_clinvar(evidence_level, clinvar_db, category, category_geneset_file)
-        intervar_clinvar_results = combine_results(norm_vcf, intervar_results, clinvar_results)
-        category_results = intervar_clinvar_results
+        genebe_clinvar_results = combine_genebe_clinvar_results(genebe_results, clinvar_results)
+        category_results = genebe_clinvar_results
 
     # Write results of this category to a file
     output_file = f"{norm_vcf.split('norm.' + category.upper() + '.vcf.gz')[0]}{category.upper()}.SF.tsv"

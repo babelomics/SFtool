@@ -74,6 +74,7 @@ def run_clinvar(evidence_level, clinvar_db, category, category_geneset_file):
                     rs_id = fields[5]
                     review_status = fields[13]
                     stars = map_review_status(review_status)
+                    phenotypeIDS = fields[7]
                     if stars >= int(evidence_level):
                         clinvar_id = fields[6]
                         clinvar_dct[variant] = {
@@ -82,7 +83,8 @@ def run_clinvar(evidence_level, clinvar_db, category, category_geneset_file):
                             "ClinSigSimple": clinsigsimple,
                             "rs": 'rs'+ rs_id,
                             "ReviewStatus": '(' + str(stars) + ') ' + review_status,
-                            "ClinvarID": clinvar_id
+                            "ClinvarID": clinvar_id,
+                            "PhenotypeIDS": phenotypeIDS
                         }
 
         return(clinvar_dct)

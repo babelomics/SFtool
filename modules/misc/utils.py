@@ -1,6 +1,7 @@
 
 
 import csv
+import re
 
 def write_category_results_to_tsv(results, output_tsv):
     """
@@ -12,7 +13,7 @@ def write_category_results_to_tsv(results, output_tsv):
     """
 
     with open(output_tsv, "w", newline="") as tsv_file:
-        fieldnames = ["Variant", "Gene", "Genotype", "Intervar Consequence", "rs", "Intervar Classification","Clinvar Clinical Significance", "ReviewStatus", "ClinvarID", "Orpha"]
+        fieldnames = ["Variant", "Gene", "Genotype", "Consequence", "rs", "GeneBe Classification","Clinvar Clinical Significance", "ReviewStatus", "ClinvarID", "Orpha"]
         writer = csv.DictWriter(tsv_file, fieldnames=fieldnames, delimiter="\t")
 
         writer.writeheader()
@@ -23,9 +24,9 @@ def write_category_results_to_tsv(results, output_tsv):
                 "Variant": variant,
                 "Gene": info.get("Gene", ""),
                 "Genotype": info.get("Genotype", ""),
-                "Intervar Consequence": info.get("IntervarConsequence", "-"),
+                "Consequence": info.get("Consequence", "-"),
                 "rs": info.get("rs", ""),
-                "Intervar Classification": info.get("IntervarClassification", ""),
+                "GeneBe Classification": info.get("GeneBeClassification", ""),
                 "Clinvar Clinical Significance": info.get("ClinvarClinicalSignificance", "-"),
                 "ReviewStatus": info.get("ReviewStatus", "-"),
                 "ClinvarID": info.get("ClinvarID", "-"),
@@ -36,3 +37,47 @@ def write_category_results_to_tsv(results, output_tsv):
 
 
 
+def combine_genebe_clinvar_results(genebe_results, clinvar_results):
+
+    combined_results = {}
+
+    for variant_key in genebe_results.keys():
+        genebe_info= genebe_results.get(variant_key)
+        clinvar_info = clinvar_results.get(variant_key)
+
+        if clinvar_info is not None:
+            clinvar_clinical_significance_tmp = list(map(str.strip,re.split(';|,|/',clinvar_info["ClinicalSignificance"])))
+            clinvar_clinical_significance = list(map(str.lower,clinvar_clinical_significance_tmp))
+
+            if (genebe_info and genebe_info["GeneBeClassification"] in ["Pathogenic", "Likely_pathogenic"]) or \
+                    ("pathogenic" in clinvar_clinical_significance) or \
+                    ("likely pathogenic" in clinvar_clinical_significance) or \
+                    (("conflicting classifications of pathogenicity" in clinvar_clinical_significance) and (clinvar_info["ClinSigSimple"]=="1")):
+
+                combined_results[variant_key] = {
+                    "Gene": clinvar_info["Gene"],
+                    "Genotype": genebe_info["Genotype"],
+                    "rs": genebe_info["rs"] if genebe_info["rs"] != '.' else clinvar_info["rs"],
+                    "GeneBeClassification": genebe_info["GeneBeClassification"],
+                    "ClinvarClinicalSignificance": clinvar_info["ClinicalSignificance"],
+                    "ReviewStatus": clinvar_info["ReviewStatus"],
+                    "ClinvarID": clinvar_info["ClinvarID"],
+                    "Orpha": ",".join(re.findall(r'Orphanet:(\d+)', clinvar_info["PhenotypeIDS"])),
+                    "Consequence": genebe_info["Consequence"]
+                }
+        else:
+            # If there is no info in Clinvar, get info from GeneBe
+            if (genebe_info and genebe_info["GeneBeClassification"] in ["Pathogenic", "Likely_pathogenic"]):
+                combined_results[variant_key] = {
+                    "Gene": genebe_info["Gene"],
+                    "Genotype": genebe_info["Genotype"],
+                    "rs": genebe_info["rs"] if genebe_info["rs"] != '.' else '-',
+                    "GeneBeClassification": genebe_info["GeneBeClassification"],
+                    "ClinvarClinicalSignificance": "NA",
+                    "ReviewStatus": "NA",
+                    "ClinvarID": "NA",
+                    "Orpha": "NA",
+                    "Consequence": genebe_info["Consequence"]
+                }
+
+    return combined_results

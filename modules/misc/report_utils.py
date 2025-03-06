@@ -9,6 +9,7 @@ import json
 import pandas as pd
 import os
 import subprocess
+import re
 
 
 def check_specific_criteria(gene, variant, variant_key, assembly):
@@ -25,7 +26,7 @@ def check_specific_criteria(gene, variant, variant_key, assembly):
     meet_criteria = True
 
     if gene["specific_consequence"] != "":
-        variant_consequences = variant["IntervarConsequence"].split(",")
+        variant_consequences = variant["Consequence"].split(",")
         gene_consequences = gene["specific_consequence"].split(",")
 
         # If required consequence from gene information is not present in the variant consequence, criteria is not meet (variant is discarded)
@@ -56,17 +57,21 @@ def get_versions_paths(program_arguments, config_data, clinvar_db, out_path):
         hpos_list_temp = get_hpos_from_txt(program_arguments.hpos_file)
         hpos_patient_list=",".join(str(hpo) for hpo in hpos_list_temp)
 
-    # Intervar version
+    # GeneBe version
     try:
-        intervar_file_path = os.path.join(config_data["intervar_path"], "Intervar.py")
-        cmd = ["python3", intervar_file_path, "--version"]
+        genebe_file_path = os.path.join(config_data["genebe_path"], "GeneBeClient.jar")
+        cmd = [config_data['java_path'],
+           "-jar",
+           genebe_file_path,
+           "version"
+           ]
 
-        intervar_process = subprocess.Popen(cmd, stdout= subprocess.PIPE)
-        intervar_out, intervar_err = intervar_process.communicate()
+        # Run command and get output
+        genebe_process = subprocess.Popen(cmd, stdout = subprocess.PIPE)
+        genebe_out, genebe_err = genebe_process.communicate()
 
     except subprocess.CalledProcessError as e:
-        print(f"Error running InterVar: {e.output}")
-
+        print(f"Error running GeneBe: {e.output}")
     # Bcftools version
     try:
         bcftools_file_path = os.path.join(config_data["bcftools_path"], "bcftools")
@@ -76,7 +81,7 @@ def get_versions_paths(program_arguments, config_data, clinvar_db, out_path):
         bcftools_out, bcftools_err = bcftools_process.communicate()
 
     except subprocess.CalledProcessError as e:
-        print(f"Error running InterVar: {e.output}")
+        print(f"Error running bcftools: {e.output}")
 
 
 
@@ -96,8 +101,8 @@ def get_versions_paths(program_arguments, config_data, clinvar_db, out_path):
         "Clinvar version": "Not used (basic mode)" if program_arguments.mode == "basic" else os.path.splitext(os.path.basename(clinvar_db))[0].split("_")[-1],
         "Clinvar path": clinvar_db,
         "Clinvar Evidence level": str(program_arguments.evidence),
-        "Intervar version": str(intervar_out).split(" ")[1] + " " + str(intervar_out).split(" ")[2].split("\\n")[0],
-        "Intervar path": config_data["intervar_path"],
+        "GeneBe version": re.search(r'version:\s*(.*?)\s*::', str(genebe_out)).group(1),
+        "GeneBe path": config_data["genebe_path"],
         "bcftools version": str(bcftools_out).split(" ")[1].split("\\n")[0],
         "bcftools path": config_data["bcftools_path"],
         "HPO genes to phenotype version": os.path.splitext(os.path.basename(config_data["gene_to_phenotype_file"]))[0].split("_")[-1],
@@ -122,8 +127,8 @@ def combine_variant_and_gene_info(variant_info, gene_info):
         "Gene": variant_info["Gene"],
         "Genotype": variant_info["Genotype"],
         "rs": variant_info.get("rs", ""),
-        "IntervarConsequence": variant_info.get("IntervarConsequence", ""),
-        "IntervarClassification": variant_info["IntervarClassification"],
+        "Consequence": variant_info.get("Consequence", ""),
+        "GeneBeClassification": variant_info["GeneBeClassification"],
         "ClinvarClinicalSignificance": variant_info.get("ClinvarClinicalSignificance", "-"),
         "ReviewStatus": variant_info.get("ReviewStatus", "-"),
         "ClinvarID": variant_info.get("ClinvarID", "-"),
