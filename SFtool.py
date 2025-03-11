@@ -63,7 +63,6 @@ def main():
     categories_path = config_data["categories_path"]
     clinvar_path = config_data["clinvar_path"]
     clinvar_ddbb_version = config_data["clinvar_ddbb_version"]
-    intervar_path = config_data["intervar_path"]
     bcftools_path = config_data["bcftools_path"]
     diplotype_phenotype_info_file = config_data["diplotype_phenotype_info_file"]
     personal_risk_geneset_file = config_data["personal_risk_geneset_file"]

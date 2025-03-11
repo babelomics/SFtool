@@ -4,7 +4,6 @@ Created on Thu Jan 25 2024
 
 @author: jpflorido
 """
-from modules.misc.intervar_utils import run_intervar, parse_intervar_output
 from modules.misc.clinvar_utils import run_clinvar
 from modules.misc.vcf_utils import combine_results
 from modules.misc.utils import write_category_results_to_tsv, combine_genebe_clinvar_results

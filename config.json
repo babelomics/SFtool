@@ -1,7 +1,6 @@
 {
   "categories_path": "/home/jpflorido/GBPA/projects/SFtool/categories/",
   "clinvar_path": "/home/jpflorido/software/clinvar/",
-  "intervar_path": "/home/jpflorido/software/InterVar/",
   "bcftools_path":  "/home/jpflorido/software/bcftools-1.16/",
   "genebe_path":   "/home/jpflorido/software/genebe/",
   "java_path": "/usr/lib/jvm/java-1.21.0-openjdk-amd64/bin/java",
