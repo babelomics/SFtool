@@ -97,17 +97,19 @@ def write_bed_file(assembly, genes_lst, category, categories_path):
     """
     gene_coords = []
     #### Some genes change name between assemblies
-    for gene in genes_lst:
-        if gene == 'MMUT' and assembly == '37':
-            gene = 'MUT'
-        elif gene == 'ELP1' and assembly == '37':
-            gene = 'IKBKAP'
-        elif gene == 'G6PC' and assembly == '38':
-            gene = 'G6PC1'
-        elif gene == 'GBA' and assembly == '38':
-            gene = 'GBA1'
 
-        gene_pos = get_gene_location_ensembl(gene, assembly)
+    for gene in genes_lst:
+        gene_query = gene
+        if gene == 'MMUT' and assembly == '37':
+            gene_query = 'MUT'
+        elif gene == 'ELP1' and assembly == '37':
+            gene_query = 'IKBKAP'
+        elif gene == 'G6PC1' and assembly == '37':
+            gene_query = 'G6PC'
+        elif gene == 'GBA1' and assembly == '37':
+            gene_query = 'GBA1'
+
+        gene_pos = get_gene_location_ensembl(gene_query, assembly)
 
         gene_coords.append((gene_pos['Chromosome'], int(gene_pos['Start']), int(gene_pos['End']), gene))
     sorted_coords = natsorted(gene_coords)

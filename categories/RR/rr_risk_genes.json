@@ -255,7 +255,7 @@
             "specific_consequence": ""
         },
         {
-            "gene_symbol": "G6PC",
+            "gene_symbol": "G6PC1",
             "phenotype": "Glycogen storage disease type IA",
             "ACMG_version": "",
             "OMIM_disorder": "232200",
@@ -497,7 +497,7 @@
             "specific_consequence": ""
         },
         {
-            "gene_symbol": "GBA",
+            "gene_symbol": "GBA1",
             "phenotype": "Gaucher disease, type I; Gaucher disease, type II",
             "ACMG_version": "",
             "OMIM_disorder": "230800; 230900",
