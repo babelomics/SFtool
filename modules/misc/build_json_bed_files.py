@@ -7,7 +7,6 @@ Created on Tue Aug  8 19:07:52 2023
 """
 import csv
 import json
-from biomart import BiomartServer
 from natsort import natsorted
 import requests
 
