@@ -9,6 +9,7 @@ import csv
 import json
 from biomart import BiomartServer
 from natsort import natsorted
+import requests
 
 def read_csv(in_csv, category):
     """
@@ -53,43 +54,34 @@ def read_csv(in_csv, category):
 
     return(genes_dct, genes_lst)
 
-def get_gene_pos(gene_symbol, assembly):
-    """
-    Get gene positions in a given genome assembly reference using BIOMART
 
-    Args:
-        gene_symbol (str): Gene symbol
-        assembly (str): Genome assembly version ("37" or "38").
+def get_gene_location_ensembl(gene_symbol, assembly):
+    """Fetch chromosome location of a gene from Ensembl REST API."""
 
-    Returns:
-        dict: Gene position
-    """
-
-    chromosome_list = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', 'X', 'Y']
+    # Define the Ensembl server based on genome version
     if assembly == "37":
-        server = BiomartServer("http://grch37.ensembl.org/biomart")
+        server = "https://grch37.rest.ensembl.org"  # GRCh37 (hg19) Ensembl server
     elif assembly == "38":
-        server = BiomartServer("http://www.ensembl.org/biomart")
+        server = "https://rest.ensembl.org"  # GRCh38 (hg38) Ensembl server
 
-    db = server.datasets['hsapiens_gene_ensembl']
+    url = f"{server}/lookup/symbol/human/{gene_symbol}?content-type=application/json"
 
-    response = db.search({
-        'filters': {'external_gene_name': gene_symbol},
-        'attributes': ['external_gene_name', 'chromosome_name', 'start_position', 'end_position']
-    })
+    response = requests.get(url)
+
+    if response.status_code != 200:
+        return f"Error fetching data for {gene_symbol} ({assembly}): {response.status_code}"
+
+    data = response.json()
 
     result = {}
-    for line in response.iter_lines():
-        if len(line) > 0:
-            fields = line.decode('utf-8').split('\t')
-            if fields[1] in chromosome_list: # For some genes there are more than a hit (autosomal chromosome, and patch. Select the first one)
-                result['Gene_symbol'] = fields[0]
-                result['Chromosome'] = fields[1]
-                result['Start'] = fields[2]
-                result['End'] = fields[3]
-        else:
-            print('Gene ' + gene_symbol + ' not found in Biomart')
+
+    result['Gene_symbol'] = gene_symbol
+    result['Chromosome'] = data['seq_region_name']
+    result['Start'] = data['start']
+    result['End'] = data['end']
+
     return result
+
 
 def write_bed_file(assembly, genes_lst, category, categories_path):
     """
@@ -105,7 +97,7 @@ def write_bed_file(assembly, genes_lst, category, categories_path):
         None
     """
     gene_coords = []
-    #### FURTHER WORK: Hay genes que cambian de nombre según el genoma de referencia, pensar como generalizar esto
+    #### Some genes change name between assemblies
     for gene in genes_lst:
         if gene == 'MMUT' and assembly == '37':
             gene = 'MUT'
@@ -115,12 +107,8 @@ def write_bed_file(assembly, genes_lst, category, categories_path):
             gene = 'G6PC1'
         elif gene == 'GBA' and assembly == '38':
             gene = 'GBA1'
-        gene_pos = get_gene_pos(gene, assembly)
 
-        if gene_pos['Chromosome'] == 'HG1439_PATCH': #revisar esto, que es una chapuza
-            gene_pos['Chromosome'] = 'X'
-        elif gene_pos['Chromosome'] == 'HSCHR6_MHC_MCF':
-            gene_pos['Chromosome'] = '6'
+        gene_pos = get_gene_location_ensembl(gene, assembly)
 
         gene_coords.append((gene_pos['Chromosome'], int(gene_pos['Start']), int(gene_pos['End']), gene))
     sorted_coords = natsorted(gene_coords)
