@@ -9,6 +9,7 @@ import csv
 import json
 from natsort import natsorted
 import requests
+import vcfpy
 
 def read_csv(in_csv, category):
     """
@@ -82,7 +83,7 @@ def get_gene_location_ensembl(gene_symbol, assembly):
     return result
 
 
-def write_bed_file(assembly, genes_lst, category, categories_path):
+def write_bed_file(assembly, genes_lst, category, categories_path, has_chr_prefix):
     """
     Write gene information to a BED format file
 
@@ -91,12 +92,19 @@ def write_bed_file(assembly, genes_lst, category, categories_path):
         genes_lst (list): Gene symbol list
         category (str): category
         categories_path (str): Path to category directory
+        has_chr_prefix (boolean): Whether VCF file has chr prefix for CHROM value
 
     Returns:
         None
     """
+
+    chr_prefix = ''
+    if has_chr_prefix:
+        chr_prefix = 'chr'
+
+
     gene_coords = []
-    #### Some genes change name between assemblies
+    # Some genes change name between assemblies
 
     for gene in genes_lst:
         gene_query = gene
@@ -107,7 +115,7 @@ def write_bed_file(assembly, genes_lst, category, categories_path):
         elif gene == 'G6PC1' and assembly == '37':
             gene_query = 'G6PC'
         elif gene == 'GBA1' and assembly == '37':
-            gene_query = 'GBA1'
+            gene_query = 'GBA'
 
         gene_pos = get_gene_location_ensembl(gene_query, assembly)
 
@@ -117,7 +125,7 @@ def write_bed_file(assembly, genes_lst, category, categories_path):
     filename = f"{categories_path}{category.upper()}/{category}_risk_genes_GRCh{assembly}.bed"
     with open(filename, "w") as bed_file:
         for chrom, start, end, gene in sorted_coords:
-            bed_file.write(f"{chrom}\t{start}\t{end}\t{gene}\n")
+            bed_file.write(f"{chr_prefix}{chrom}\t{start}\t{end}\t{gene}\n")
         print(f"BED file '{filename}' generated successfully.")
 
 
@@ -220,7 +228,14 @@ def generate_bed_from_fg_csv(csv_file, assembly, categories_path):
         print(f"An error occurred: {str(e)}")
 
 
-def build_json_bed_files(category, assembly, categories_path, category_geneset_file):
+def has_chr_prefix_vcf(vcf_file):
+    reader = vcfpy.Reader.from_path(vcf_file)
+    for record in reader:
+        return record.CHROM.startswith("chr")  # Check first variant
+    return False  # If no variants are found
+
+
+def build_json_bed_files(category, assembly, categories_path, category_geneset_file, vcf_file):
     """
     Main function: from a CSV file, creates a JSON and a BED files
 
@@ -229,6 +244,7 @@ def build_json_bed_files(category, assembly, categories_path, category_geneset_f
         assembly (str): assembly version ("37" or "38").
         categories_path (str): Path to category directory
         category_geneset_file (str): Path to CSV file for the given category
+        vcf_file (str): Path to original VCF file
 
     Returns:
         None
@@ -237,12 +253,16 @@ def build_json_bed_files(category, assembly, categories_path, category_geneset_f
     print("Creating BED and JSON files for " + category.upper() + " catalogue.")
 
     try:
+
+        # Check whether chr prefix is used in VCF file
+        has_chr_prefix = has_chr_prefix_vcf(vcf_file)
+
         if category == 'pr' or category == 'rr':
             # Read CSV and store it in the dictionary
             genes_dct, genes_lst = read_csv(category_geneset_file, category)
 
             # Write a BED file
-            write_bed_file(assembly, genes_lst, category, categories_path)
+            write_bed_file(assembly, genes_lst, category, categories_path, has_chr_prefix)
 
             # Write a JSON file
             out_json = f"{categories_path}{category.upper()}/{category}_risk_genes.json"

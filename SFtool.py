@@ -98,15 +98,15 @@ def main():
     # Check whether BED file (and consequently, JSON file) for each category exist. If not, create them
     # Personal risk catalogue
     if not os.path.exists(f"{categories_path}/PR/pr_risk_genes_GRCh{assembly}.bed"):
-        build_json_bed_files("pr", assembly, categories_path, personal_risk_geneset_file)
+        build_json_bed_files("pr", assembly, categories_path, personal_risk_geneset_file, vcf_file)
         
     # Reproductive risk catalogue
     if not os.path.exists(f"{categories_path}/RR/rr_risk_genes_GRCh{assembly}.bed"):
-        build_json_bed_files("rr", assembly, categories_path, reproductive_risk_geneset_file)
+        build_json_bed_files("rr", assembly, categories_path, reproductive_risk_geneset_file, vcf_file)
         
     # Pharma risk catalogue
     if not os.path.exists(f"{categories_path}/FG/fg_risk_genes_GRCh{assembly}.bed"):
-        build_json_bed_files("fg", assembly, categories_path, pharmacogenetic_risk_variant_GRCh37_file)
+        build_json_bed_files("fg", assembly, categories_path, pharmacogenetic_risk_variant_GRCh37_file, vcf_file)
         
     
     """

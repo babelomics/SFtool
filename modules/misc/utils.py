@@ -43,7 +43,11 @@ def combine_genebe_clinvar_results(genebe_results, clinvar_results):
 
     for variant_key in genebe_results.keys():
         genebe_info= genebe_results.get(variant_key)
-        clinvar_info = clinvar_results.get(variant_key)
+
+        if variant_key.startswith('chr'):
+            clinvar_info = clinvar_results.get(variant_key.removeprefix('chr')) # Clinvar database does not have chr prefix from CHROM
+        else:
+            clinvar_info = clinvar_results.get(variant_key)
 
         if clinvar_info is not None:
             clinvar_clinical_significance_tmp = list(map(str.strip,re.split(';|,|/',clinvar_info["ClinicalSignificance"])))
