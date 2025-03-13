@@ -5,7 +5,6 @@ Created on Thu Jan 25 2024
 @author: jpflorido
 """
 from modules.misc.clinvar_utils import run_clinvar
-from modules.misc.vcf_utils import combine_results
 from modules.misc.utils import write_category_results_to_tsv, combine_genebe_clinvar_results
 from modules.misc.geneBe_utils import run_genebe, parse_genebe_output
 
@@ -28,7 +27,7 @@ def run_pers_repro_risk_module(norm_vcf, assembly, mode, evidence_level, clinvar
 
     # Run GeneBe
     genebe_output_file = run_genebe(norm_vcf, category, assembly, genebe_path, java_path, genebe_apikey, genebe_username)
-    genebe_results = parse_genebe_output(genebe_output_file, mode)
+    genebe_results = parse_genebe_output(genebe_output_file, mode, category, category_geneset_file)
     if mode == "basic":
         category_results = genebe_results
     elif mode == "advanced":

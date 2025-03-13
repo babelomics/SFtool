@@ -5,9 +5,10 @@
 """
 import subprocess
 import os
-import vcfpy
 import gzip
 import io
+import vcfpy
+from modules.misc.build_json_bed_files import read_csv
 
 def run_genebe(norm_vcf, category, assembly, genebe_path, java_path, api_key, username):
     """
@@ -55,20 +56,24 @@ def run_genebe(norm_vcf, category, assembly, genebe_path, java_path, api_key, us
     except subprocess.CalledProcessError as e:
         print(f"Error when running Genebe: {e.output}")
 
-def parse_genebe_output(genebe_output_vcf_file, mode):
+def parse_genebe_output(genebe_output_vcf_file, mode, category, category_geneset_file):
     """
-    Parse VCF file annotated by GeneBe
 
-    :param genebe_output_vcf_file:
-    :param mode:
+    :param genebe_output_vcf_file: VCF annotated by GeneBe
+    :param mode: basic or avdanced
+    :param category: pr or rr
+    :param category_geneset_file: Path to CSV file for the given category
     :return:
     """
 
     try:
-        # Read VCF file
 
+        # Get the list of genes for the current category
+        genes_dct, genes_lst = read_csv(category_geneset_file, category)
+
+        # Read VCF file
         genebe_results = {}
-        #vcf_reader = vcfpy.Reader.from_path(genebe_output_vcf_file)
+
         with gzip.open(genebe_output_vcf_file, "rb") as f:
             text_stream = io.TextIOWrapper(f, encoding="utf-8", errors="replace")  # Convert to text
             vcf_reader = vcfpy.Reader(text_stream)
@@ -80,7 +85,16 @@ def parse_genebe_output(genebe_output_vcf_file, mode):
                 variant = chrom + ':' + pos + ':' + ref + ':' + alt
 
                 if 'gene_symbol_base' in variant_record.INFO: # There are entries in the VCF file whose ALT is * (avoid those entries which have no gene annotation)
-                    ref_gene = variant_record.INFO['gene_symbol_base']
+
+                    # A variant might overlap with more than a single gene. If so, get the information for the gene of interest (contained in the category list)
+                    acmg_by_gene_info = variant_record.INFO['ACMG_BY_GENE_base'].split('|')
+                    genes_info = [acmg_by_gene_info[i:i+12] for i in range(0, len(acmg_by_gene_info), 12)] # There are 12 fields per gene
+
+                    for i, gene_values in enumerate(genes_info,1):
+                        if gene_values[0] in genes_lst:
+                            ref_gene = gene_values[0]
+                            classification = gene_values[8]
+
                     genotype = variant_record.INFO['zygosity'][0]
 
                     if 'dbsnp_base' in variant_record.INFO:
@@ -88,10 +102,8 @@ def parse_genebe_output(genebe_output_vcf_file, mode):
                     else:
                         rs = '.'
                     variant_consequence = variant_record.INFO['effect_base']
-                    classification = variant_record.INFO['acmg_classification_base']
-
                     # Get only pathogenic and likely pathogenic variants or add them all if advanced (Clinvar) mode
-                    if classification in ["Pathogenic", "Likely pathogenic"] or mode == 'advanced':
+                    if classification in ["Pathogenic", "Likely_pathogenic"] or mode == 'advanced':
                         # Create a dictionary with interesting fields
                         genebe_results[variant] = {
                             "Gene": ref_gene,
