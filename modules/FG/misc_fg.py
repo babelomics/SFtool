@@ -159,20 +159,24 @@ def assign_phenotype_AC(diplotype, gene, diplo_pheno_dct, aggregated_results):
                 tmp_activity_score.append('NA')
         phenotype = ', '.join(tmp_phenotype[:-1]) + ' or ' + tmp_phenotype[-1]
         activity_score = ', '.join(tmp_activity_score[:-1]) + ' or ' + tmp_activity_score[-1]
+        notes = ''
     elif gene in diplo_pheno_dct and diplotype in diplo_pheno_dct[gene]:
         data = diplo_pheno_dct[gene][diplotype]
         phenotype = data['Phenotype']
         activity_score = data['Activity_Score']
+        notes = ''
     else:
         phenotype = 'NA'
         activity_score = 'NA'
+        notes = 'The diplotype for gene ' + gene + ' could not be assigned. Please, review variants for this gene manually'
 
     # Append results to the list dictionary
     aggregated_results.append({
         'Gene Symbol': gene,
         'Diplotype': diplotype,
         'Phenotype': phenotype,
-        'Activity Score': activity_score
+        'Activity Score': activity_score,
+        'Notes': notes
     })
 
     return aggregated_results

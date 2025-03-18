@@ -26,21 +26,28 @@ def assign_cyp2c19_diplotype(variants, diplo_pheno_dct, aggregated_results):
     found, variants_gene = check_gene_variants(variants, gene)
 
     # Diplotype *1/*1 (reference) if there are no variants on current gene or there is the variant related to rs3758581
-    if not found or (len(variants_gene) == 1 and 'rs3758581' in variants_gene.keys()):
+    if not found:
         diplotype = '*1/*1'
+    elif (len(variants_gene) == 1 and 'rs3758581' in variants_gene.keys()):
+        if variants_gene['rs3758581'] == '1/1':
+            diplotype = '*38/*38'
+        else:
+            diplotype = '*1/*38'
     else:
         # Check *2 allele
         if 'rs12769205' in variants_gene.keys() and 'rs4244285' in variants_gene.keys():
             if variants_gene['rs12769205'] == '1/1' and variants_gene['rs4244285'] == '1/1':
                 diplotype = '*2/*2'
             else:
-                if len(variants_gene) == 2 or (len(variants_gene) == 3 and 'rs3758581' in variants_gene.keys()):
+                if len(variants_gene) == 2:
                     diplotype = '*1/*2'
                 else:
                     if 'rs4986893' in variants_gene.keys():
                         diplotype = '*2/*3'
                     elif 'rs12248560' in variants_gene.keys():
                         diplotype = '*2/*17'
+                    elif 'rs3758581' in variants_gene.keys():
+                        diplotype = '*2/*38'
                     else:
                         diplotype = 'NA'
                         print('There are variants in ' + gene + ' that are not considered in the diplotype assignment. Please, review variants manually')
@@ -49,10 +56,12 @@ def assign_cyp2c19_diplotype(variants, diplo_pheno_dct, aggregated_results):
             if variants_gene['rs4986893'] == '1/1':
                 diplotype = '*3/*3'
             else:
-                if len(variants_gene) == 1 or (len(variants_gene) == 2 and 'rs3758581' in variants_gene.keys()):
+                if len(variants_gene) == 1:
                     diplotype = '*1/*3'
                 elif 'rs12248560' in variants_gene.keys():
                     diplotype = '*3/*17'
+                elif 'rs3758581' in variants_gene.keys():
+                    diplotype = '*3/*38'
                 else:
                     diplotype = 'NA'
                     print('There are variants in ' + gene + ' that are not considered in the diplotype assignment. Please, review variants manually')
@@ -61,8 +70,10 @@ def assign_cyp2c19_diplotype(variants, diplo_pheno_dct, aggregated_results):
         elif 'rs12248560' in variants_gene.keys():
             if variants_gene['rs12248560'] == '1/1':
                 diplotype = '*17/*17'
-            elif len(variants_gene) == 1 or (len(variants_gene) == 2 and 'rs3758581' in variants_gene.keys()):
+            elif len(variants_gene) == 1:
                 diplotype = '*1/*17'
+            elif 'rs3758581' in variants_gene.keys():
+                diplotype = '*17/*38'
             elif 'rs28399504' in variants_gene.keys() and (variants_gene['rs28399504'] == '0/1') and (variants_gene['rs12248560'] == '0/1'):
                 diplotype = '*1/*4 or *4/*17'
             else:
@@ -72,8 +83,10 @@ def assign_cyp2c19_diplotype(variants, diplo_pheno_dct, aggregated_results):
         elif 'rs28399504' in variants_gene.keys():
             if variants_gene['rs28399504'] == '1/1':
                 diplotype = '*4/*4'
-            elif len(variants_gene) == 1 or (len(variants_gene) == 2 and 'rs3758581' in variants_gene.keys()):
-                diplotype = ' *1/*4'
+            elif len(variants_gene) == 1:
+                diplotype = '*1/*4'
+            elif 'rs3758581' in variants_gene.keys():
+                diplotype = '*4/*38'
             else:
                 diplotype = 'NA'
                 print('There are variants in ' + gene + ' that are not considered in the diplotype assignment. Please, review variants manually')
