@@ -1,7 +1,8 @@
 {
   "categories_path": "/home/jpflorido/GBPA/projects/SFtool/categories/",
   "clinvar_path": "/home/jpflorido/software/clinvar/",
-  "bcftools_path":  "/home/jpflorido/software/bcftools-1.16/",
+  "bcftools_path":  "/home/jpflorido/software/bcftools/bin/",
+  "htslib_path": "/home/jpflorido/software/htslib/bin/",
   "genebe_path":   "/home/jpflorido/software/genebe/",
   "java_path": "/usr/lib/jvm/java-1.21.0-openjdk-amd64/bin/java",
   "reference_genome_37_path":  "/mnt/lustre/scratch/CBRA/data/indexed_genomes/bwa/hs37d5/hs37d5.fa",
@@ -13,5 +14,7 @@
   "pharmacogenetic_risk_variant_GRCh37_file" : "/home/jpflorido/GBPA/projects/SFtool/categories/FG/fg_risk_genes_GRCh37_v2022.csv",
   "diplotype_phenotype_info_file": "/home/jpflorido/GBPA/projects/SFtool/categories/FG/diplotype_phenotype_info_180424.csv",
   "genebe_apikey": "ak-fuwmE37xOkhfh6jquUt0LzOKT",
-  "genebe_username": "javier.perez.florido.sspa@juntadeandalucia.es"
+  "genebe_username": "javier.perez.florido.sspa@juntadeandalucia.es",
+  "python_path": "/home/jpflorido/miniconda3/bin/python3.10",
+  "pharmCAT_path": "/home/jpflorido/software/pharmCAT/pharmcat-pipeline-2.15.5"
 }

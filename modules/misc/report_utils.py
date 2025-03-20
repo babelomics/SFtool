@@ -42,7 +42,7 @@ def check_specific_criteria(gene, variant, variant_key, assembly):
     return meet_criteria
 
 
-def get_versions_paths(program_arguments, config_data, clinvar_db, out_path):
+def get_versions_paths(program_arguments, config_data, clinvar_db, out_path, categories):
     """
     Get versions of third-party tools from SF tool and program arguments to be shown in the final report
     :param program_arguments: SF tools arguments
@@ -83,30 +83,41 @@ def get_versions_paths(program_arguments, config_data, clinvar_db, out_path):
     except subprocess.CalledProcessError as e:
         print(f"Error running bcftools: {e.output}")
 
+    # PharmCAT version
+    try:
+        java_path = config_data["java_path"]
+        pharmCAT_path = config_data["pharmCAT_path"]
+        pharmCAT_command = [java_path, "-jar", pharmCAT_path + "/pharmcat.jar", "-version"]
+        pharmCAT_process = subprocess.Popen(pharmCAT_command, stdout = subprocess.PIPE)
+        pharmCAT_output, pharmCAT_err = pharmCAT_process.communicate()
+
+    except subprocess.CalledProcessError as e:
+        print(f"Error running pharmCAT: {e.output}")
+
 
 
     versions_paths={
         "SF tool version": "0.1",
         "SF tool mode": program_arguments.mode,
         "Input VCF": program_arguments.vcf_file,
-        "Personal risk catalogue file": config_data["personal_risk_geneset_file"],
-        "Reproductive risk catalogue file": config_data["reproductive_risk_geneset_file"],
-        "Pharmacogenetic risk catalogue file": config_data["pharmacogenetic_risk_variant_GRCh37_file"],
-        "Diplotype-Phenotype file": config_data["diplotype_phenotype_info_file"],
+        "Personal risk catalogue file": "Not used" if "pr" not in categories else config_data["personal_risk_geneset_file"],
+        "Reproductive risk catalogue file": "Not used" if "rr" not in categories else config_data["reproductive_risk_geneset_file"],
         "Temporal dir": os.path.join(out_path, "temp_path"),
         "Output dir": out_path,
         "HPO list": hpos_patient_list,
         "Human assembly": "hg19" if program_arguments.assembly == 37 else "hg38",
         "Reference genome path":  config_data["reference_genome_37_path"] if program_arguments.assembly == 37 else config_data["reference_genome_38_path"],
-        "Clinvar version": "Not used (basic mode)" if program_arguments.mode == "basic" else os.path.splitext(os.path.basename(clinvar_db))[0].split("_")[-1],
-        "Clinvar path": clinvar_db,
-        "Clinvar Evidence level": str(program_arguments.evidence),
-        "GeneBe version": re.search(r'version:\s*(.*?)\s*::', str(genebe_out)).group(1),
-        "GeneBe path": config_data["genebe_path"],
+        "Clinvar version": "Not used" if (("pr" not in categories and "rr" not in categories) or program_arguments.mode == "basic") else os.path.splitext(os.path.basename(clinvar_db))[0].split("_")[-1],
+        "Clinvar path": "Not used" if (("pr" not in categories and "rr" not in categories) or program_arguments.mode == "basic") else clinvar_db,
+        "Clinvar Evidence level": "Not used" if (("pr" not in categories and "rr" not in categories) or program_arguments.mode == "basic") else str(program_arguments.evidence),
+        "GeneBe version": "Not used" if ("pr" not in categories and "rr" not in categories) else re.search(r'version:\s*(.*?)\s*::', str(genebe_out)).group(1),
+        "GeneBe path": "Not used" if ("pr" not in categories and "rr" not in categories) else config_data["genebe_path"],
         "bcftools version": str(bcftools_out).split(" ")[1].split("\\n")[0],
         "bcftools path": config_data["bcftools_path"],
         "HPO genes to phenotype version": os.path.splitext(os.path.basename(config_data["gene_to_phenotype_file"]))[0].split("_")[-1],
-        "HPO genes to phenotype path": config_data["gene_to_phenotype_file"]
+        "HPO genes to phenotype path": config_data["gene_to_phenotype_file"],
+        "pharmCAT version": pharmCAT_output.decode().strip(),
+        "pharmCAT path": config_data["pharmCAT_path"]
 
     }
 
@@ -281,7 +292,7 @@ def get_hpos_from_txt(hpos_file):
         print(f"File {hpos_file} not found.")
         return []
 
-def generate_report(pr_results, rr_results, fg_results, haplot_results, config_data, args, clinvar_db, categories, out_path):
+def generate_report(pr_results, rr_results, haplot_results, pharmCAT_report_file,  config_data, args, clinvar_db, categories, out_path):
     """
     Write results for all categories to an excel file
 
@@ -300,7 +311,7 @@ def generate_report(pr_results, rr_results, fg_results, haplot_results, config_d
         assembly = args.assembly
 
         # Get versions
-        versions_path = get_versions_paths(args, config_data, clinvar_db, out_path)
+        versions_path = get_versions_paths(args, config_data, clinvar_db, out_path, categories)
 
         # Get HPO list
         hpos_user= []
@@ -325,11 +336,8 @@ def generate_report(pr_results, rr_results, fg_results, haplot_results, config_d
                     results_df = pd.DataFrame.from_dict(rr_final, orient='index')
                     results_df.to_excel(writer, sheet_name= category.upper() + ' results', index=True)
                 else:
-                    fg_df = pd.DataFrame(fg_results)
-                    fg_df.to_excel(writer, sheet_name='FG results', index=False)
-
                     haplot_df = pd.DataFrame(haplot_results)
-                    haplot_df.to_excel(writer, sheet_name='FG Diplotype-Phenotype', index=False)
+                    haplot_df.to_excel(writer, sheet_name='FG results', index=False, columns=["Gene", "Genotype", "Phenotype", "Source"])
 
         print(f"Results have been written to '{outfile}'.")
 
