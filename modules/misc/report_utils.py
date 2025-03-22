@@ -10,6 +10,8 @@ import pandas as pd
 import os
 import subprocess
 import re
+from openpyxl import load_workbook
+from openpyxl.styles import Alignment
 
 
 def check_specific_criteria(gene, variant, variant_key, assembly):
@@ -319,7 +321,7 @@ def generate_report(pr_results, rr_results, haplot_results, pharmCAT_report_file
             hpos_user = versions_path['HPO list'].split(',')
         outfile = f"{out_path}{vcf_file.split('/')[-1].split('.vcf')[0]}.SF.xlsx"
 
-        with pd.ExcelWriter(outfile) as writer:
+        with pd.ExcelWriter(outfile, engine='openpyxl') as writer:
             # Write versions and paths
             summary_df = pd.DataFrame.from_dict(versions_path, orient="index")
             summary_df.to_excel(writer, sheet_name= 'Versions and Paths', index=True, header=False)
@@ -338,6 +340,11 @@ def generate_report(pr_results, rr_results, haplot_results, pharmCAT_report_file
                 else:
                     haplot_df = pd.DataFrame(haplot_results)
                     haplot_df.to_excel(writer, sheet_name='FG results', index=False, columns=["Gene", "Genotype", "Phenotype", "Source"])
+                    ws = writer.book["FG results"]
+                    start_row = ws.max_row + 2
+                    ws.cell(row=start_row, column=1).value = "PharmCAT full results are available at " + pharmCAT_report_file
+                    ws.merge_cells(start_row=start_row, start_column=1, end_row=start_row, end_column=4)
+
 
         print(f"Results have been written to '{outfile}'.")
 
