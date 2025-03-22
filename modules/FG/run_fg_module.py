@@ -96,6 +96,8 @@ def parse_pharmCAT(phenotype_file):
 
             if label != "Unknown/Unknown" and label != "Unknown":
                 diplotype_data_cpic.append({"Gene": gene, "Genotype": label, "Phenotype": phenotypes, "Source": "CPIC"})
+            else:
+                diplotype_data_cpic.append({"Gene": gene, "Genotype": "Not determined", "Phenotype": "Not determined", "Source": "-"})
 
     gene_reports = data.get("geneReports", {}).get("DPWG", {})
 
