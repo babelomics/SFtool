@@ -22,7 +22,8 @@ RUN apt-get update \
     python3-pip \
     locales \
     wget \
-    zip
+    zip \
+    gzip
 
 RUN sed -i '/es_ES.UTF-8/s/^# //g' /etc/locale.gen && \
     locale-gen
@@ -35,13 +36,13 @@ COPY ./docker_files/config_docker.json /docker_files
 
 RUN mkdir -p /docker_dependencies
 WORKDIR "/docker_dependencies"
-ADD https://github.com/samtools/bcftools/releases/download/1.20/bcftools-1.20.tar.bz2 bcftools-1.20.tar.bz2
-RUN tar -xf bcftools-1.20.tar.bz2
-WORKDIR "/docker_dependencies/bcftools-1.20"
+ADD https://github.com/samtools/bcftools/releases/download/1.21/bcftools-1.21.tar.bz2 bcftools-1.21.tar.bz2
+RUN tar -xf bcftools-1.21.tar.bz2
+WORKDIR "/docker_dependencies/bcftools-1.21"
 RUN ./configure --prefix=/
 RUN make
 RUN make install
-RUN rm /docker_dependencies/bcftools-1.20.tar.bz2
+RUN rm /docker_dependencies/bcftools-1.21.tar.bz2
 
 WORKDIR "/docker_dependencies"
 ADD https://github.com/arq5x/bedtools2/releases/download/v2.31.1/bedtools-2.31.1.tar.gz bedtools-2.31.1.tar.gz
@@ -52,65 +53,46 @@ ENV PATH "$PATH:/docker_dependencies/bedtools2/bin/"
 WORKDIR "/docker_dependencies"
 RUN rm bedtools-2.31.1.tar.gz
 
-COPY docker_files/annovar.latest.tar.gz /docker_dependencies/
 WORKDIR "/docker_dependencies"
-RUN tar xvzf annovar.latest.tar.gz
-RUN rm annovar.latest.tar.gz
+ADD https://github.com/samtools/htslib/releases/download/1.21/htslib-1.21.tar.bz2 htslib-1.21.tar.bz2
+RUN tar -xf htslib-1.21.tar.bz2
+WORKDIR "/docker_dependencies/htslib-1.21"
+RUN ./configure --prefix=/
+RUN make
+RUN make install
+RUN rm /docker_dependencies/htslib-1.21.tar.bz2
+
+WORKDIR "/docker_dependencies"
+ADD https://github.com/PharmGKB/PharmCAT/releases/download/v2.15.5/pharmcat-pipeline-2.15.5.tar.gz pharmcat-pipeline-2.15.5.tar.gz
+RUN tar -xf pharmcat-pipeline-2.15.5.tar.gz
+RUN rm pharmcat-pipeline-2.15.5.tar.gz
 
 
 RUN mkdir -p /docker_directories/ref_genomes/37
-RUN mkdir -p /docker_directories/ref_genomes/38
 ADD https://zenodo.org/records/8045374/files/hs37d5.genome.tgz?download=1 /docker_directories/ref_genomes/37/hs37d5.genome.tgz
 WORKDIR "/docker_directories/ref_genomes/37/"
 RUN tar xvzf hs37d5.genome.tgz
 RUN rm hs37d5.genome.tgz
 
+RUN mkdir -p /docker_directories/ref_genomes/38
+ADD http://hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/hg38.fa.gz hg38.fa.gz
+WORKDIR "/docker_directories/ref_genomes/38/"
+RUN gunzip hg38.fa.gz
+Run rm hg38.fa.gz
 
-WORKDIR "/docker_dependencies"
-ADD https://github.com/WGLab/InterVar/archive/refs/tags/v2.2.1.tar.gz InterVar-2.2.1.tar.gz
-RUN tar -xf InterVar-2.2.1.tar.gz
-WORKDIR "/docker_dependencies/InterVar-2.2.1"
-RUN sed -i 's/.\/convert2annovar.pl/\/docker_dependencies\/annovar\/convert2annovar.pl/g' config.ini
-RUN sed -i 's/.\/table_annovar.pl/\/docker_dependencies\/annovar\/table_annovar.pl/g' config.ini
-RUN sed -i 's/.\/annotate_variation.pl/\/docker_dependencies\/annovar\/annotate_variation.pl/g' config.ini
-WORKDIR "/docker_dependencies/InterVar-2.2.1/"
-RUN chmod -R 777 .
-RUN chmod 755 Intervar.py
-ENV PATH "$PATH:/docker_dependencies/InterVar-2.2.1/"
-WORKDIR "/docker_dependencies"
-RUN rm InterVar-2.2.1.tar.gz
-WORKDIR "/"
-
-
-WORKDIR "/docker_dependencies/InterVar-2.2.1/intervardb"
-ADD https://zenodo.org/records/11382175/files/mim2gene.txt?download=1 mim2gene.txt
-RUN chmod 755 mim2gene.txt
-WORKDIR "/"
-RUN mkdir -p "/docker_dependencies/InterVar-2.2.1/humandb"
-WORKDIR "/docker_dependencies/InterVar-2.2.1/humandb"
-RUN chmod -R 777 .
-# Download databases to humandb
-RUN perl /docker_dependencies/annovar/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar refGene /docker_dependencies/InterVar-2.2.1//humandb/
-RUN perl /docker_dependencies/annovar/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar esp6500siv2_all /docker_dependencies/InterVar-2.2.1//humandb/
-RUN perl /docker_dependencies/annovar/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar 1000g2015aug /docker_dependencies/InterVar-2.2.1//humandb/
-RUN perl /docker_dependencies/annovar/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar avsnp147 /docker_dependencies/InterVar-2.2.1//humandb/
-RUN perl /docker_dependencies/annovar/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar dbnsfp42a /docker_dependencies/InterVar-2.2.1//humandb/
-RUN perl /docker_dependencies/annovar/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar clinvar_20210501 /docker_dependencies/InterVar-2.2.1//humandb/
-RUN perl /docker_dependencies/annovar/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar gnomad_genome /docker_dependencies/InterVar-2.2.1//humandb/
-RUN perl /docker_dependencies/annovar/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar dbscsnv11 /docker_dependencies/InterVar-2.2.1//humandb/
-RUN perl /docker_dependencies/annovar/annotate_variation.pl -buildver hg19 -downdb rmsk /docker_dependencies/InterVar-2.2.1//humandb/
-RUN perl /docker_dependencies/annovar/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar ensGene /docker_dependencies/InterVar-2.2.1//humandb/
-RUN perl /docker_dependencies/annovar/annotate_variation.pl -buildver hg19 -downdb -webfrom annovar knownGene /docker_dependencies/InterVar-2.2.1//humandb/
-WORKDIR "/"
-
-RUN pip3 install pandas vcfpy biomart natsort pybedtools openpyxl --break-system-packages
+RUN pip3 install pandas vcfpy requests natsort pybedtools openpyxl --break-system-packages
 
 RUN mkdir -p /docker_directories/categories/
 COPY categories /docker_directories/categories
 
-ADD https://zenodo.org/records/11382269/files/clinvar_database_GRCh37_20240528.txt?download=1 /docker_dependencies/clinvar/clinvar_database_GRCh37_20240528.txt
+ADD https://zenodo.org/records/15068802/files/clinvar_database_GRCh37_20250307.txt?download=1 /docker_dependencies/clinvar/clinvar_database_GRCh37_20250307.txt
 WORKDIR "/docker_dependencies/clinvar/"
 RUN chmod 755 clinvar_database_GRCh37_20240528.txt
+
+ADD https://zenodo.org/records/15068811/files/clinvar_database_GRCh38_20250307.txt?download=1 /docker_dependencies/clinvar/clinvar_database_GRCh38_20250307.txt
+WORKDIR "/docker_dependencies/clinvar/"
+RUN chmod 755 clinvar_database_GRCh38_20250307.txt
+
 
 RUN mkdir -p /release_build/
 
