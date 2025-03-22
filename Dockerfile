@@ -40,7 +40,7 @@ ADD http://hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/hg38.fa.gz /docker_di
 WORKDIR "/docker_directories/ref_genomes/38/"
 RUN gunzip hg38.fa.gz
 RUN rm hg38.fa.gz
-RUN samtools hg38.fa
+RUN samtools faidx hg38.fa
 
 
 RUN mkdir -p /docker_dependencies
