@@ -92,7 +92,7 @@ def main():
     """
     Check dependencies
     """
-    check_dependencies(genebe_path, bcftools_path)
+    check_dependencies(genebe_path, bcftools_path, java_path, pharmCAT_path, python_path)
 
 
     """
