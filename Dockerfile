@@ -23,7 +23,8 @@ RUN apt-get update \
     locales \
     wget \
     zip \
-    gzip
+    gzip \
+    samtools
 
 RUN sed -i '/es_ES.UTF-8/s/^# //g' /etc/locale.gen && \
     locale-gen
@@ -33,6 +34,14 @@ ENV LC_ALL es_ES.UTF-8
 
 RUN mkdir -p /docker_files
 COPY ./docker_files/config_docker.json /docker_files
+
+RUN mkdir -p /docker_directories/ref_genomes/38
+ADD http://hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/hg38.fa.gz hg38.fa.gz
+WORKDIR "/docker_directories/ref_genomes/38/"
+RUN gunzip hg38.fa.gz
+RUN rm hg38.fa.gz
+RUN samtools hg38.fa
+
 
 RUN mkdir -p /docker_dependencies
 WORKDIR "/docker_dependencies"
@@ -78,11 +87,7 @@ WORKDIR "/docker_directories/ref_genomes/37/"
 RUN tar xvzf hs37d5.genome.tgz
 RUN rm hs37d5.genome.tgz
 
-RUN mkdir -p /docker_directories/ref_genomes/38
-ADD http://hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/hg38.fa.gz hg38.fa.gz
-WORKDIR "/docker_directories/ref_genomes/38/"
-RUN gunzip hg38.fa.gz
-Run rm hg38.fa.gz
+
 
 RUN pip3 install pandas vcfpy requests natsort pybedtools openpyxl --break-system-packages
 
