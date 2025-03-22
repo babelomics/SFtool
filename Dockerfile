@@ -35,13 +35,6 @@ ENV LC_ALL es_ES.UTF-8
 RUN mkdir -p /docker_files
 COPY ./docker_files/config_docker.json /docker_files
 
-RUN mkdir -p /docker_directories/ref_genomes/38
-ADD http://hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/hg38.fa.gz /docker_directories/ref_genomes/38/hg38.fa.gz
-WORKDIR "/docker_directories/ref_genomes/38/"
-RUN gunzip hg38.fa.gz
-RUN samtools faidx hg38.fa
-
-
 RUN mkdir -p /docker_dependencies
 WORKDIR "/docker_dependencies"
 ADD https://github.com/samtools/bcftools/releases/download/1.21/bcftools-1.21.tar.bz2 bcftools-1.21.tar.bz2
@@ -86,6 +79,11 @@ WORKDIR "/docker_directories/ref_genomes/37/"
 RUN tar xvzf hs37d5.genome.tgz
 RUN rm hs37d5.genome.tgz
 
+RUN mkdir -p /docker_directories/ref_genomes/38
+ADD http://hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/hg38.fa.gz /docker_directories/ref_genomes/38/hg38.fa.gz
+WORKDIR "/docker_directories/ref_genomes/38/"
+RUN gunzip hg38.fa.gz
+RUN samtools faidx hg38.fa
 
 
 RUN pip3 install pandas vcfpy requests natsort pybedtools openpyxl --break-system-packages
@@ -95,7 +93,7 @@ COPY categories /docker_directories/categories
 
 ADD https://zenodo.org/records/15068802/files/clinvar_database_GRCh37_20250307.txt?download=1 /docker_dependencies/clinvar/clinvar_database_GRCh37_20250307.txt
 WORKDIR "/docker_dependencies/clinvar/"
-RUN chmod 755 clinvar_database_GRCh37_20240528.txt
+RUN chmod 755 clinvar_database_GRCh37_20250307.txt
 
 ADD https://zenodo.org/records/15068811/files/clinvar_database_GRCh38_20250307.txt?download=1 /docker_dependencies/clinvar/clinvar_database_GRCh38_20250307.txt
 WORKDIR "/docker_dependencies/clinvar/"
