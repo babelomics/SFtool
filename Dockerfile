@@ -67,6 +67,10 @@ ADD https://github.com/PharmGKB/PharmCAT/releases/download/v2.15.5/pharmcat-pipe
 RUN tar -xf pharmcat-pipeline-2.15.5.tar.gz
 RUN rm pharmcat-pipeline-2.15.5.tar.gz
 
+WORKDIR "/docker_dependencies"
+ADD https://github.com/pstawinski/genebe-cli/releases/download/v0.1.0-a.6/GeneBeClient-0.1.0-a.6.jar GeneBeClient-0.1.0-a.6.jar
+RUN ln -s GeneBeClient-0.1.0-a.6.jar GeneBeClient.jar
+
 
 RUN mkdir -p /docker_directories/ref_genomes/37
 ADD https://zenodo.org/records/8045374/files/hs37d5.genome.tgz?download=1 /docker_directories/ref_genomes/37/hs37d5.genome.tgz
