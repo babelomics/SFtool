@@ -42,12 +42,12 @@ RUN apt-get update && \
     rm /tmp/openjdk.deb
 
 
-RUN mkdir -p /docker_dependencies
+RUN mkdir -p "/docker_dependencies/bcftools/"
 WORKDIR "/docker_dependencies"
 ADD https://github.com/samtools/bcftools/releases/download/1.21/bcftools-1.21.tar.bz2 bcftools-1.21.tar.bz2
 RUN tar -xf bcftools-1.21.tar.bz2
 WORKDIR "/docker_dependencies/bcftools-1.21"
-RUN ./configure --prefix=/
+RUN ./configure --prefix=/docker_dependencies/bcftools/
 RUN make
 RUN make install
 RUN rm /docker_dependencies/bcftools-1.21.tar.bz2
@@ -55,7 +55,7 @@ RUN rm /docker_dependencies/bcftools-1.21.tar.bz2
 WORKDIR "/docker_dependencies"
 ADD https://github.com/arq5x/bedtools2/releases/download/v2.31.1/bedtools-2.31.1.tar.gz bedtools-2.31.1.tar.gz
 RUN tar -xf bedtools-2.31.1.tar.gz
-WORKDIR "/docker_dependencies/bedtools2"
+WORKDIR "/docker_dependencies/bedtools2/"
 RUN make
 ENV PATH "$PATH:/docker_dependencies/bedtools2/bin/"
 WORKDIR "/docker_dependencies"
@@ -65,7 +65,8 @@ WORKDIR "/docker_dependencies"
 ADD https://github.com/samtools/htslib/releases/download/1.21/htslib-1.21.tar.bz2 htslib-1.21.tar.bz2
 RUN tar -xf htslib-1.21.tar.bz2
 WORKDIR "/docker_dependencies/htslib-1.21"
-RUN ./configure --prefix=/
+RUN mkdir "/docker_dependencies/htslib/"
+RUN ./configure --prefix=/docker_dependencies/htslib/
 RUN make
 RUN make install
 RUN rm /docker_dependencies/htslib-1.21.tar.bz2
@@ -75,8 +76,10 @@ ADD https://github.com/PharmGKB/PharmCAT/releases/download/v2.15.5/pharmcat-pipe
 RUN tar -xf pharmcat-pipeline-2.15.5.tar.gz
 RUN rm pharmcat-pipeline-2.15.5.tar.gz
 
-WORKDIR "/docker_dependencies"
+RUN mkdir -p /docker_dependencies/GeneBe/
+WORKDIR "/docker_dependencies/GeneBe/"
 ADD https://github.com/pstawinski/genebe-cli/releases/download/v0.1.0-a.6/GeneBeClient-0.1.0-a.6.jar GeneBeClient-0.1.0-a.6.jar
+RUN chmod 755 GeneBeClient-0.1.0-a.6.jar
 RUN ln -s GeneBeClient-0.1.0-a.6.jar GeneBeClient.jar
 
 
@@ -87,8 +90,8 @@ RUN tar xvzf hs37d5.genome.tgz
 RUN rm hs37d5.genome.tgz
 
 RUN mkdir -p /docker_directories/ref_genomes/38
-ADD http://hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/hg38.fa.gz /docker_directories/ref_genomes/38/hg38.fa.gz
-WORKDIR "/docker_directories/ref_genomes/38/"
+ADD http://hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/hg38.fa.gz /docker_directories/ref_genomes/38/hg38/hg38.fa.gz
+WORKDIR "/docker_directories/ref_genomes/38/hg38/"
 RUN gunzip hg38.fa.gz
 RUN samtools faidx hg38.fa
 
