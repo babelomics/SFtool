@@ -71,7 +71,9 @@ RUN make
 RUN make install
 RUN rm /docker_dependencies/htslib-1.21.tar.bz2
 
-WORKDIR "/docker_dependencies"
+
+RUN mkdir -p "/docker_dependencies/pharmcat-pipeline-2.15.5/"
+WORKDIR "/docker_dependencies/pharmcat-pipeline-2.15.5/"
 ADD https://github.com/PharmGKB/PharmCAT/releases/download/v2.15.5/pharmcat-pipeline-2.15.5.tar.gz pharmcat-pipeline-2.15.5.tar.gz
 RUN tar -xf pharmcat-pipeline-2.15.5.tar.gz
 RUN rm pharmcat-pipeline-2.15.5.tar.gz

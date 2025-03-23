@@ -13,6 +13,6 @@
   "reproductive_risk_geneset_file" : "/docker_directories/categories/RR/rr_risk_genes_ACMG_CS_v2021.csv",
   "genebe_apikey": "ak-fuwmE37xOkhfh6jquUt0LzOKT",
   "genebe_username": "javier.perez.florido.sspa@juntadeandalucia.es",
-  "python_path": "/home/jpflorido/miniconda3/bin/python3.10",
-  "pharmCAT_path": "/home/jpflorido/software/pharmCAT/pharmcat-pipeline-2.15.5"
+  "python_path": "/usr/bin/python3.12",
+  "pharmCAT_path": "/docker_dependencies/pharmcat-pipeline-2.15.5/"
 }
