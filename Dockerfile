@@ -35,6 +35,8 @@ ENV LC_ALL es_ES.UTF-8
 RUN mkdir -p /docker_files
 COPY ./docker_files/config_docker.json /docker_files
 
+FROM openjdk:21-slim
+
 RUN mkdir -p /docker_dependencies
 WORKDIR "/docker_dependencies"
 ADD https://github.com/samtools/bcftools/releases/download/1.21/bcftools-1.21.tar.bz2 bcftools-1.21.tar.bz2
