@@ -1,13 +1,18 @@
 {
   "categories_path": "/docker_directories/categories/",
   "clinvar_path": "/docker_dependencies/clinvar/",
-  "intervar_path": "/docker_dependencies/InterVar-2.2.1/",
-  "bcftools_path":  "/docker_dependencies/bcftools-1.20/",
+  "bcftools_path":  "/docker_dependencies/bcftools/",
+  "htslib_path": "/docker_dependencies/htslib/bin/",
+  "genebe_path":   "/docker_dependencies/GeneBe/",
+  "java_path": "/usr/bin/java",
   "reference_genome_37_path":  "/docker_directories/ref_genomes/37/hs37d5/hs37d5.fa",
-  "gene_to_phenotype_file": "/docker_directories/categories/genes_to_phenotype_02052024.txt",
-  "clinvar_ddbb_version": "20240528",
+  "reference_genome_38_path":  "/docker_directories/ref_genomes/37/hg38/hg38.fa",
+  "gene_to_phenotype_file": "/docker_directories/categories/genes_to_phenotype_20250303.txt",
+  "clinvar_ddbb_version": "20250307",
   "personal_risk_geneset_file": "/docker_directories/categories/PR/pr_risk_genes_ACMG_SF_v3.1.csv",
   "reproductive_risk_geneset_file" : "/docker_directories/categories/RR/rr_risk_genes_ACMG_CS_v2021.csv",
-  "pharmacogenetic_risk_variant_GRCh37_file" : "/docker_directories/categories/FG/fg_risk_genes_GRCh37_v2022.csv",
-  "diplotype_phenotype_info_file": "/docker_directories/categories/FG/diplotype_phenotype_info_180424.csv"
+  "genebe_apikey": "ak-fuwmE37xOkhfh6jquUt0LzOKT",
+  "genebe_username": "javier.perez.florido.sspa@juntadeandalucia.es",
+  "python_path": "/home/jpflorido/miniconda3/bin/python3.10",
+  "pharmCAT_path": "/home/jpflorido/software/pharmCAT/pharmcat-pipeline-2.15.5"
 }
