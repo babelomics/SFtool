@@ -27,9 +27,7 @@ SFtool is intended to identify and manage secondary finding from NGS data accord
 groups: 28 genes related to cancer phenotypes, 40 genes related to cardiovascular phenotypes, 4 genes related to inborn errors of metabolism and 9 genes related to miscellaneous phenotypes (hyperthermia, hemochromatosis, among others).
 2. **Reproductive Risk and risk in offspring**: this category includes 113 genes related to various conditions such as Cystic Fibrosis, Retinitis pigmentosa, Friedreich ataxia (among others), based on ACMG resources. It is intended to identify individuals or couples at risk of having health problems 
 prior or during pregnancy or having a child with an autosomal recessive or X-linked genetic disorder, following ACMG for carrier screening ([Gregg AR et al., 2021](https://pubmed.ncbi.nlm.nih.gov/34285390/)).
-3. **Pharmacogenetic category**: this category is based on a list of genetic variants with pharmacogenetic risks, detailing how specific genetic variations may affect drug metabolism or response. The list comprises 91 genomic variants in 17 different genes according to Levels 1A and 1B of PharmGKB
-([Thorn CF et al., 2013](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4084821/)), a resource that curates knowledge about the impact of genetic variation on drug response. As a proof of concept, five therapeutically relevant genes with less complexity -TPMT, NUDT15, DPYD, CYP2C9 and CYP2C19- are analyzed further. 
-For these genes, diplotypes are inferred according to genetic variants, known as star alleles, following PharmGKB and Clinical Pharmacogenetics Implementation Consortium (CPIC) recommendations ([Relling et al., 2011](https://pubmed.ncbi.nlm.nih.gov/21270786/)).
+3. **Pharmacogenetic category**:  this category includes a set of genes used to guide drug recommendations based on genetic variants. For this purpose, pharmCAT tool is used ([Klein TE et al., 2017](https://ascpt.onlinelibrary.wiley.com/doi/10.1002/cpt.928)).
 
 
 ### <a name="workflow">Tool workflow</a>
@@ -38,40 +36,40 @@ The tool, written in Python, processes a list of SNPs and small Indels (insertio
 
 ![sftool_diagram](./modules/misc/sfdiagram.png)
 
-After a series of checks and the normalization of the VCF file, the program generates three JSON and BED files with the corresponding chromosomal regions for each of the 3 categories. Subsequently, 3 different VCF files are generated, each containing the identified variants only in the regions to be studied for each category. Next, each of the risk modules is executed:
+For the **Personal Risk** and the **Reproductive Risk and Risk in Offspring** and after a series of checks, a normalization of the VCF file is run. Then the program generates two JSON and BED files with the corresponding chromosomal regions for each of the 2 categories. Subsequently, 2 different VCF files are generated, each containing the identified variants only in the regions to be studied for each category. Next, each of the risk modules is executed:
 
-- **Personal Risk:** Identifies variants in the corresponding regions that are pathogenic or likely pathogenic according to the ACMG classification given by Intervar. In the advanced mode of the tool, it also obtains those variants cataloged by ClinVar as pathogenic, likely pathogenic, or conflicting (labeled as conflicting) with 
+- **Personal Risk:** Identifies variants in the corresponding regions that are pathogenic or likely pathogenic according to the ACMG classification given by GeneBe ([Stawinski P et al., 2024](https://onlinelibrary.wiley.com/doi/10.1111/cge.14516)). In the advanced mode of the tool, it also obtains those variants cataloged by ClinVar as pathogenic, likely pathogenic, or conflicting (labeled as conflicting) with 
 at least one pathogenic evidence. ClinVar reports the review level of these interpretations with a review status from 0 to 4, where 0 are variants without assertion criteria and 4 are those included in clinical practice guidelines. The tool allows flexibility in this level of evidence (by default, the tool takes 1 as the level of evidence).
 
 - **Reproductive Risk and Offspring Risk:** Same criteria as in the case of Personal Risk, but applied to the genomic variants found in genes of this catalog.
 
-- **Pharmacogenetic Risk:** Identifies the variants that are in the selected variants list for this category. Next, 5 genes of interest are selected due to their therapeutic relevance and lower complexity according to the recommendations of the corresponding WP: CYP2C19, CYP2C9, DPYD, NUDT15, and TPMT. The tool will determine the diplotype for each of these
-genes based on the identified variants and the corresponding allele nomenclature tables. These tables contain information about the variants that define each haplotype and are available on the PharmGKB website, according to the SEFF recommendations. Next, the phenotype is assigned based on the diplotype-phenotype correspondence of PharmGKB-CPIC for each of these 5 genes.
-
+For the **Pharmacogenetic risk**, first a preprocessing step is run to accomplish with pharmCAT requirements ([see VCF requirements](https://pharmcat.org/using/VCF-Requirements/)) and then pharmCAT is run by analyzing the genetic variants contained in the pre-processed VCF file to predict drug response and tailor medical treament (see the list of Genes and Drugs [here](https://pharmcat.org/Genes-Drugs/)).
 
 
 ## <a name="dependencies">Dependencies</a>
 
 SFtool is designed to work in a Linux environment. Before using the tool, please ensure you have the following prerequisites:
-* [Python](https://www.python.org/). Make sure you have Python 3.8 or higher installed. You can check your Python version by running
+* [Python](https://www.python.org/). Make sure you have Python 3.10 or higher installed. You can check your Python version by running
 ```
 python --version
 ```
 If Python is not installed, you can download it from the official Python [website](https://www.python.org/downloads) or use your system's package manager
-* Python libraries: [vcfpy](https://pypi.org/project/vcfpy/) (for both reading and writing VCF files in Python) and [pybedtools](https://daler.github.io/pybedtools/) (for genomic interval manipulation)
-* [Intervar](https://github.com/WGLab/InterVar). Intervar is a bioinformatics software tool for clinical interpretation of genetic variants by the ACMG-AMP 2015 guidelines
-* [ANNOVAR](https://annovar.openbioinformatics.org/en/latest/). ANNOVAR, which is used by Intervar, is an efficient software tool to utilize update-to-date information to functionally annotate genetic variants detected from diverse genomes (including human genome hg18, hg19, hg38, as well as mouse, worm, fly, yeast and many others). 
+* Python libraries: [vcfpy](https://pypi.org/project/vcfpy/) (for both reading and writing VCF files in Python), [pybedtools](https://daler.github.io/pybedtools/) (for genomic interval manipulation), [pandas](https://pandas.pydata.org/) (for data analysis and manipulation), [requests](https://pypi.org/project/requests/) (an HTTP library), [natsort](https://pypi.org/project/natsort/) (a sorting library), [openpyxl](https://openpyxl.readthedocs.io/en/stable/) (a library fo manipulate xlsx files).
+* [Genebe client](https://github.com/pstawinski/genebe-cli). GeneBe is a bioinformatics software tool for clinical interpretation of genetic variants with an ACMG variant pathogenicity calculator 
 * [bcftools](https://samtools.github.io/bcftools/bcftools.html). bcftools is a suite of tools for variant calling and manipulating files in the Variant Call Format (VCF) and its binary counterpart BCF
 * [Bedtools](https://bedtools.readthedocs.io/en/latest/). Bedtools is a fast, flexible toolset for genome arithmetic.
+* [pharmCAT](https://github.com/PharmGKB/PharmCAT). PharmCAT (Pharmacogenomics Clinical Annotation Tool) is a bioinformatics tool that analyzes genetic variants to predict drug response and tailor medical treatment to an individual patient’s genetic profile.
+* [Java](https://www.openlogic.com/openjdk-downloads). A build of OpenJDK 21 for Linux used for running GeneBe and pharmCAT software
+* [htslib](https://www.htslib.org/). A C library fo reading/writing high-throughtput sequencing data. Dependency used by pharmCAT
+* [gzip](https://www.gnu.org/software/gzip/). A data compression program. Dependency used by pharmCAT
 
 
-Additionally, SFtool makes use of data from the following sources:
+Additionally, SFtool makes use of data from the following sources/data:
 * [Clinvar](https://www.ncbi.nlm.nih.gov/clinvar/).  ClinVar aggregates information about genomic variation and its relationship to human health. variant_summary.txt file is used in SFtool, which is A tab-delimited report based on each variant at a location on the genome for which data have been submitted to ClinVar. By default, 
 database downloaded on 2024/05/28 is used, but the latest version can be downloaded when running the tool. More information can be found [here](https://ftp.ncbi.nlm.nih.gov/pub/clinvar/README.txt)
-* Gene to phenotype information downloaded from [Human Phenotype ontology](https://hpo.jax.org/). This file contains correspondence between HPO, Genes and OMIM terms. This file is used for linking secondary findings found in genes that can be related to the HPO terms introduced by the user. By default, the file downloaded on 2024/04/26 is used.
+* Gene to phenotype information downloaded from [Human Phenotype ontology](https://hpo.jax.org/). This file contains correspondence between HPO, Genes and OMIM terms. This file is used for linking secondary findings found in genes that can be related to the HPO terms introduced by the user. By default, the file downloaded on 2025/03/03 is used.
 More information can be found [here](https://hpo.jax.org/data/annotation-format)
-* Information downloaded from the [Online Catalog of Human Genes and Genetic Disorders](https://omim.org/) used by ANNOVAR . mim2gene.txt file has been downloaded, which provides links between the genes in OMIM and other gene identifiers. By default, the file downloaded on 2024/05/29 has been used.
-* Reference genome hs37d5. Currently, the tool only works for this genome version, although it will support reference genome 38 in the near future.
+* Reference genome, either GRCh37 or GRCh38. 
 
 ## <a name="installation">Installation</a>
 
@@ -83,11 +81,9 @@ Besides, giving the users' restrictions in HPC environments, a singularity image
 ```
 git clone https://github.com/babelomics/secondaryfindings
 cd secondaryfindings
-git checkout develop
+git checkout geneBePharmCAT
 ```
-3) Download ANNOVAR. **Important**: ANNOVAR can not be offered as part of the dockerfile. Although it is freely available, a license agreement must be filled. Please, download ANNOVAR from the following [link](https://www.openbioinformatics.org/annovar/annovar_download_form.php) and place 
-*annovar.latest.tar.gz* file into *docker_files* folder from the repository. 
-4) Creating docker image from Dockerfile:
+3) Creating docker image from Dockerfile:
 
 ```
 docker build --no-cache . -t sftool/singularity
@@ -112,15 +108,19 @@ configure some parameters in the *config.json* file contained in *modules/misc* 
 
 * *categories_path*: path to *secondaryfindings/categories/* folder. This path addresses gene/variants information for each category.
 * *clinvar_path*: path to CLINVAR database
-* *intervar_path*: path to Intervar software
 * *bcftools_path*: path to bcftools software
+* *htslib_path*: path to htslib software
+* *genebe_path*: path to Genebe client software
 * *reference_genome_37_path* ": path to reference genome FASTA file, version 37/hg19
+* *reference_genome_38_path* ": path to reference genome FASTA file, version 38
 * *gene_to_phenotype_file*: path to gene to phenotype file
 * *clinvar_ddbb_version*: CLINVAR database version in YYYYMMDD format. *latest* for downloading the latest version from CLINVAR
 * *personal_risk_geneset_file*: path fo PERSONAL RISK gene dataset in CSV format. SF-ACMG, v.3.1 available by default in  *secondaryfindings/categories/PR/pr_risk_genes_ACMG_SF_v3.1.csv*
 * *reproductive_risk_geneset_file* : path to REPRODUCTIVE RISK and risk in offspring gene dataset in CSV format. [ACMG's dataset](https://www.gimjournal.org/article/S1098-3600(21)05120-0/fulltext) is available by default in *secondaryfindings/categories/RR/rr_risk_genes_ACMG_CS_v2021.csv*
-* *pharmacogenetic_risk_variant_GRCh37_file* : path to PHARMACOGENETIC RISK list of variants. By default, the list of 91 genomic variants according levels 1A and 1B of PharmGKB are available in *secondaryfindings/categories/FG/fg_risk_genes_GRCh37_v2022.csv*
-* *diplotype_phenotype_info_file*: path to correspondence between diplotypes and phenotypes for PHARMACOGENETIC RISK cateogy in CSV format. By default, this correspondence is available at *secondaryfindings/categories/FG/diplotype_phenotype_info_180424.csv*
+* *genebe_apikey*: key for using Genbe client (see https://genebe.net/about/api)
+* *genebe_username*: user name for using Genebe client (see https://genebe.net/about/api)
+* *python_path*: path to Python 
+* *pharmCAT_path*: path to pharmCAT software
 
 The basic command structure is as follows:
 
@@ -145,6 +145,22 @@ where:
  * **<output_directory_path>**: Path to output directory where results are generated
  * **<VCF.vcf.gz_path>**: Path to VCF (Variant Call Format) file (in vcf.gz format) that contains the genomic data (SNV, Indels) you want to analyze.
 
+**IMPORTANT**
+* *pharmCAT* only works for human GRCh38 assembly. This way, if you are working with GRCh37 human assembly, only Personal Risk and Preproductive Risk and risk in offspring categories.
+* If you are running pharmacogenetic category, pharmCAT requires that **all allele** positions [must be specified](https://pharmcat.org/using/VCF-Requirements/), even positions that are reference (0/0) and missing (./.). You can generate a VCF with all positions for the three categories with the following GATk's command:  
+
+```
+	gatk HaplotypeCaller --alleles pharmcat_positions_2.15.5.vcf -R <reference_genome_file> -I <input_bam_file> -O <output_vcf_file> -L pharmcat_positions_2.15.5.vcf -L <pr_regions_file> -L <rr_regions_file> -ip <padding> --max-mnp-distance 1 --output-mode EMIT_ALL_ACTIVE_SITES
+```
+where
+
+* **pharmcat_positions_2.15.5.vcf** file: positions for the pharmacogenetic module. Can be downloaded [here](https://github.com/PharmGKB/PharmCAT/releases)
+* **<reference_genome_file>**: reference genome in FASTA format (GRCh38 human assembly)
+* **<input_bam_file>**: alignment BAM file from which variants are called
+* **<output_vcf_file>**: output VCF file to be used in the SF tool
+* **<pr_regions_file>**: BED file containing the genomic coordinates of the personal risk module. This file is available [here for GRCh38 human assembly](https://github.com/babelomics/SFtool/blob/geneBePharmCAT/categories/PR/pr_risk_genes_GRCh38.bed)
+* **<rr_regions_file>**: BED file containing the genomic coordinates of the Reproductive risk and risk in offspring module. This file is available [here for GRCh38 human assembly](https://github.com/babelomics/SFtool/blob/geneBePharmCAT/categories/RR/rr_risk_genes_GRCh38.bed)
+* **<padding>**: padding in bps, usually the length of reads in the dataset
 ### Running from singularity image
 
 Once **sftool.sif** has been generated, you can run SFtool as follows:
