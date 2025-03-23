@@ -11,8 +11,6 @@
   "clinvar_ddbb_version": "20250307",
   "personal_risk_geneset_file": "/home/jpflorido/GBPA/projects/SFtool/categories/PR/pr_risk_genes_ACMG_SF_v3.1.csv",
   "reproductive_risk_geneset_file" : "/home/jpflorido/GBPA/projects/SFtool/categories/RR/rr_risk_genes_ACMG_CS_v2021.csv",
-  "pharmacogenetic_risk_variant_GRCh37_file" : "/home/jpflorido/GBPA/projects/SFtool/categories/FG/fg_risk_genes_GRCh37_v2022.csv",
-  "diplotype_phenotype_info_file": "/home/jpflorido/GBPA/projects/SFtool/categories/FG/diplotype_phenotype_info_180424.csv",
   "genebe_apikey": "ak-fuwmE37xOkhfh6jquUt0LzOKT",
   "genebe_username": "javier.perez.florido.sspa@juntadeandalucia.es",
   "python_path": "/home/jpflorido/miniconda3/bin/python3.10",
