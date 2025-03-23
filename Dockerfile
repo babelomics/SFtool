@@ -35,7 +35,12 @@ ENV LC_ALL es_ES.UTF-8
 RUN mkdir -p /docker_files
 COPY ./docker_files/config_docker.json /docker_files
 
-FROM openjdk:21-slim
+RUN apt-get update && \
+    apt-get install -y wget && \
+    wget -O /tmp/openjdk.deb https://builds.openlogic.com/downloadJDK/openlogic-openjdk/21.0.6+7/openlogic-openjdk-21.0.6+7-linux-x64-deb.deb && \
+    apt-get install -y /tmp/openjdk.deb && \
+    rm /tmp/openjdk.deb
+
 
 RUN mkdir -p /docker_dependencies
 WORKDIR "/docker_dependencies"
