@@ -139,15 +139,15 @@ where:
  * **<config.json_path>**: path to config.json configuration file
  * **<analysis_mode>**: (Optional) This option allows you to choose the analysis mode. You can select either 'basic' (default) or 'advanced' based on your requirements. The 'basic' mode runs InterVar, while the 'advanced' mode combines InterVar with ClinVar database (recommended).
  * **<evidence_level>**: (Optional) Use this option to specify the evidence level or review status you want to apply to ClinVar database. Provide an integer value from 1-4 to set the evidence level. Default: 1.
- * **<human_assembly_version>**: (Optional) Select the genome assembly version you want to use for the analysis. You can choose either '37' (default) or '38' depending on the assembly that corresponds to your data. Currently, only version 37 is supported
+ * **<human_assembly_version>**: (Optional) Select the genome assembly version you want to use for the analysis. You can choose either '37' (default) or '38' depending on the assembly that corresponds to your data. 
  * **<HPOs_file_path>**: (Optional) Path to file that contains the list of HPOs related to the input sample
  * **<category_list>**: (Optional) Comma separated list of categories to be executed. Could be *PR* (Personal Risk), *RR* (Reproductive Risk and Risk in Offspring), *FG* (Pharmacogenetic Risk) or any combination of them. By default, all categories are run (*PR,RR,FG*)
  * **<output_directory_path>**: Path to output directory where results are generated
  * **<VCF.vcf.gz_path>**: Path to VCF (Variant Call Format) file (in vcf.gz format) that contains the genomic data (SNV, Indels) you want to analyze.
 
 **IMPORTANT**
-* *pharmCAT* only works for human GRCh38 assembly. This way, if you are working with GRCh37 human assembly, only Personal Risk and Preproductive Risk and risk in offspring categories.
-* If you are running pharmacogenetic category, pharmCAT requires that **all allele** positions [must be specified](https://pharmcat.org/using/VCF-Requirements/), even positions that are reference (0/0) and missing (./.). You can generate a VCF with all positions for the three categories with the following GATk's command:  
+* *pharmCAT* only works for human GRCh38 assembly. This way, if you are working with GRCh37 human assembly, only Personal Risk and Reproductive Risk and risk in offspring categories are available.
+* If you are running Pharmacogenetic risk category, pharmCAT requires that **all allele** positions [must be specified](https://pharmcat.org/using/VCF-Requirements/), even positions that are reference (0/0) and missing (./.). You can generate a VCF with all positions for the three categories with the following GATk's command:  
 
 ```
 	gatk HaplotypeCaller --alleles pharmcat_positions_2.15.5.vcf -R <reference_genome_file> -I <input_bam_file> -O <output_vcf_file> -L pharmcat_positions_2.15.5.vcf -L <pr_regions_file> -L <rr_regions_file> -ip <padding> --max-mnp-distance 1 --output-mode EMIT_ALL_ACTIVE_SITES
@@ -180,7 +180,7 @@ where
 * **<config_docker.json_path>**: Path to config_docker.json configuration file. */secondaryfindings/docker_files/config_docker.json* can be used, which contains all parameters already configurated
 * **<analysis_mode>**: (Optional) This option allows you to choose the analysis mode. You can select either 'basic' (default) or 'advanced' based on your requirements. The 'basic' mode runs InterVar, while the 'advanced' mode combines InterVar with ClinVar database (recommended).
 * **<evidence_level>**: (Optional) Use this option to specify the evidence level or review status you want to apply to ClinVar database. Provide an integer value from 1-4 to set the evidence level. Default: 1.
-* **<human_assembly_version>**: (Optional) Select the genome assembly version you want to use for the analysis. You can choose either '37' (default) or '38' depending on the assembly that corresponds to your data. Currently, only version 37 is supported
+* **<human_assembly_version>**: (Optional) Select the genome assembly version you want to use for the analysis. You can choose either '37' (default) or '38' depending on the assembly that corresponds to your data. 
 * **<HPOs_file_path>**: (Optional) Path to file that contains the list of HPOs related to the input sample
 * **<category_list>**: (Optional) Comma separated list of categories to be executed. Could be *PR* (Personal Risk), *RR* (Reproductive Risk and Risk in Offspring), *FG* (Pharmacogenetic Risk) or any combination of them. By default, all categories are run (*PR,RR,FG*)
 * **<output_directory_path>**: Path to output directory where results are generated
@@ -193,27 +193,27 @@ After running the tool, you will find various output files that summarize the an
 
 ### <a name="final_report">Final report</a>
 
-A final report is generated with secondary findings for all categories chosen in the SF tool. This file contains several tabs:
+A final report (xlxs file) is generated with secondary findings for all categories chosen in the SF tool. This file contains several tabs:
 * **Versions and Paths** tab: Describes the versions of the different tools and databases, as well as information about the directories used during execution.
 * **PR results** (Personal Risk results) tab (if executed): Lists the variants detected in the sample corresponding to the personal risk category 
  (previously described personal risk file) but with a series of restrictions according to ACMG: all pathogenic or likely pathogenic variants with autosomal dominant,
  semi-dominant, or X-linked inheritance modes are reported. If the inheritance mode is recessive, only homozygous variants and compound heterozygotes 
  (2 variants in the same gene) are reported. Other restrictions (specific variants as described in the HFE gene or specific consequences like in the TTN gene) are also applied 
-(see all restrictions and inheritance model for each gene [here](https://docs.google.com/spreadsheets/d/1IrpmAZlqeDacV7oUej7HtLCEnkyvECeZZlXSnktfHGA/edit#gid=0)). 
+(see all restrictions and inheritance model for each gene [here](https://www.gimjournal.org/article/S1098-3600(23)00879-1/fulltext#tbl1)). 
 For each variant, the following information is provided:
    - **Variant**, in the form chr:pos:REF:ALT
    - **Gene**: gene where the variant occurs
    - **Genotype**: zygosity of the variant (HET or HOM)
    - **rs**: rs identifier (dbSNP) associated with the variant
-   - **IntervarConsequence**: consequence according to the Intervar tool
-   - **IntervarClassification**: ACMG classification of the variant according to the Intervar tool
+   - **Consequence**: [variant consequence](https://www.ensembl.org/info/genome/variation/prediction/predicted_data.html) according to the GeneBe tool
+   - **GeneBeClassification**: ACMG classification of the variant according to the GeneBe tool
    - **ClinvarClinicalSignificance**: classification of the variant according to the Clinvar database
    - **ReviewStatus**: review of the variant according to the Clinvar database, with possible values: 0 - No assertion criteria and/or evidence, 1 - Single submitter or 
   conflicting interpretations; 2 - Multiple submitters, no conflicts; 3 - Expert panel review; 4 - Clinical practice guideline
    - **ClinvarID**: variant identifier according to the Clinvar database
-   - **Orpha**: Orpha identifier and term associated with the variant, extracted from Intervar
+   - **Orpha**: Orpha identifier associated with the variant, extracted from the GeneBe tool
    - **Phenotype**: phenotype described according to ACMG and extracted from the corresponding category list (personal risk or reproductive and offspring risk) for the variant gene
-   - **ACMG_version**: ACMG version by which the variant gene was included in the corresponding category (obtained from personal risk or reproductive and offspring risk)
+   - **ACMG_version**: ACMG version by which the variant gene was included in the corresponding category (obtained from personal risk list)
    - **OMIM_disorder**: OMIM identifier extracted from the personal risk or reproductive and offspring risk lists
    - **inheritance**: inheritance mode to consider for the gene, obtained from the personal risk or reproductive and offspring risk lists
    - **variants_to_report**: variants to report according to ACMG recommendations, obtained from the personal risk or reproductive and offspring risk lists
@@ -221,7 +221,7 @@ For each variant, the following information is provided:
 * **RR results** (Reproductive and Offspring Risk results) tab (if executed). It lists the variants detected in the sample corresponding to the reproductive and offspring
  risk category (previously described reproductive and offspring risk file), i.e., pathogenic or likely pathogenic variants are reported regardless of their zygosity or inheritance mode. 
  For each variant, the same information mentioned earlier for personal risk is shown.
-* **FG results** (pharmacogenetic results) tab: It shows the chromosomal change, zygosity, gene, and rs of the variants detected in the sample that match the pharmacogenetic risk 
+* **FG results** (pharmacogenetic results) tab (short report from pharmCAT): It shows the gene, the genotype (the identified haplotypes), the phenotype (predicted functional status) and the source (either CPIC or DPWG). Notice that two results can be given for each gene depending on the source. Additionally, the full report in HTML format is generated by pharmCAT in the same directory.
  variants list. Additionally, the "FG Diplotype-Phenotype" tab focuses on the 5 genes of interest for this category, with the diplotype and phenotype assigned to each gene.
 
 
@@ -230,12 +230,7 @@ For each variant, the following information is provided:
 For a given sample, four intermediate files are generated
 * **\<prefix>.PR.SF.tsv**: A TSV file that contains the variants identified in the **Personal Risk** module, including annotation information, but without considering inheritance mode or other restrictions, such as selecting specific variants (there are some genes in the catalog where only a specific variant should be reported) or specific consequences, according to ACMG.
 * **\<prefix>.RR.SF.tsv**: A TSV file that contains the variants identified in the **Reproductive Risk and offspring Risk** module, including annotation information. As in the **personal** risk module, inheritance mode or other restrictions are not considered.
-* **\<prefix>.FG.tsv**: A TSV file which lists the pharmacogenetic variants according to the corresponding catalog. 
-* **\<prefix>.FG.DiploPheno.tsv**: A TSV file related to the paharmacogenetic module that focuses on the 5 genes of interest for this category, with the diplotype and phenotype assigned to each gene.
-
 where **\<prefix>** is VCF's filename with no extension
-
-
 
 ## <a name="contributors">Contributors</a>
 
