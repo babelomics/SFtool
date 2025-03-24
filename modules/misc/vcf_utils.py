@@ -53,7 +53,7 @@ def normalize_vcf(input_vcf_path, temp_path, bcftools_path, reference_genome_pat
         print("bcftools normalization completed.")
 
         # Remove non-variant sites (genotypes with 0/0)
-        rm_nonvariantsites_command = [bcftools_path + "bcftools", "view", "-e", 'GT="0/0"', "-Oz", "-o", output3_vcf_path, output2_vcf_path]
+        rm_nonvariantsites_command = [bcftools_path + "bcftools", "view", "-e", 'ALT="*" || GT="0/0"', "-Oz", "-o", output3_vcf_path, output2_vcf_path]
         subprocess.run(rm_nonvariantsites_command, check=True)
 
         print("bcftools filtering non variant sites completed.")
