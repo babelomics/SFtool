@@ -68,7 +68,7 @@ def run_clinvar(evidence_level, clinvar_db, category, category_geneset_file):
                     continue
                 fields = line.strip().split("\t")
                 gene = fields[2]
-                if gene in genes_lst: # Only parse genes for the corresponding category
+                if any(g in genes_lst for g in gene.split(';')): # Only parse genes for the corresponding category (a given entry in clinvar can contain a set of genes separated by ;)
                     variant = f"{fields[10]}:{fields[15]}:{fields[16]}:{fields[17]}"
                     clinical_significance = fields[3]
                     clinsigsimple = fields[4]
