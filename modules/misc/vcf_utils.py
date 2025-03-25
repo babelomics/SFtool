@@ -36,7 +36,8 @@ def normalize_vcf(input_vcf_path, temp_path, bcftools_path, reference_genome_pat
 
         # Output files
         output_vcf_path = os.path.join(temp_path, just_filename.split(".vcf.gz")[0] + ".tmp.vcf.gz")
-        output2_vcf_path = os.path.join(temp_path, just_filename.split(".vcf.gz")[0] + ".norm.vcf.gz")
+        output2_vcf_path = os.path.join(temp_path, just_filename.split(".vcf.gz")[0] + ".tmp2.vcf.gz")
+        output3_vcf_path = os.path.join(temp_path, just_filename.split(".vcf.gz")[0] + ".norm.vcf.gz")
 
         # bcftools normalization command
 
@@ -51,8 +52,15 @@ def normalize_vcf(input_vcf_path, temp_path, bcftools_path, reference_genome_pat
 
         print("bcftools normalization completed.")
 
+        # Remove positions with * in ALT
+        rm_nonvariantsites_command = [bcftools_path + "bcftools", "view", "-e", 'ALT="*"', "-Oz", "-o", output3_vcf_path, output2_vcf_path]
+        subprocess.run(rm_nonvariantsites_command, check=True)
+
+        print("bcftools filtering * ALT completed.")
+
         os.remove(output_vcf_path)
-        return(output2_vcf_path)
+        os.remove(output2_vcf_path)
+        return(output3_vcf_path)
 
     except Exception as e:
         print(f"Error given by bcftools normalization: {e}")
