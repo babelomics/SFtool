@@ -93,7 +93,12 @@ def parse_genebe_output(genebe_output_vcf_file, mode, category, category_geneset
                     for i, gene_values in enumerate(genes_info,1):
                         if gene_values[0] in genes_lst:
                             ref_gene = gene_values[0]
+                            transcript = gene_values[2]
+                            variant_consequence = gene_values[3]
+                            acmg_criteria = gene_values[7]
                             classification = gene_values[8]
+                            hgvsc = gene_values[9]
+                            hgvsp = gene_values[10]
 
                     genotype = variant_record.INFO['zygosity'][0]
 
@@ -101,7 +106,7 @@ def parse_genebe_output(genebe_output_vcf_file, mode, category, category_geneset
                         rs = variant_record.INFO['dbsnp_base']
                     else:
                         rs = '.'
-                    variant_consequence = variant_record.INFO['effect_base']
+
                     # Get only pathogenic and likely pathogenic variants or add them all if advanced (Clinvar) mode
                     if classification in ["Pathogenic", "Likely_pathogenic"] or mode == 'advanced':
                         # Create a dictionary with interesting fields
@@ -110,7 +115,11 @@ def parse_genebe_output(genebe_output_vcf_file, mode, category, category_geneset
                             "rs": rs,
                             "GeneBeClassification": classification,
                             "Genotype": genotype,
-                            "Consequence": variant_consequence
+                            "Consequence": variant_consequence,
+                            "Transcript": transcript,
+                            "ACMG_criteria": acmg_criteria,
+                            "HGVSC": hgvsc,
+                            "HGVSP": hgvsp
                         }
 
         return genebe_results

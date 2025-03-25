@@ -13,7 +13,7 @@ def write_category_results_to_tsv(results, output_tsv):
     """
 
     with open(output_tsv, "w", newline="") as tsv_file:
-        fieldnames = ["Variant", "Gene", "Genotype", "Consequence", "rs", "GeneBe Classification","Clinvar Clinical Significance", "ReviewStatus", "ClinvarID", "Orpha"]
+        fieldnames = ["Variant", "Gene", "Genotype", "Consequence", "rs", "Transcript", "HGVSC", "HGVSP", "GeneBe ACMG Classification", "GeneBe ACMG criteria", "Clinvar Clinical Significance", "ReviewStatus", "ClinvarID", "Orpha"]
         writer = csv.DictWriter(tsv_file, fieldnames=fieldnames, delimiter="\t")
 
         writer.writeheader()
@@ -26,7 +26,11 @@ def write_category_results_to_tsv(results, output_tsv):
                 "Genotype": info.get("Genotype", ""),
                 "Consequence": info.get("Consequence", "-"),
                 "rs": info.get("rs", ""),
-                "GeneBe Classification": info.get("GeneBeClassification", ""),
+                "Transcript": info.get("Transcript",""),
+                "HGVSC": info.get("HGVSC",""),
+                "HGVSP": info.get("HGVSP",""),
+                "GeneBe ACMG Classification": info.get("GeneBeClassification", ""),
+                "GeneBe ACMG criteria": info.get("ACMG_criteria",""),
                 "Clinvar Clinical Significance": info.get("ClinvarClinicalSignificance", "-"),
                 "ReviewStatus": info.get("ReviewStatus", "-"),
                 "ClinvarID": info.get("ClinvarID", "-"),
@@ -62,7 +66,11 @@ def combine_genebe_clinvar_results(genebe_results, clinvar_results):
                     "Gene": clinvar_info["Gene"],
                     "Genotype": genebe_info["Genotype"],
                     "rs": genebe_info["rs"] if genebe_info["rs"] != '.' else clinvar_info["rs"],
+                    "Transcript": genebe_info["Transcript"],
+                    "HGVSC": genebe_info["HGVSC"],
+                    "HGVSP": genebe_info["HGVSP"],
                     "GeneBeClassification": genebe_info["GeneBeClassification"],
+                    "ACMG_criteria": genebe_info["ACMG_criteria"],
                     "ClinvarClinicalSignificance": clinvar_info["ClinicalSignificance"],
                     "ReviewStatus": clinvar_info["ReviewStatus"],
                     "ClinvarID": clinvar_info["ClinvarID"],
@@ -76,7 +84,11 @@ def combine_genebe_clinvar_results(genebe_results, clinvar_results):
                     "Gene": genebe_info["Gene"],
                     "Genotype": genebe_info["Genotype"],
                     "rs": genebe_info["rs"] if genebe_info["rs"] != '.' else '-',
+                    "Transcript": genebe_info["Transcript"],
+                    "HGVSC": genebe_info["HGVSC"],
+                    "HGVSP": genebe_info["HGVSP"],
                     "GeneBeClassification": genebe_info["GeneBeClassification"],
+                    "ACMG_criteria": genebe_info["ACMG_criteria"],
                     "ClinvarClinicalSignificance": "NA",
                     "ReviewStatus": "NA",
                     "ClinvarID": "NA",
