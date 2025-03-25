@@ -63,7 +63,7 @@ def combine_genebe_clinvar_results(genebe_results, clinvar_results):
                     (("conflicting classifications of pathogenicity" in clinvar_clinical_significance) and (clinvar_info["ClinSigSimple"]=="1")):
 
                 combined_results[variant_key] = {
-                    "Gene": clinvar_info["Gene"],
+                    "Gene": genebe_info["Gene"],
                     "Genotype": genebe_info["Genotype"],
                     "rs": genebe_info["rs"] if genebe_info["rs"] != '.' else clinvar_info["rs"],
                     "Transcript": genebe_info["Transcript"],
