@@ -79,8 +79,8 @@ Besides, giving the users' restrictions in HPC environments, a singularity image
 2) Install singularity. In the following [link](https://apptainer.org/admin-docs/master/installation.html) you can find information on how to install.
 3) Download repository:
 ```
-git clone https://github.com/babelomics/secondaryfindings
-cd secondaryfindings
+git clone https://github.com/babelomics/SFtool
+cd SFtool
 git checkout geneBePharmCAT
 ```
 3) Creating docker image from Dockerfile:
