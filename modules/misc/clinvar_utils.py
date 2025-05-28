@@ -148,13 +148,13 @@ def process_clinvar_data(assembly, release_date, clinvar_path):
 
 def get_clinvar(clinvar_path, assembly):
     """
-    Download and process Clinvar database
+    Download and process Clinvar database: include variant file and submission summary
     
     Args:
         clinvar_path: Path to CLINVAR directory database
     """
     try:        
-        # CLINVAR URL
+        # CLINVAR URL: variant's file
         clinvar_url = "https://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/variant_summary.txt.gz"
         
         # Open URL
@@ -162,7 +162,7 @@ def get_clinvar(clinvar_path, assembly):
 
         # Check whether response is OK (HTTP 200 code)
         if response.status != 200:
-            print(f"Error downloading CLINVAR. HTTP code: {response.status}")
+            print(f"Error downloading CLINVAR variants file. HTTP code: {response.status}")
             exit(1)
         
         # Open a local file for writing in binary mode
@@ -182,16 +182,34 @@ def get_clinvar(clinvar_path, assembly):
         
         # Process CLINVAR file for the assembly
         if assembly == "37":
-            clinvar_output_file = process_clinvar_data("GRCh37", release_date, clinvar_path)
+            clinvar_variant_output_file = process_clinvar_data("GRCh37", release_date, clinvar_path)
             print(f"CLINVAR GRCh37 file is downloaded and processed. Version: {release_date.strftime('%Y%m%d')}")
         else:  # Assembly 38
-            clinvar_output_file = process_clinvar_data("GRCh38", release_date, clinvar_path)
+            clinvar_variant_output_file = process_clinvar_data("GRCh38", release_date, clinvar_path)
             print(f"CLINVAR GRCh38 file is downloaded and processed. Version: {release_date.strftime('%Y%m%d')}")
         
         # Remove donwloaded file
         os.remove(f"{clinvar_path}variant_summary.txt.gz")
 
-        return clinvar_output_file
+        # Download summary file with summaries for each clinvar entry
+        clinvar_url = "https://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/submission_summary.txt.gz"
+
+        # Open URL
+        response = urllib.request.urlopen(clinvar_url)
+
+        # Check whether response is OK (HTTP 200 code)
+        if response.status != 200:
+            print(f"Error downloading CLINVAR submission summary. HTTP code: {response.status}")
+            exit(1)
+
+        # Open a local file for writing in binary mode
+        clinvar_variant_summary_output_file = f"{clinvar_path}clinvar_submission_" + str(release_date.strftime('%Y%m%d')) +".txt.gz"
+        with open(clinvar_variant_summary_output_file, 'wb') as output_file:
+            # Copy the response content to the local file
+            shutil.copyfileobj(response, output_file)
+        print(f"File downloaded to {clinvar_variant_summary_output_file}")
+
+        return [clinvar_variant_output_file, clinvar_variant_summary_output_file]
     
     except Exception as e:
         print(f"Error found: {str(e)}")
@@ -213,13 +231,15 @@ def clinvar_manager(clinvar_path, clinvar_ddbb_version, assembly):
 
     if clinvar_ddbb_version == "latest": # Download the latest version
         print("Downloading the latest version of Clinvar...")
-        clinvar_db = get_clinvar(clinvar_path, assembly)
+        [clinvar_db, clinvar_summary_db] = get_clinvar(clinvar_path, assembly)
     else:  # Use the version contained in the config file
         print("Using existing Clinvar database (version " + clinvar_ddbb_version +")...")
         clinvar_file = os.path.join(clinvar_path, "clinvar_database_GRCh" + str(assembly) + "_" + clinvar_ddbb_version + ".txt")
-        if os.path.exists(clinvar_file):
+        clinvar_summary_file = os.path.join(clinvar_path, "clinvar_submission" + "_" + clinvar_ddbb_version + ".txt")
+        if os.path.exists(clinvar_file) and os.path.exists(clinvar_summary_file):
             clinvar_db = clinvar_file
+            clinvar_summary_db = clinvar_summary_file
         else:
-            print(clinvar_file + " does not exist")
+            print(clinvar_file + "and/or" + clinvar_summary_file + "do not exist")
             exit(1)
-    return clinvar_db
+    return [clinvar_db, clinvar_summary_db]

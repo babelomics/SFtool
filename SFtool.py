@@ -113,9 +113,10 @@ def main():
     """
     # If "advanced" mode, check whether Clinvar Database exists
     if mode == 'advanced' and ("pr" in categories or "rr" in categories):
-        clinvar_db = clinvar_manager(clinvar_path, clinvar_ddbb_version, assembly)
+        [clinvar_db, clinvar_submission] = clinvar_manager(clinvar_path, clinvar_ddbb_version, assembly)
     else:
         clinvar_db = None
+        clinvar_submission = None
 
 
     """
