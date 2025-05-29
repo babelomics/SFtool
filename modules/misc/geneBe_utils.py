@@ -120,7 +120,11 @@ def parse_genebe_output(genebe_output_vcf_file, mode, category, category_geneset
                             "Transcript": transcript,
                             "ACMG_criteria": acmg_criteria,
                             "HGVSC": hgvsc,
-                            "HGVSP": hgvsp
+                            "HGVSP": hgvsp,
+                            "VCFSampleFormat": "; ".join(
+                                f"{key}: {', '.join(map(str, value)) if isinstance(value, list) else value}"
+                                for key, value in variant_record.calls[0].data.items()
+                            )
                         }
 
         return genebe_results

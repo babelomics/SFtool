@@ -76,7 +76,8 @@ def combine_genebe_clinvar_results(genebe_results, clinvar_results):
                     "ReviewStatus": clinvar_info["ReviewStatus"],
                     "ClinvarID": clinvar_info["ClinvarID"],
                     "Orpha": ",".join(re.findall(r'Orphanet:(\d+)', clinvar_info["PhenotypeIDS"])),
-                    "Consequence": genebe_info["Consequence"]
+                    "Consequence": genebe_info["Consequence"],
+                    "VCFSampleFormat": genebe_info["VCFSampleFormat"]
                 }
         else:
             # If there is no info in Clinvar, get info from GeneBe
@@ -95,7 +96,8 @@ def combine_genebe_clinvar_results(genebe_results, clinvar_results):
                     "ReviewStatus": "NA",
                     "ClinvarID": "NA",
                     "Orpha": "NA",
-                    "Consequence": genebe_info["Consequence"]
+                    "Consequence": genebe_info["Consequence"],
+                    "VCFSampleFormat": genebe_info["VCFSampleFormat"]
                 }
 
     return combined_results
