@@ -148,6 +148,7 @@ def combine_variant_and_gene_info(variant_info, gene_info):
         "GeneBe_ACMG_criteria": variant_info.get("ACMG_criteria", "-"),
         "ClinvarClinicalSignificance": variant_info.get("ClinvarClinicalSignificance", "-"),
         "ReviewStatus": variant_info.get("ReviewStatus", "-"),
+        "ClinvarSummary": variant_info.get("ClinvarSummary", "-"),
         "ClinvarID": variant_info.get("ClinvarID", "-"),
         "Orpha": variant_info.get("Orpha", ""),
         "Phenotype": gene_info["phenotype"],

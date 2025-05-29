@@ -8,7 +8,7 @@
   "reference_genome_37_path":  "/mnt/lustre/scratch/CBRA/data/indexed_genomes/bwa/hs37d5/hs37d5.fa",
   "reference_genome_38_path":  "/mnt/lustre/scratch/CBRA/data/indexed_genomes/bwa/hg38_no_alt/hg38_no_alt.fa",
   "gene_to_phenotype_file": "/home/jpflorido/GBPA/projects/SFtool/categories/genes_to_phenotype_20250303.txt",
-  "clinvar_ddbb_version": "latest",
+  "clinvar_ddbb_version": "20250526",
   "personal_risk_geneset_file": "/home/jpflorido/GBPA/projects/SFtool/categories/PR/pr_risk_genes_ACMG_SF_v3.1.csv",
   "reproductive_risk_geneset_file" : "/home/jpflorido/GBPA/projects/SFtool/categories/RR/rr_risk_genes_ACMG_CS_v2021.csv",
   "genebe_apikey": "ak-fuwmE37xOkhfh6jquUt0LzOKT",

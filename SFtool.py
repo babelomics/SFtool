@@ -141,13 +141,13 @@ def main():
     # Run modules selected by user
     if "pr" in categories:
         # Run Personal Risk (PR) module
-        pr_results = run_pers_repro_risk_module(input_vcf_files['pr'], assembly, mode, evidence, clinvar_db, 'pr', personal_risk_geneset_file, genebe_path, java_path, genebe_apikey, genebe_username)
+        pr_results = run_pers_repro_risk_module(input_vcf_files['pr'], assembly, mode, evidence, clinvar_db, clinvar_submission, 'pr', personal_risk_geneset_file, genebe_path, java_path, genebe_apikey, genebe_username)
     else:
         pr_results = None
         
     if "rr" in categories:
         # Run Reproductive Risk (RR) module
-        rr_results = run_pers_repro_risk_module(input_vcf_files['rr'], assembly, mode, evidence, clinvar_db, 'rr', reproductive_risk_geneset_file, genebe_path, java_path, genebe_apikey, genebe_username)
+        rr_results = run_pers_repro_risk_module(input_vcf_files['rr'], assembly, mode, evidence, clinvar_db, clinvar_submission, 'rr', reproductive_risk_geneset_file, genebe_path, java_path, genebe_apikey, genebe_username)
     else:
         rr_results = None        
         
@@ -156,9 +156,11 @@ def main():
             [pharmCAT_report_file, haplot_results] = run_pharmacogenomic_risk_module(vcf_file, python_path, pharmCAT_path, bcftools_path, htslib_path, java_path, out_path)
         else:
             haplot_results = None
+            pharmCAT_report_file = None
             print("Farmacogenomic module (pharmCAT) is available only for GRCh38 human assembly")
     else:
         haplot_results = None
+        pharmCAT_report_file = None
 
     """
     Create report

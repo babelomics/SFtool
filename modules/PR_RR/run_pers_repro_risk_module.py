@@ -9,7 +9,7 @@ from modules.misc.utils import write_category_results_to_tsv, combine_genebe_cli
 from modules.misc.geneBe_utils import run_genebe, parse_genebe_output
 
 
-def run_pers_repro_risk_module(norm_vcf, assembly, mode, evidence_level, clinvar_db, category, category_geneset_file, genebe_path, java_path, genebe_apikey, genebe_username):
+def run_pers_repro_risk_module(norm_vcf, assembly, mode, evidence_level, clinvar_db, clinvar_submission, category, category_geneset_file, genebe_path, java_path, genebe_apikey, genebe_username):
     """
     Run Personal Risk or Reproductive Risgk module
 
@@ -20,6 +20,7 @@ def run_pers_repro_risk_module(norm_vcf, assembly, mode, evidence_level, clinvar
         evidence_level (int): Evidence level
         category (str): Gene category for annotation
         clinvar_db (str): Path to CLINVAR database
+        clinvar_submission (str): Path to CLINVAR submission summary
         category_geneset_file (str): Path to CSV file for the given category
     """
 
@@ -32,7 +33,7 @@ def run_pers_repro_risk_module(norm_vcf, assembly, mode, evidence_level, clinvar
         category_results = genebe_results
     elif mode == "advanced":
         # Advanced mode: run Clinvar and combine results with Intervar
-        clinvar_results = run_clinvar(evidence_level, clinvar_db, category, category_geneset_file)
+        clinvar_results = run_clinvar(evidence_level, clinvar_db, clinvar_submission, category, category_geneset_file)
         genebe_clinvar_results = combine_genebe_clinvar_results(genebe_results, clinvar_results)
         category_results = genebe_clinvar_results
 

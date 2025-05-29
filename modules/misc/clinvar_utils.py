@@ -11,6 +11,7 @@ import urllib.request
 from datetime import datetime
 import shutil
 from modules.misc.build_json_bed_files import read_csv
+from collections import Counter
 
 def map_review_status(review_status):
     """
@@ -36,13 +37,14 @@ def map_review_status(review_status):
     }
     return mapping.get(review_status.lower(), 0)  # Valor predeterminado es 0 si no se encuentra en el mapeo
 
-def run_clinvar(evidence_level, clinvar_db, category, category_geneset_file):
+def run_clinvar(evidence_level, clinvar_db, clinvar_submission, category, category_geneset_file):
     """
     Run clinvar using the database according to an evidence level
 
     Args:
         evidence_level (int): Evidence level for variants
-        clinvar_db (str): Path to CLINVAR database
+        clinvar_db (str): Path to CLINVAR database with variants
+        clinvar_submission (str): Path to CLINVAR submission summary
         assembly (str): Reference genome version
         category (str): either pr or rr
         category_geneset_file (str): Path to CSV file for the given category
@@ -60,6 +62,8 @@ def run_clinvar(evidence_level, clinvar_db, category, category_geneset_file):
 
         # Read Clinvar database
         clinvar_dct = {}  #  dictionary to store information from CLINVAR
+
+        all_clinvar_id = []
 
         with open(clinvar_db, "r") as db_file:
             for line in db_file:
@@ -87,6 +91,44 @@ def run_clinvar(evidence_level, clinvar_db, category, category_geneset_file):
                             "ClinvarID": clinvar_id,
                             "PhenotypeIDS": phenotypeIDS
                         }
+                        all_clinvar_id.append(clinvar_id)
+
+        # For a given clinvar entry from clinvar_dct, include an aggregated results of Clinical Significance for each entry
+
+        clinvar_ids = set(map(str, all_clinvar_id))
+        clinical_significance_data = {vid: Counter() for vid in clinvar_ids}
+
+        # Read submission summary file and get data
+        with gzip.open(clinvar_submission, 'rt', encoding='utf-8') as f:
+            lines = f.readlines()
+
+        # Get the last header line which has column names
+        header_line = [line for line in lines if line.startswith("#")][-1]
+        header = header_line.lstrip("#").strip().split("\t")
+
+
+        # Move through data (lines not starting with #)
+        data_lines = [line for line in lines if not line.startswith("#")]
+
+        # Build a CSV
+        reader = csv.DictReader(data_lines, fieldnames=header, delimiter='\t')
+
+        for row in reader:
+            var_id = row['VariationID']
+            if var_id in clinvar_ids:
+                cs = row['ClinicalSignificance'].strip()
+                if cs:
+                    clinical_significance_data[var_id][cs] += 1
+
+        # Asign statistics to each entry
+        for entry in clinvar_dct.values():
+            var_id = str(entry.get("ClinvarID"))
+            if var_id in clinical_significance_data:
+                counter = clinical_significance_data[var_id]
+                summary = "; ".join(f"{label} ({count})" for label, count in counter.items()) if counter else "No data"
+                entry['ClinSigSummary'] = summary
+            else:
+                entry['ClinSigSummary'] = ""
 
         return(clinvar_dct)
 
@@ -235,7 +277,7 @@ def clinvar_manager(clinvar_path, clinvar_ddbb_version, assembly):
     else:  # Use the version contained in the config file
         print("Using existing Clinvar database (version " + clinvar_ddbb_version +")...")
         clinvar_file = os.path.join(clinvar_path, "clinvar_database_GRCh" + str(assembly) + "_" + clinvar_ddbb_version + ".txt")
-        clinvar_summary_file = os.path.join(clinvar_path, "clinvar_submission" + "_" + clinvar_ddbb_version + ".txt")
+        clinvar_summary_file = os.path.join(clinvar_path, "clinvar_submission" + "_" + clinvar_ddbb_version + ".txt.gz")
         if os.path.exists(clinvar_file) and os.path.exists(clinvar_summary_file):
             clinvar_db = clinvar_file
             clinvar_summary_db = clinvar_summary_file
