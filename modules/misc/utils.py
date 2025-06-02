@@ -33,7 +33,7 @@ def write_category_results_to_tsv(results, output_tsv):
                 "GeneBe ACMG criteria": info.get("ACMG_criteria",""),
                 "Clinvar Clinical Significance": info.get("ClinvarClinicalSignificance", "-"),
                 "ReviewStatus": info.get("ReviewStatus", "-"),
-                "ClinvarSummary": info.get("ClinSigSummary", "-"),
+                "ClinvarSummary": info.get("ClinvarSummary", "-"),
                 "ClinvarID": info.get("ClinvarID", "-"),
                 "Orpha": info.get("Orpha", "")
             }
