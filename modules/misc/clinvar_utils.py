@@ -117,7 +117,7 @@ def run_clinvar(evidence_level, clinvar_db, clinvar_submission, category, catego
             var_id = row['VariationID']
             if var_id in clinvar_ids:
                 cs = row['ClinicalSignificance'].strip()
-                if cs:
+                if cs and row["ContributesToAggregateClassification"] == "yes": # Only get entries which contribute to the aggregate classification
                     clinical_significance_data[var_id][cs] += 1
 
         # Asign statistics to each entry
