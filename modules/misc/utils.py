@@ -13,7 +13,7 @@ def write_category_results_to_tsv(results, output_tsv):
     """
 
     with open(output_tsv, "w", newline="") as tsv_file:
-        fieldnames = ["Variant", "Gene", "Genotype", "Consequence", "rs", "Transcript", "HGVSC", "HGVSP", "GeneBe ACMG Classification", "GeneBe ACMG criteria", "Clinvar Clinical Significance", "ReviewStatus", "ClinvarID", "Orpha"]
+        fieldnames = ["Variant", "Gene", "Genotype", "Consequence", "rs", "Transcript", "HGVSC", "HGVSP", "GeneBe ACMG Classification", "GeneBe ACMG criteria", "Clinvar Clinical Significance", "ReviewStatus", "ClinvarSummary", "ClinvarID", "Orpha"]
         writer = csv.DictWriter(tsv_file, fieldnames=fieldnames, delimiter="\t")
 
         writer.writeheader()
