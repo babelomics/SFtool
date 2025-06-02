@@ -135,6 +135,7 @@ def combine_variant_and_gene_info(variant_info, gene_info):
         "GeneBe_ACMG_criteria": variant_info.get("ACMG_criteria", "-"),
         "ClinvarClinicalSignificance": variant_info.get("ClinvarClinicalSignificance", "-"),
         "ReviewStatus": variant_info.get("ReviewStatus", "-"),
+        "ClinvarSummary": variant_info.get("ClinvarSummary", "-"),
         "ClinvarID": variant_info.get("ClinvarID", "-"),
         "Orpha": variant_info.get("Orpha", ""),
         "Phenotype": gene_info["phenotype"],
@@ -142,7 +143,8 @@ def combine_variant_and_gene_info(variant_info, gene_info):
         "OMIM_disorder": gene_info["OMIM_disorder"],
         "inheritance": gene_info["inheritance"],
         "variants_to_report": gene_info.get("variants_to_report", ""),  # Usar get para manejar la falta de 'variants_to_report'
-        "related_HPOs_for_sample": 'NA'
+        "related_HPOs_for_sample": 'NA',
+        "VCF_Sample_FORMAT": variant_info["VCFSampleFormat"]
     }
     return combined_info
 

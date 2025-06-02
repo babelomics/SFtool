@@ -11,6 +11,7 @@ import urllib.request
 from datetime import datetime
 import shutil
 from modules.misc.build_json_bed_files import read_csv
+from collections import Counter
 
 def map_review_status(review_status):
     """
@@ -36,13 +37,14 @@ def map_review_status(review_status):
     }
     return mapping.get(review_status.lower(), 0)  # Valor predeterminado es 0 si no se encuentra en el mapeo
 
-def run_clinvar(evidence_level, clinvar_db, category, category_geneset_file):
+def run_clinvar(evidence_level, clinvar_db, clinvar_submission, category, category_geneset_file):
     """
     Run clinvar using the database according to an evidence level
 
     Args:
         evidence_level (int): Evidence level for variants
-        clinvar_db (str): Path to CLINVAR database
+        clinvar_db (str): Path to CLINVAR database with variants
+        clinvar_submission (str): Path to CLINVAR submission summary
         assembly (str): Reference genome version
         category (str): either pr or rr
         category_geneset_file (str): Path to CSV file for the given category
@@ -60,6 +62,7 @@ def run_clinvar(evidence_level, clinvar_db, category, category_geneset_file):
 
         # Read Clinvar database
         clinvar_dct = {}  #  dictionary to store information from CLINVAR
+        all_clinvar_id = []
 
         with open(clinvar_db, "r") as db_file:
             for line in db_file:
@@ -87,6 +90,43 @@ def run_clinvar(evidence_level, clinvar_db, category, category_geneset_file):
                             "ClinvarID": clinvar_id,
                             "PhenotypeIDS": phenotypeIDS
                         }
+                        all_clinvar_id.append(clinvar_id)
+
+        # For a given clinvar entry from clinvar_dct, include an aggregated results of Clinical Significance for each entry
+
+        clinvar_ids = set(map(str, all_clinvar_id))
+        clinical_significance_data = {vid: Counter() for vid in clinvar_ids}
+
+        # Read submission summary file and get data
+        with gzip.open(clinvar_submission, 'rt', encoding='utf-8') as f:
+            lines = f.readlines()
+
+        # Get the last header line which has column names
+        header_line = [line for line in lines if line.startswith("#")][-1]
+        header = header_line.lstrip("#").strip().split("\t")
+
+        # Move through data (lines not starting with #)
+        data_lines = [line for line in lines if not line.startswith("#")]
+
+        # Build a CSV
+        reader = csv.DictReader(data_lines, fieldnames=header, delimiter='\t')
+
+        for row in reader:
+            var_id = row['VariationID']
+            if var_id in clinvar_ids:
+                cs = row['ClinicalSignificance'].strip()
+                if cs and row["ContributesToAggregateClassification"] == "yes": # Only get entries which contribute to the aggregate classification
+                    clinical_significance_data[var_id][cs] += 1
+
+        # Asign statistics to each entry
+        for entry in clinvar_dct.values():
+            var_id = str(entry.get("ClinvarID"))
+            if var_id in clinical_significance_data:
+                counter = clinical_significance_data[var_id]
+                summary = "; ".join(f"{label} ({count})" for label, count in counter.items()) if counter else "No data"
+                entry['ClinSigSummary'] = summary
+            else:
+                entry['ClinSigSummary'] = ""
 
         return(clinvar_dct)
 
@@ -148,13 +188,13 @@ def process_clinvar_data(assembly, release_date, clinvar_path):
 
 def get_clinvar(clinvar_path, assembly):
     """
-    Download and process Clinvar database
+    Download and process Clinvar database: include variant file and submission summary
     
     Args:
         clinvar_path: Path to CLINVAR directory database
     """
     try:        
-        # CLINVAR URL
+        # CLINVAR URL: variant's file
         clinvar_url = "https://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/variant_summary.txt.gz"
         
         # Open URL
@@ -162,7 +202,7 @@ def get_clinvar(clinvar_path, assembly):
 
         # Check whether response is OK (HTTP 200 code)
         if response.status != 200:
-            print(f"Error downloading CLINVAR. HTTP code: {response.status}")
+            print(f"Error downloading CLINVAR variants file. HTTP code: {response.status}")
             exit(1)
         
         # Open a local file for writing in binary mode
@@ -182,16 +222,34 @@ def get_clinvar(clinvar_path, assembly):
         
         # Process CLINVAR file for the assembly
         if assembly == "37":
-            clinvar_output_file = process_clinvar_data("GRCh37", release_date, clinvar_path)
+            clinvar_variant_output_file = process_clinvar_data("GRCh37", release_date, clinvar_path)
             print(f"CLINVAR GRCh37 file is downloaded and processed. Version: {release_date.strftime('%Y%m%d')}")
         else:  # Assembly 38
-            clinvar_output_file = process_clinvar_data("GRCh38", release_date, clinvar_path)
+            clinvar_variant_output_file = process_clinvar_data("GRCh38", release_date, clinvar_path)
             print(f"CLINVAR GRCh38 file is downloaded and processed. Version: {release_date.strftime('%Y%m%d')}")
         
         # Remove donwloaded file
         os.remove(f"{clinvar_path}variant_summary.txt.gz")
 
-        return clinvar_output_file
+
+        # Download summary file with summaries for each clinvar entry
+        clinvar_url = "https://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/submission_summary.txt.gz"
+        # Open URL
+        response = urllib.request.urlopen(clinvar_url)
+
+        # Check whether response is OK (HTTP 200 code)
+        if response.status != 200:
+            print(f"Error downloading CLINVAR submission summary. HTTP code: {response.status}")
+            exit(1)
+
+        # Open a local file for writing in binary mode
+        clinvar_variant_summary_output_file = f"{clinvar_path}clinvar_submission_" + str(release_date.strftime('%Y%m%d')) +".txt.gz"
+        with open(clinvar_variant_summary_output_file, 'wb') as output_file:
+            # Copy the response content to the local file
+            shutil.copyfileobj(response, output_file)
+        print(f"File downloaded to {clinvar_variant_summary_output_file}")
+
+        return [clinvar_variant_output_file, clinvar_variant_summary_output_file]
     
     except Exception as e:
         print(f"Error found: {str(e)}")
@@ -213,13 +271,15 @@ def clinvar_manager(clinvar_path, clinvar_ddbb_version, assembly):
 
     if clinvar_ddbb_version == "latest": # Download the latest version
         print("Downloading the latest version of Clinvar...")
-        clinvar_db = get_clinvar(clinvar_path, assembly)
+        [clinvar_db, clinvar_summary_db] = get_clinvar(clinvar_path, assembly)
     else:  # Use the version contained in the config file
         print("Using existing Clinvar database (version " + clinvar_ddbb_version +")...")
         clinvar_file = os.path.join(clinvar_path, "clinvar_database_GRCh" + str(assembly) + "_" + clinvar_ddbb_version + ".txt")
-        if os.path.exists(clinvar_file):
+        clinvar_summary_file = os.path.join(clinvar_path, "clinvar_submission" + "_" + clinvar_ddbb_version + ".txt.gz")
+        if os.path.exists(clinvar_file) and os.path.exists(clinvar_summary_file):
             clinvar_db = clinvar_file
+            clinvar_summary_db = clinvar_summary_file
         else:
-            print(clinvar_file + " does not exist")
+            print(clinvar_file + "and/or" + clinvar_summary_file + "do not exist")
             exit(1)
-    return clinvar_db
+    return [clinvar_db, clinvar_summary_db]

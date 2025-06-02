@@ -33,6 +33,7 @@ def write_category_results_to_tsv(results, output_tsv):
                 "GeneBe ACMG criteria": info.get("ACMG_criteria",""),
                 "Clinvar Clinical Significance": info.get("ClinvarClinicalSignificance", "-"),
                 "ReviewStatus": info.get("ReviewStatus", "-"),
+                "ClinvarSummary": info.get("ClinSigSummary", "-"),
                 "ClinvarID": info.get("ClinvarID", "-"),
                 "Orpha": info.get("Orpha", "")
             }
@@ -72,10 +73,12 @@ def combine_genebe_clinvar_results(genebe_results, clinvar_results):
                     "GeneBeClassification": genebe_info["GeneBeClassification"],
                     "ACMG_criteria": genebe_info["ACMG_criteria"],
                     "ClinvarClinicalSignificance": clinvar_info["ClinicalSignificance"],
+                    "ClinvarSummary": clinvar_info["ClinSigSummary"],
                     "ReviewStatus": clinvar_info["ReviewStatus"],
                     "ClinvarID": clinvar_info["ClinvarID"],
                     "Orpha": ",".join(re.findall(r'Orphanet:(\d+)', clinvar_info["PhenotypeIDS"])),
-                    "Consequence": genebe_info["Consequence"]
+                    "Consequence": genebe_info["Consequence"],
+                    "VCFSampleFormat": genebe_info["VCFSampleFormat"]
                 }
         else:
             # If there is no info in Clinvar, get info from GeneBe
@@ -90,10 +93,12 @@ def combine_genebe_clinvar_results(genebe_results, clinvar_results):
                     "GeneBeClassification": genebe_info["GeneBeClassification"],
                     "ACMG_criteria": genebe_info["ACMG_criteria"],
                     "ClinvarClinicalSignificance": "NA",
+                    "ClinvarSummary": "NA",
                     "ReviewStatus": "NA",
                     "ClinvarID": "NA",
                     "Orpha": "NA",
-                    "Consequence": genebe_info["Consequence"]
+                    "Consequence": genebe_info["Consequence"],
+                    "VCFSampleFormat": genebe_info["VCFSampleFormat"]
                 }
 
     return combined_results

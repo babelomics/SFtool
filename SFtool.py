@@ -114,9 +114,10 @@ def main():
     """
     # If "advanced" mode, check whether Clinvar Database exists
     if mode == 'advanced':
-        clinvar_db = clinvar_manager(clinvar_path, clinvar_ddbb_version, assembly)
+        [clinvar_db, clinvar_submission] = clinvar_manager(clinvar_path, clinvar_ddbb_version, assembly)
     else:
         clinvar_db = None
+        clinvar_submission = None
 
 
     """
@@ -139,13 +140,13 @@ def main():
     # Run modules selected by user
     if "pr" in categories:
         # Run Personal Risk (PR) module
-        pr_results = run_pers_repro_risk_module(input_vcf_files['pr'], assembly, mode, evidence, clinvar_db, 'pr', personal_risk_geneset_file, genebe_path, java_path, genebe_apikey, genebe_username)
+        pr_results = run_pers_repro_risk_module(input_vcf_files['pr'], assembly, mode, evidence, clinvar_db, clinvar_submission, 'pr', personal_risk_geneset_file, genebe_path, java_path, genebe_apikey, genebe_username)
     else:
         pr_results = None
         
     if "rr" in categories:
         # Run Reproductive Risk (RR) module
-        rr_results = run_pers_repro_risk_module(input_vcf_files['rr'], assembly, mode, evidence, clinvar_db, 'rr', reproductive_risk_geneset_file, genebe_path, java_path, genebe_apikey, genebe_username)
+        rr_results = run_pers_repro_risk_module(input_vcf_files['rr'], assembly, mode, evidence, clinvar_db, clinvar_submission, 'rr', reproductive_risk_geneset_file, genebe_path, java_path, genebe_apikey, genebe_username)
     else:
         rr_results = None        
         
