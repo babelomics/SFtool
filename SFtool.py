@@ -32,6 +32,7 @@ from modules.PR_RR.run_pers_repro_risk_module import run_pers_repro_risk_module
 from modules.misc.check_dependencies import check_dependencies
 from modules.misc.vcf_utils import normalize_vcf, intersect_vcf_with_bed
 from modules.misc.report_utils import generate_report
+from modules.STRipy.run_STRipy_module import run_STRipy_module
 
 def main():
 
@@ -46,6 +47,7 @@ def main():
     assembly = str(args.assembly)
     out_path = args.output_dir
     temp_path = os.path.join(out_path,'tmp')
+    STRipy_output = args.STRipy_output
 
     if not os.path.exists(temp_path):
         os.makedirs(temp_path)
@@ -67,6 +69,7 @@ def main():
     htslib_path = config_data["htslib_path"]
     personal_risk_geneset_file = config_data["personal_risk_geneset_file"]
     reproductive_risk_geneset_file = config_data["reproductive_risk_geneset_file"]
+    reproductive_risk_geneset_STR_file = config_data["reproductive_risk_geneset_STR_file"]
     genebe_path = config_data["genebe_path"]
     java_path = config_data["java_path"]
     genebe_apikey = config_data["genebe_apikey"]
@@ -161,6 +164,14 @@ def main():
     else:
         haplot_results = None
         pharmCAT_report_file = None
+
+    """
+    Parse STRipy JSON file (if provided)
+    """
+    if STRipy_output != "None":
+        STRipy_results_rr = run_STRipy_module(reproductive_risk_geneset_STR_file, STRipy_output)
+
+
 
     """
     Create report

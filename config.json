@@ -11,6 +11,7 @@
   "clinvar_ddbb_version": "20250601",
   "personal_risk_geneset_file": "/home/jpflorido/GBPA/projects/SFtool/categories/PR/pr_risk_genes_ACMG_SF_v3.1.csv",
   "reproductive_risk_geneset_file" : "/home/jpflorido/GBPA/projects/SFtool/categories/RR/rr_risk_genes_ACMG_CS_v2021.csv",
+  "reproductive_risk_geneset_STR_file": "/home/jpflorido/GBPA/projects/SFtool/categories/RR/rr_risk_genes_STR_ACMG_CS_v2021.csv",
   "genebe_apikey": "ak-fuwmE37xOkhfh6jquUt0LzOKT",
   "genebe_username": "javier.perez.florido.sspa@juntadeandalucia.es",
   "python_path": "/home/jpflorido/miniconda3/bin/python3.10",

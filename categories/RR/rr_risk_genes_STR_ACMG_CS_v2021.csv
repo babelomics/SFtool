@@ -1,0 +1,6 @@
+Phenotype,OMIM gene,Gene,OMIM Disorder,Inheritance
+"Mental retardation, X-linked, associated with fragile site FRAXE",300806,AFF2,309548,XLR
+Developmental and epileptic encephalopathy 1 (DEE1),300382,ARX,308350,XLR
+"Muscular dystrophy, Duchenne type (DMD)",300377,DMD,310200,XLR;XLR
+Fragile X syndrome (FXS),309550,FMR1,300624,XLD
+Friedreich ataxia,606829,FXN,229300,AR
