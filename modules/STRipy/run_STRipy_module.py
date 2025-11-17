@@ -41,10 +41,9 @@ def run_STRipy_module(reproductive_risk_geneset_STR_file, STRipy_output_file):
         rr_STRs_info_indexed.loc['ARX_2'] = arx_entry
 
         rr_STRs_info = rr_STRs_info_indexed.to_dict(orient='index')
-        STR_genes = list(rr_STRs_info.keys())
     else:
         rr_STRs_info = rr_STRs_info.to_dict(orient='index')
-
+    STR_genes = list(rr_STRs_info.keys())
 
     # Get results from STRipy related to the set of genes contained in STR_genes
     matched = []

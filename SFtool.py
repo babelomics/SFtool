@@ -168,7 +168,7 @@ def main():
     """
     Parse STRipy JSON file (if provided)
     """
-    if STRipy_output != "None":
+    if STRipy_output != "None" and "rr" in categories:
         STRipy_results_rr = run_STRipy_module(reproductive_risk_geneset_STR_file, STRipy_output)
 
 
