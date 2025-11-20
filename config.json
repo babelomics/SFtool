@@ -15,5 +15,9 @@
   "genebe_apikey": "ak-fuwmE37xOkhfh6jquUt0LzOKT",
   "genebe_username": "javier.perez.florido.sspa@juntadeandalucia.es",
   "python_path": "/home/jpflorido/miniconda3/bin/python3.10",
-  "pharmCAT_path": "/home/jpflorido/software/pharmCAT/pharmcat-pipeline-2.15.5"
+  "pharmCAT_path": "/home/jpflorido/software/pharmCAT/pharmcat-pipeline-2.15.5",
+  "smaca_cv_fail_threshold": 0.12,
+  "smaca_cv_warn_threshold": 0.08,
+  "smaca_low_cov_abs": 10.0,
+  "smaca_low_cov_rel": 0.3
 }

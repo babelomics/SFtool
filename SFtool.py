@@ -33,6 +33,7 @@ from modules.misc.check_dependencies import check_dependencies
 from modules.misc.vcf_utils import normalize_vcf, intersect_vcf_with_bed
 from modules.misc.report_utils import generate_report
 from modules.STRipy.run_STRipy_module import run_STRipy_module
+from modules.SMAca.run_SMAca_module import run_SMAca_module
 
 def main():
 
@@ -48,6 +49,7 @@ def main():
     out_path = args.output_dir
     temp_path = os.path.join(out_path,'tmp')
     STRipy_output = args.STRipy_output
+    SMAca_output = args.SMAca_output
 
     if not os.path.exists(temp_path):
         os.makedirs(temp_path)
@@ -76,6 +78,10 @@ def main():
     genebe_username = config_data["genebe_username"]
     python_path = config_data["python_path"]
     pharmCAT_path = config_data["pharmCAT_path"]
+    smaca_cv_fail_threshold = config_data["smaca_cv_fail_threshold"]
+    smaca_cv_warn_threshold = config_data["smaca_cv_warn_threshold"]
+    smaca_low_cov_abs = config_data["smaca_low_cov_abs"]
+    smaca_low_cov_rel = config_data["smaca_low_cov_rel"]
 
 
     if assembly == '37':
@@ -121,6 +127,12 @@ def main():
         clinvar_db = None
         clinvar_submission = None
 
+
+    """
+    Parse SMAca CSV file (if provided)
+    """
+    if SMAca_output != "None" and "rr" in categories:
+        SMAca_results = run_SMAca_module(SMAca_output, smaca_cv_fail_threshold, smaca_cv_warn_threshold, smaca_low_cov_abs, smaca_low_cov_rel)
 
     """
     VCF normalization: only of PR or RR cateogry (FG has its own normalization procedure)
