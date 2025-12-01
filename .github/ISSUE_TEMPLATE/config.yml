@@ -1,0 +1,37 @@
+blank_issues_enabled: false
+
+contact_links:
+  - name: Ask a question
+    url: https://github.com/babelomics/SFtool/discussions
+    about: Use this for Q&A, help, and general discussion.
+
+  - name: Report security vulnerabilities
+    url: mailto:javier.perez.florido.sspa@juntadeandalucia.es
+    about: Do NOT open issues for security vulnerabilities.
+
+issue_templates:
+  - name: Bug report
+    description: Report software malfunctions, crashes, or incorrect behavior.
+    labels: [bug]
+    file: bug_report.md
+
+  - name: Feature request
+    description: Suggest a new feature or enhancement.
+    labels: [enhancement]
+    file: feature_request.md
+
+  - name: Refactor task
+    description: Suggest improvements to internal code structure.
+    labels: [refactor]
+    file: refactor_request.md
+
+  - name: Documentation update
+    description: Propose changes or improvements to documentation.
+    labels: [documentation]
+    file: documentation_issue.md
+
+  - name: Performance improvement
+    description: Report performance bottlenecks or propose optimizations.
+    labels: [performance]
+    file: performance_issue.md
+
