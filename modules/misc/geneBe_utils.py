@@ -87,10 +87,9 @@ def parse_genebe_output(genebe_output_vcf_file, mode, category, category_geneset
                 if 'gene_symbol_base' in variant_record.INFO: # There are entries in the VCF file whose ALT is * (avoid those entries which have no gene annotation)
 
                     # A variant might overlap with more than a single gene. If so, get the information for the gene of interest (contained in the category list)
-                    acmg_by_gene_info = variant_record.INFO['ACMG_BY_GENE_base'].split('|')
-                    genes_info = [acmg_by_gene_info[i:i+12] for i in range(0, len(acmg_by_gene_info), 12)] # There are 12 fields per gene
+                    genes_info = [item.split("|") for item in variant_record.INFO['acmg_by_gene_base']]
 
-                    for i, gene_values in enumerate(genes_info,1):
+                    for i, gene_values in enumerate(genes_info, 1):
                         if gene_values[0] in genes_lst:
                             ref_gene = gene_values[0]
                             transcript = gene_values[2]
@@ -100,32 +99,32 @@ def parse_genebe_output(genebe_output_vcf_file, mode, category, category_geneset
                             hgvsc = gene_values[9]
                             hgvsp = gene_values[10]
 
+                            genotype = variant_record.calls[0].data['GT'] # A single sample in the VCF is assumed
+                            rs = variant_record.INFO.get('dbsnp_base','.')
 
-                    genotype = variant_record.INFO['zygosity'][0]
+                            # Get only pathogenic and likely pathogenic variants or add them all if advanced (Clinvar) mode
+                            if classification in ["Pathogenic", "Likely_pathogenic"] or mode == 'advanced':
+                                # Create a dictionary with interesting fields
 
-                    if 'dbsnp_base' in variant_record.INFO:
-                        rs = variant_record.INFO['dbsnp_base']
-                    else:
-                        rs = '.'
+                                if variant not in genebe_results:
+                                    genebe_results[variant] = []
 
-                    # Get only pathogenic and likely pathogenic variants or add them all if advanced (Clinvar) mode
-                    if classification in ["Pathogenic", "Likely_pathogenic"] or mode == 'advanced':
-                        # Create a dictionary with interesting fields
-                        genebe_results[variant] = {
-                            "Gene": ref_gene,
-                            "rs": rs,
-                            "GeneBeClassification": classification,
-                            "Genotype": genotype,
-                            "Consequence": variant_consequence,
-                            "Transcript": transcript,
-                            "ACMG_criteria": acmg_criteria,
-                            "HGVSC": hgvsc,
-                            "HGVSP": hgvsp,
-                            "VCFSampleFormat": "; ".join(
-                                f"{key}: {', '.join(map(str, value)) if isinstance(value, list) else value}"
-                                for key, value in variant_record.calls[0].data.items()
-                            )
-                        }
+                                # There might be variants that are annotated to more than one gene (p.e. CYP21A2 – TNXB in RR category)
+                                genebe_results[variant].append({
+                                    "Gene": ref_gene,
+                                    "rs": rs,
+                                    "GeneBeClassification": classification,
+                                    "Genotype": genotype,
+                                    "Consequence": variant_consequence,
+                                    "Transcript": transcript,
+                                    "ACMG_criteria": acmg_criteria,
+                                    "HGVSC": hgvsc,
+                                    "HGVSP": hgvsp,
+                                    "VCFSampleFormat": "; ".join(
+                                        f"{key}: {', '.join(map(str, value)) if isinstance(value, list) else value}"
+                                        for key, value in variant_record.calls[0].data.items()
+                                    )
+                                })
 
         return genebe_results
 
