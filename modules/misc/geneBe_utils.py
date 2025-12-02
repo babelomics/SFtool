@@ -87,8 +87,7 @@ def parse_genebe_output(genebe_output_vcf_file, mode, category, category_geneset
                 if 'gene_symbol_base' in variant_record.INFO: # There are entries in the VCF file whose ALT is * (avoid those entries which have no gene annotation)
 
                     # A variant might overlap with more than a single gene. If so, get the information for the gene of interest (contained in the category list)
-                    acmg_by_gene_info = variant_record.INFO['ACMG_BY_GENE_base'].split('|')
-                    genes_info = [acmg_by_gene_info[i:i+12] for i in range(0, len(acmg_by_gene_info), 12)] # There are 12 fields per gene
+                    genes_info = [item.split("|") for item in variant_record.INFO['acmg_by_gene_base']]
 
                     for i, gene_values in enumerate(genes_info,1):
                         if gene_values[0] in genes_lst:
@@ -101,12 +100,10 @@ def parse_genebe_output(genebe_output_vcf_file, mode, category, category_geneset
                             hgvsp = gene_values[10]
 
 
-                    genotype = variant_record.INFO['zygosity'][0]
 
-                    if 'dbsnp_base' in variant_record.INFO:
-                        rs = variant_record.INFO['dbsnp_base']
-                    else:
-                        rs = '.'
+                    genotype = variant_record.calls[0].data['GT'] # A single sample in the VCF is assumed
+                    rs = variant_record.INFO.get('dbsnp_base','.')
+
 
                     # Get only pathogenic and likely pathogenic variants or add them all if advanced (Clinvar) mode
                     if classification in ["Pathogenic", "Likely_pathogenic"] or mode == 'advanced':
