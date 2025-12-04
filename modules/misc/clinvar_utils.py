@@ -75,9 +75,11 @@ def run_clinvar(evidence_level, clinvar_db, clinvar_submission, category, catego
                 fields = line.strip().split("\t")
                 gene = fields[2]
                 pos = fields[15]
-                if any(g in genes_lst for g in gene.split(';')) and fields[0].lower() in allowed_types and int(pos) != -1:
+                variant_type = fields[0]
+                if any(g in genes_lst for g in gene.split(';')) and variant_type.lower() in allowed_types and int(pos) != -1:
                     # Only parse entries for the corresponding category (a given entry in clinvar can contain a set of genes separated by ;), belongs to the allowed types or has a position defined
                     variant = f"{fields[10]}:{pos}:{fields[16]}:{fields[17]}"
+                    variant_name = fields[1]
                     clinical_significance = fields[3]
                     clinsigsimple = fields[4]
                     rs_id = fields[5]
@@ -87,6 +89,7 @@ def run_clinvar(evidence_level, clinvar_db, clinvar_submission, category, catego
                     if stars >= int(evidence_level):
                         clinvar_id = fields[6]
                         clinvar_dct[variant] = {
+                            "VariantName": variant_name,
                             "Gene": gene,
                             "ClinicalSignificance": clinical_significance,
                             "ClinSigSimple": clinsigsimple,
