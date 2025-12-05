@@ -41,6 +41,17 @@ def write_category_results_to_tsv(results, output_tsv):
             writer.writerow(row)
 
 
+def get_clinvar_main_gene(variant_name):
+    """
+    Extracts the gene in the first parentheses of Clinvar's VariantName,
+    immediately after the transcript accession.
+    """
+    match = re.search(r'^[^(]+\(([^)]+)\)', variant_name)
+    if match:
+        return match.group(1)
+    return None
+
+
 
 def combine_genebe_clinvar_results(genebe_results, clinvar_results):
 
@@ -48,14 +59,13 @@ def combine_genebe_clinvar_results(genebe_results, clinvar_results):
 
     for variant_key in genebe_results.keys():
         for genebe_info in genebe_results.get(variant_key):  # iterate over each entry of genebe
-            #genebe_info = genebe_results.get(variant_key)
 
             if variant_key.startswith('chr'):
                 clinvar_info = clinvar_results.get(variant_key.removeprefix('chr'))  # Clinvar database does not have chr prefix from CHROM
             else:
                 clinvar_info = clinvar_results.get(variant_key)
 
-            if clinvar_info is not None and (clinvar_info["Gene"] == genebe_info["Gene"]):  # The gene in both annotation datasets must be the same. Important to check for variants that overlap genes
+            if clinvar_info is not None and (get_clinvar_main_gene(clinvar_info["VariantName"]) == genebe_info["Gene"]):  # The gene in both annotation datasets must be the same. Important to check for variants that overlap genes
                 clinvar_clinical_significance_tmp = list(map(str.strip,re.split(';|,|/',clinvar_info["ClinicalSignificance"])))
                 clinvar_clinical_significance = list(map(str.lower,clinvar_clinical_significance_tmp))
 
@@ -81,6 +91,7 @@ def combine_genebe_clinvar_results(genebe_results, clinvar_results):
                         "ReviewStatus": clinvar_info["ReviewStatus"],
                         "ClinvarID": clinvar_info["ClinvarID"],
                         "Orpha": ",".join(re.findall(r'Orphanet:(\d+)', clinvar_info["PhenotypeIDS"])),
+                        "OMIM": ",".join(re.findall(r'OMIM:\s*([^,|]+)', clinvar_info["PhenotypeIDS"])),
                         "Consequence": genebe_info["Consequence"],
                         "VCFSampleFormat": genebe_info["VCFSampleFormat"]
                     })
@@ -104,6 +115,7 @@ def combine_genebe_clinvar_results(genebe_results, clinvar_results):
                         "ReviewStatus": "NA",
                         "ClinvarID": "NA",
                         "Orpha": "NA",
+                        "OMIM": "NA",
                         "Consequence": genebe_info["Consequence"],
                         "VCFSampleFormat": genebe_info["VCFSampleFormat"]
                     })
