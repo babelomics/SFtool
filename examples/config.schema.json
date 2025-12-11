@@ -1,0 +1,80 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SFtool config schema",
+  "type": "object",
+
+  "required": ["paths", "references", "catalogs", "clinvar", "genebe_credentials", "smaca_thresholds"],
+
+  "properties": {
+    "version": { "type": "string" },
+
+    "paths": {
+      "type": "object",
+      "required": ["categories", "clinvar_db", "bcftools", "htslib", "genebe", "java", "python", "pharmCAT"],
+      "properties": {
+        "categories": { "type": "string" },
+        "bcftools": { "type": "string" },
+        "htslib": { "type": "string" },
+        "genebe": { "type": "string" },
+        "java": { "type": "string" },
+        "python": { "type": "string" },
+        "pharmCAT": { "type": "string" }
+      }
+    },
+
+    "references": {
+      "type": "object",
+      "required": ["genomes", "gene_to_phenotype_file"],
+      "properties": {
+        "gene_to_phenotype_file": { "type": "string" },
+        "genomes": {
+          "type": "object",
+          "required": ["GRCh37", "GRCh38"],
+          "properties": {
+            "GRCh37": { "type": "string" },
+            "GRCh38": { "type": "string" }
+          }
+        }
+      }
+    },
+
+    "catalogs": {
+      "type": "object",
+      "required": ["personal_risk_geneset", "reproductive_risk_geneset", "reproductive_risk_geneset_STR"],
+      "properties": {
+        "personal_risk_geneset": { "type": "string" },
+        "reproductive_risk_geneset": { "type": "string" },
+        "reproductive_risk_geneset_STR": { "type": "string" }
+      }
+    },
+
+    "clinvar": {
+      "type": "object",
+      "required": ["version", "db_path"],
+      "properties": {
+        "version": { "type": "string" },
+        "db_path": { "type": "string" }
+      }
+    },
+
+    "genebe_credentials": {
+      "type": "object",
+      "required": ["api_key", "username"],
+      "properties": {
+        "api_key": { "type": "string" },
+        "username": { "type": "string" }
+      }
+    },
+
+    "smaca_thresholds": {
+      "type": "object",
+      "required": ["cv_fail", "cv_warn", "low_cov_absolute", "low_cov_relative"],
+      "properties": {
+        "cv_fail": { "type": "number" },
+        "cv_warn": { "type": "number" },
+        "low_cov_absolute": { "type": "number" },
+        "low_cov_relative": { "type": "number" }
+      }
+    }
+  }
+}

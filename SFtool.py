@@ -59,7 +59,7 @@ def main():
     """
     Read config file
     """
-    # Leer el archivo de configuración config.json
+    # Leer el archivo de configuración config_example.json
     with open(args.config_file, "r") as config_file:
         config_data = json.load(config_file)
     
