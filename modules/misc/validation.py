@@ -34,6 +34,7 @@ def validate_execution_block(exec_data, num_samples):
     # -------- Set defaults --------
     exec_data.setdefault("reference_genome", "GRCh37")
     exec_data.setdefault("clinvar_evidence", 1)
+    exec_data.setdefault("RR_mode", "screening")
 
     # -------- Validate reference genome --------
     if exec_data["reference_genome"] not in ["GRCh37", "GRCh38"]:
@@ -68,15 +69,22 @@ def validate_execution_block(exec_data, num_samples):
     if exec_data["profile"] not in ["basic", "advanced"]:
         raise ValidationError("execution.profile must be 'basic' or 'advanced'")
 
-    # RR_mode rules
+
+    # -------- RR_mode rules --------
+    rr_mode = exec_data["RR_mode"]
+
     if num_samples == 1:
-        exec_data.setdefault("RR_mode", "auto")
-        if exec_data["RR_mode"] != "auto":
-            raise ValidationError("RR_mode must be 'auto' when only one sample is provided.")
-    else:
-        # 2 samples
-        if exec_data.get("RR_mode") not in ["screening", "advanced"]:
-            raise ValidationError("RR_mode must be 'screening' or 'advanced' for two samples.")
+        # One-sample → only screening allowed
+        if rr_mode != "screening":
+            raise ValidationError(
+                "RR_mode must be 'screening' when only one sample is provided."
+            )
+    elif num_samples == 2:
+        # Two samples → screening OR advanced
+        if rr_mode not in ["screening", "advanced"]:
+            raise ValidationError(
+                "RR_mode for two samples must be 'screening' or 'advanced'."
+            )
 
 
 # =====================================================
@@ -86,7 +94,7 @@ def validate_sample_block(samples, mode):
     if not isinstance(samples, list):
         raise ValidationError("samples must be a list")
 
-    if len(samples) == 0 or len(samples) > 2:
+    if not (1 <= len(samples) <= 2):
         raise ValidationError("samples must contain 1 or 2 entries")
 
     relations = [s["relation"] for s in samples]

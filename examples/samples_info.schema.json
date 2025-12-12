@@ -36,7 +36,8 @@
 
         "RR_mode": {
           "type": "string",
-          "enum": ["auto", "screening", "advanced"]
+          "enum": ["screening", "advanced"],
+          "default": "screening"
         },
 
         "variant_confirmation": {
