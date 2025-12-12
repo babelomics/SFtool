@@ -194,6 +194,106 @@ def validate_config(config_json_path):
         if key not in data:
             raise ValidationError(f"Missing '{key}' block in config.json")
 
+    # Shorthand variables
+    references = data["references"]
+    catalogs = data["catalogs"]
+    clinvar = data["clinvar"]
+
+    # ----------------------------------------------------
+    # Validate reference genomes exist
+    # ----------------------------------------------------
+    if "genomes" not in references:
+        raise ValidationError("Missing 'references.genomes' block in config.json")
+
+    for name, path in references["genomes"].items():
+        if not isinstance(path, str) or path == "":
+            raise ValidationError(f"Invalid reference genome path for '{name}'")
+
+        if not os.path.exists(path):
+            raise ValidationError(
+                f"Reference genome '{name}' does not exist at: {path}"
+            )
+
+    # ----------------------------------------------------
+    # Validate gene_to_phenotype file existence
+    # ----------------------------------------------------
+    if "gene_to_phenotype_file" not in references:
+        raise ValidationError("Missing 'references.gene_to_phenotype_file' in config.json")
+
+    g2p = references["gene_to_phenotype_file"]
+
+    if not os.path.exists(g2p):
+        raise ValidationError(
+            f"gene_to_phenotype_file does not exist: {g2p}"
+        )
+
+    # ----------------------------------------------------
+    # Validate catalogs (PR, RR, STR, PGx) file existence
+    # ----------------------------------------------------
+    for label, path in catalogs.items():
+        if not os.path.exists(path):
+            raise ValidationError(
+                f"Catalog file for '{label}' does not exist: {path}"
+            )
+
+    # ----------------------------------------------------
+    # Validate clinvar.version follows YYYYMMDD
+    # ----------------------------------------------------
+    if "version" not in clinvar:
+        raise ValidationError("Missing 'clinvar.version' field in config.json")
+
+    version = clinvar["version"]
+
+    # must be string of 8 digits
+    if not isinstance(version, str) or len(version) != 8 or not version.isdigit():
+        raise ValidationError(
+            f"Invalid clinvar.version '{version}'. Expected YYYYMMDD (8 digits)."
+        )
+
+    # split into components
+    year = int(version[0:4])
+    month = int(version[4:6])
+    day = int(version[6:8])
+
+    # year range
+    if not (2015 <= year <= 2030):
+        raise ValidationError(
+            f"Invalid clinvar.version year '{year}'. Must be 2000–2030."
+        )
+
+    # month range
+    if not (1 <= month <= 12):
+        raise ValidationError(
+            f"Invalid clinvar.version month '{month:02d}'. Must be 01–12."
+        )
+
+    # days per month (default February 28, updated later if leap year)
+    days_in_month = {
+        1: 31, 2: 28, 3: 31, 4: 30, 5: 31, 6: 30,
+        7: 31, 8: 31, 9: 30, 10: 31, 11: 30, 12: 31
+    }
+
+    # leap year adjustment
+    if (year % 4 == 0 and year % 100 != 0) or (year % 400 == 0):
+        days_in_month[2] = 29
+
+    # day range
+    if not (1 <= day <= days_in_month[month]):
+        raise ValidationError(
+            f"Invalid clinvar.version day '{day:02d}' for month {month:02d}."
+        )
+
+    # ----------------------------------------------------
+    # Validate clinvar.db_path existence
+    # ----------------------------------------------------
+    if "db_path" not in clinvar:
+        raise ValidationError("Missing 'clinvar.db_path' in config.json")
+
+    if not os.path.exists(clinvar["db_path"]):
+        raise ValidationError(
+            f"ClinVar database path does not exist: {clinvar['db_path']}"
+        )
+
     return data
 
 
