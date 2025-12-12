@@ -2,11 +2,7 @@ import json
 import os
 import sys
 
-
-class ValidationError(Exception):
-    """Custom exception for invalid SFtool input definitions."""
-    pass
-
+from modules.misc.errors import ValidationError
 
 # =====================================================
 # LOAD JSON
@@ -194,10 +190,7 @@ def validate_config(config_json_path):
 
 
 def validate_all(samples_path, config_path):
-    try:
-        samples_data = validate_samples_info(samples_path)
-        config_data = validate_config(config_path)
-        return samples_data, config_data
-    except ValidationError as e:
-        print(f"[VALIDATION ERROR] {e}")
-        sys.exit(1)
+    samples_data = validate_samples_info(samples_path)
+    config_data = validate_config(config_path)
+    return samples_data, config_data
+
