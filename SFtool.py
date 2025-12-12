@@ -25,7 +25,8 @@ import os
 import sys
 
 from modules.misc.errors import (
-    ValidationError
+    ValidationError,
+    RuntimeDependencyError
 )
 
 from modules.misc.arguments import parse_arguments
@@ -35,7 +36,7 @@ from modules.misc.build_json_bed_files import build_json_bed_files
 from modules.misc.clinvar_utils import clinvar_manager
 from modules.FG.run_fg_module import run_pharmacogenomic_risk_module
 from modules.PR_RR.run_pers_repro_risk_module import run_pers_repro_risk_module
-from modules.misc.check_dependencies import check_dependencies
+from modules.misc.runtime import check_runtime_dependencies
 from modules.misc.vcf_utils import normalize_vcf, intersect_vcf_with_bed
 from modules.misc.report_utils import generate_report
 from modules.STRipy.parse_STRipy_output import parse_STRipy_output
@@ -59,7 +60,7 @@ def main():
         samples_data, config_data = validate_all(samples_path, config_path)
 
         # --------------------------
-        # Prepare output directory
+        # Prepare output and temporal directory
         # --------------------------
         if os.path.exists(outdir):
             if not args.force:
@@ -68,96 +69,101 @@ def main():
         else:
             os.makedirs(outdir, exist_ok=True)
 
-        """ 
-        Create several directories: clinvar, temp and final_output directories (if they dont exist)
-        """
-        for folder in [clinvar_path, temp_path, out_path]:
-            if not os.path.exists(folder):
-                os.mkdir(folder)
-
-        """
-        Check dependencies
-        """
-        check_dependencies(genebe_path, bcftools_path, java_path, pharmCAT_path, python_path)
-        """
-        Generate JSON and BED files for PR or RR categories
-        """
-
-        if "pr" in categories:
-            # Check whether BED file (and consequently, JSON file) for each category exist. If not, create them
-            # Personal risk catalogue
-            if not os.path.exists(f"{categories_path}/PR/pr_risk_genes_GRCh{assembly}.bed"):
-                build_json_bed_files("pr", assembly, categories_path, personal_risk_geneset_file, vcf_file)
-        if "rr" in categories:
-            # Reproductive risk catalogue
-            if not os.path.exists(f"{categories_path}/RR/rr_risk_genes_GRCh{assembly}.bed"):
-                build_json_bed_files("rr", assembly, categories_path, reproductive_risk_geneset_file, vcf_file)
-
-
-        """
-        In advanced mode, check/update clinVar database
-        """
-        # If "advanced" mode, check whether Clinvar Database exists
-        if mode == 'advanced' and ("pr" in categories or "rr" in categories):
-            [clinvar_db, clinvar_submission] = clinvar_manager(clinvar_path, clinvar_ddbb_version, assembly)
-        else:
-            clinvar_db = None
-            clinvar_submission = None
-
-        """
-        VCF normalization: only of PR or RR cateogry (FG has its own normalization procedure)
-        """
-        if "pr" in categories or "rr" in categories:
-            norm_vcf_file = normalize_vcf(vcf_file, temp_path, bcftools_path, reference_genome)
-
-        """
-        Normalized VCF and BED intersection for each category
-        """
-        input_vcf_files = {}
-        for category in categories:
-            if category == "pr" or category == "rr":
-                category_bed_file = os.path.join(categories_path + category.upper(), category + '_risk_genes_GRCh' + assembly + '.bed')
-                generated_vcf_file = intersect_vcf_with_bed(norm_vcf_file, category_bed_file, temp_path, category)
-                input_vcf_files[category] = generated_vcf_file
-
-        """
-        Execute modules selected by the user according to categories. For reproductive risk (rr) category, take into account results from SMAca or STRipy if available
-        """
-        # Run modules selected by user
-
-        pr_results = None
-        rr_results = None
-        STRipy_results_rr = None
-        SMAca_results_rr = None
-        haplot_results = None
-        pharmCAT_report_file = None
-
-        if "pr" in categories:
-            # Run Personal Risk (PR) module. P/LP variants from GeneBe and/or CLINVAR in Genes related to pr category
-            pr_results = run_pers_repro_risk_module(input_vcf_files['pr'], assembly, mode, evidence, clinvar_db, clinvar_submission, 'pr', personal_risk_geneset_file, genebe_path, java_path, genebe_apikey, genebe_username)
-        if "rr" in categories:
-            # Run Reproductive Risk (RR) module. P/LP variants from GeneBe and/or CLINVAR in Genes related to rr category
-            rr_results = run_pers_repro_risk_module(input_vcf_files['rr'], assembly, mode, evidence, clinvar_db, clinvar_submission, 'rr', reproductive_risk_geneset_file, genebe_path, java_path, genebe_apikey, genebe_username)
-            # Parse STRipy JSON file (if provided)
-            if STRipy_output != "None":
-                STRipy_results_rr = parse_STRipy_output(reproductive_risk_geneset_STR_file, STRipy_output)
-            # Parse SMAca CSV file (if provided)
-            if SMAca_output != "None" and "rr" in categories:
-                SMAca_results_rr = parse_SMAca_output(SMAca_output, smaca_cv_fail_threshold, smaca_cv_warn_threshold, smaca_low_cov_abs, smaca_low_cov_rel)
-        if "fg" in categories: # Run Pharmacogenetic (FG) module - pharmCAT
-            if assembly == "38": # pharmCAT is only allowed for GRCh38 assembly
-                [pharmCAT_report_file, haplot_results] = run_pharmacogenomic_risk_module(vcf_file, python_path, pharmCAT_path, bcftools_path, htslib_path, java_path, out_path)
-            else:
-                print("Farmacogenomic module (pharmCAT) is available only for GRCh38 human assembly")
-
-        """
-        Create report
-        """
-        generate_report(pr_results, rr_results, haplot_results, pharmCAT_report_file, config_data, args, clinvar_db, categories, out_path)
+        # Create tmp directory inside outdir
+        tmp_dir = os.path.join(outdir, "tmp")
+        os.makedirs(tmp_dir, exist_ok=True)
 
     except (ValidationError) as e:
         print(f"[ERROR] {e}")
         sys.exit(1)
+
+    try:
+        # --------------------------
+        # Check dependencies
+        # --------------------------
+        check_runtime_dependencies(config_data)
+    except (RuntimeDependencyError) as e:
+        print(f"[ERROR] {e}")
+        sys.exit(1)
+
+
+    """
+    Generate JSON and BED files for PR or RR categories
+    """
+
+    if "pr" in categories:
+        # Check whether BED file (and consequently, JSON file) for each category exist. If not, create them
+        # Personal risk catalogue
+        if not os.path.exists(f"{categories_path}/PR/pr_risk_genes_GRCh{assembly}.bed"):
+            build_json_bed_files("pr", assembly, categories_path, personal_risk_geneset_file, vcf_file)
+    if "rr" in categories:
+        # Reproductive risk catalogue
+        if not os.path.exists(f"{categories_path}/RR/rr_risk_genes_GRCh{assembly}.bed"):
+            build_json_bed_files("rr", assembly, categories_path, reproductive_risk_geneset_file, vcf_file)
+
+
+    """
+    In advanced mode, check/update clinVar database
+    """
+    # If "advanced" mode, check whether Clinvar Database exists
+    if mode == 'advanced' and ("pr" in categories or "rr" in categories):
+        [clinvar_db, clinvar_submission] = clinvar_manager(clinvar_path, clinvar_ddbb_version, assembly)
+    else:
+        clinvar_db = None
+        clinvar_submission = None
+
+    """
+    VCF normalization: only of PR or RR cateogry (FG has its own normalization procedure)
+    """
+    if "pr" in categories or "rr" in categories:
+        norm_vcf_file = normalize_vcf(vcf_file, temp_path, bcftools_path, reference_genome)
+
+    """
+    Normalized VCF and BED intersection for each category
+    """
+    input_vcf_files = {}
+    for category in categories:
+        if category == "pr" or category == "rr":
+            category_bed_file = os.path.join(categories_path + category.upper(), category + '_risk_genes_GRCh' + assembly + '.bed')
+            generated_vcf_file = intersect_vcf_with_bed(norm_vcf_file, category_bed_file, temp_path, category)
+            input_vcf_files[category] = generated_vcf_file
+
+    """
+    Execute modules selected by the user according to categories. For reproductive risk (rr) category, take into account results from SMAca or STRipy if available
+    """
+    # Run modules selected by user
+
+    pr_results = None
+    rr_results = None
+    STRipy_results_rr = None
+    SMAca_results_rr = None
+    haplot_results = None
+    pharmCAT_report_file = None
+
+    if "pr" in categories:
+        # Run Personal Risk (PR) module. P/LP variants from GeneBe and/or CLINVAR in Genes related to pr category
+        pr_results = run_pers_repro_risk_module(input_vcf_files['pr'], assembly, mode, evidence, clinvar_db, clinvar_submission, 'pr', personal_risk_geneset_file, genebe_path, java_path, genebe_apikey, genebe_username)
+    if "rr" in categories:
+        # Run Reproductive Risk (RR) module. P/LP variants from GeneBe and/or CLINVAR in Genes related to rr category
+        rr_results = run_pers_repro_risk_module(input_vcf_files['rr'], assembly, mode, evidence, clinvar_db, clinvar_submission, 'rr', reproductive_risk_geneset_file, genebe_path, java_path, genebe_apikey, genebe_username)
+        # Parse STRipy JSON file (if provided)
+        if STRipy_output != "None":
+            STRipy_results_rr = parse_STRipy_output(reproductive_risk_geneset_STR_file, STRipy_output)
+        # Parse SMAca CSV file (if provided)
+        if SMAca_output != "None" and "rr" in categories:
+            SMAca_results_rr = parse_SMAca_output(SMAca_output, smaca_cv_fail_threshold, smaca_cv_warn_threshold, smaca_low_cov_abs, smaca_low_cov_rel)
+    if "fg" in categories: # Run Pharmacogenetic (FG) module - pharmCAT
+        if assembly == "38": # pharmCAT is only allowed for GRCh38 assembly
+            [pharmCAT_report_file, haplot_results] = run_pharmacogenomic_risk_module(vcf_file, python_path, pharmCAT_path, bcftools_path, htslib_path, java_path, out_path)
+        else:
+            print("Farmacogenomic module (pharmCAT) is available only for GRCh38 human assembly")
+
+    """
+    Create report
+    """
+    generate_report(pr_results, rr_results, haplot_results, pharmCAT_report_file, config_data, args, clinvar_db, categories, out_path)
+
+
     
         
 if __name__ == "__main__":

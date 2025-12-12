@@ -17,10 +17,7 @@ class ValidationError(Exception):
 class RuntimeDependencyError(Exception):
     """
     Raised when the runtime environment is invalid:
-    - missing binaries (bcftools, htslib, java, GeneBe, PharmCAT, etc.)
-    - missing reference genomes or index files
-    - missing catalog/category files
-    - errors creating output directories
+    - missing third-party tools (bcftools, htslib, java, GeneBe, PharmCAT, etc.)
     """
     pass
 
