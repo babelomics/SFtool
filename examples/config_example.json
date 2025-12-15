@@ -20,9 +20,9 @@
   },
 
   "catalogs": {
-    "personal_risk_geneset": "/home/jpflorido/GBPA/projects/SFtool/categories/PR/pr_risk_genes_ACMG_SF_v3.1.csv",
-    "reproductive_risk_geneset": "/home/jpflorido/GBPA/projects/SFtool/categories/RR/rr_risk_genes_ACMG_CS_v2021.csv",
-    "reproductive_risk_geneset_STR": "/home/jpflorido/GBPA/projects/SFtool/categories/RR/rr_risk_genes_STR_ACMG_CS_v2021.csv"
+    "personal_risk_geneset": "/home/jpflorido/GBPA/projects/SFtool/categories/PR/PR_risk_genes_ACMG_SF_v3.1.csv",
+    "reproductive_risk_geneset": "/home/jpflorido/GBPA/projects/SFtool/categories/RR/RR_risk_genes_ACMG_CS_v2021.csv",
+    "reproductive_risk_geneset_STR": "/home/jpflorido/GBPA/projects/SFtool/categories/RR/RR_risk_genes_STR_ACMG_CS_v2021.csv"
   },
 
   "clinvar": {
