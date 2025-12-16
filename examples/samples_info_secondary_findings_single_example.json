@@ -2,7 +2,7 @@
   "execution": {
     "mode": "secondary_findings_discovery",
     "profile": "advanced",
-    "reference_genome": "GRCh38",
+    "reference_genome": "GRCh37",
     "clinvar_evidence": 1,
     "RR_mode": "screening",
 
@@ -19,10 +19,10 @@
     {
       "sample_id": "FJD_00_1064",
       "relation": "proband",
-      "vcf_path": "/mnt/lustre/scratch/CBRA/projects/ACCI/secondary_findings/analysis/FJD/FJD_00_1064/hg38/wgs/WDL-pipeline/variation/FJD_00_1064/FJD_00_1064.labeled.vcf.gz",
+      "vcf_path": "/mnt/lustre/scratch/CBRA/projects/ACCI/secondary_findings/analysis/FJD/FJD_00_1064/hs37d5/wgs/WDL-pipeline/variation/FJD_00_1064/FJD_00_1064.labeled.PASS.vcf.gz",
       "stripy_path": "/mnt/lustre/scratch/CBRA/projects/ACCI/secondary_findings/analysis/STR_benchmarking/FJD/FJD_00_1064/hs37d5/Stripy/FJD_00_1064.sorted.dedup.filtered.recalibrated.bam.json",
       "smaca_path": "/mnt/lustre/scratch/CBRA/projects/ACCI/secondary_findings/analysis/SMAca/FJD_00_1064.csv",
-      "categories": ["PGx"]
+      "categories": ["PR", "RR","PGx"]
     }
   ]
 }
