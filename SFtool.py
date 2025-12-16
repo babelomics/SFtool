@@ -179,12 +179,13 @@ def main():
             smaca_low_cov_abs = config_data.get("smaca_thresholds").get("low_cov_absolute")
             smaca_low_cov_rel = config_data.get("smaca_thresholds").get("low_cov_relative")
             SMAca_results_rr = parse_SMAca_output(SMAca_output, smaca_cv_fail_threshold, smaca_cv_warn_threshold, smaca_low_cov_abs, smaca_low_cov_rel)
-    if "fg" in categories: # Run Pharmacogenetic (FG) module - pharmCAT
+    if "PGx" in categories: # Run Pharmacogenetic (FG) module - pharmCAT
         if assembly == "GRCh38": # pharmCAT is only allowed for GRCh38 assembly
             python_path = config_data.get("paths").get("python")
             pharmCAT_path = config_data.get("paths").get("pharmCAT")
             htslib_path = config_data.get("paths").get("htslib")
             java_path = config_data.get("paths").get("java")
+            bcftools_path = config_data.get("paths").get("bcftools")
             out_path = outdir
             [pharmCAT_report_file, haplot_results] = run_pharmacogenomic_risk_module(vcf_file, python_path, pharmCAT_path, bcftools_path, htslib_path, java_path, out_path)
         else:
