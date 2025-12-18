@@ -283,7 +283,7 @@ def clinvar_manager(clinvar_path, clinvar_ddbb_version, assembly):
         [clinvar_db, clinvar_summary_db] = get_clinvar(clinvar_path, assembly)
     else:  # Use the version contained in the config file
         print("Using existing Clinvar database (version " + clinvar_ddbb_version +")...")
-        clinvar_file = os.path.join(clinvar_path, "clinvar_database_GRCh" + str(assembly) + "_" + clinvar_ddbb_version + ".txt")
+        clinvar_file = os.path.join(clinvar_path, "clinvar_database_" + str(assembly) + "_" + clinvar_ddbb_version + ".txt")
         clinvar_summary_file = os.path.join(clinvar_path, "clinvar_submission" + "_" + clinvar_ddbb_version + ".txt.gz")
         if os.path.exists(clinvar_file) and os.path.exists(clinvar_summary_file):
             clinvar_db = clinvar_file

@@ -1,0 +1,98 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SFtool samples_info schema",
+  "type": "object",
+
+  "required": ["execution", "samples"],
+
+  "properties": {
+    "execution": {
+      "type": "object",
+      "required": ["mode", "reference_genome"],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["secondary_findings_discovery", "variant_confirmation"]
+        },
+
+        "profile": {
+          "type": "string",
+          "enum": ["basic", "advanced"],
+          "default": "advanced"
+        },
+
+        "reference_genome": {
+          "type": "string",
+          "enum": ["GRCh37", "GRCh38"],
+          "default": "GRCh37"
+        },
+
+        "clinvar_evidence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5,
+          "default": 1
+        },
+
+        "RR_mode": {
+          "type": "string",
+          "enum": ["screening", "advanced"],
+          "default": "screening"
+        },
+
+        "variant_confirmation": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "chrom": { "type": "string" },
+            "pos": { "type": ["integer", "string"] },
+            "ref": { "type": "string" },
+            "alt": { "type": "string" }
+          }
+        }
+      }
+    },
+
+    "samples": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 2,
+
+      "items": {
+        "type": "object",
+        "required": ["sample_id", "relation", "vcf_path"],
+
+        "properties": {
+          "sample_id": { "type": "string" },
+
+          "relation": {
+            "type": "string",
+            "enum": ["proband", "parent1", "parent2"]
+          },
+
+          "vcf_path": { "type": "string" },
+          "hpo_path": {
+            "type": "string",
+            "default": ""
+          },
+          "stripy_path": {
+            "type": "string",
+            "default": ""
+          },
+          "smaca_path": {
+            "type": "string",
+            "default": ""
+          },
+
+          "categories": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["PR", "RR", "PGx"]
+            }
+          }
+        }
+      }
+    }
+  }
+}

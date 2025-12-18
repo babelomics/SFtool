@@ -333,19 +333,19 @@ def generate_report(pr_results, rr_results, haplot_results, pharmCAT_report_file
             summary_df.to_excel(writer, sheet_name= 'Versions and Paths', index=True, header=False)
 
             for category in categories:
-                if category == 'pr':
+                if category == 'PR':
                     reported_results = check_inheritance(pr_results, category, categories_path, assembly)
                     pr_final = check_patient_HPO(reported_results, hpos_user, gene_to_phenotype_file)
                     results_df = pd.DataFrame.from_dict(pr_final, orient='index')
                     results_df.to_excel(writer, sheet_name= category.upper() + ' results', index=True)
-                elif category == 'rr':
+                elif category == 'RR':
                     reported_results = check_inheritance(rr_results, category, categories_path, assembly)
                     rr_final = check_patient_HPO(reported_results, hpos_user, gene_to_phenotype_file)
                     results_df = pd.DataFrame.from_dict(rr_final, orient='index')
                     results_df.to_excel(writer, sheet_name= category.upper() + ' results', index=True)
                 else:
                     haplot_df = pd.DataFrame(haplot_results)
-                    haplot_df.to_excel(writer, sheet_name='FG results', index=False, columns=["Gene", "Genotype", "Phenotype", "Source"])
+                    haplot_df.to_excel(writer, sheet_name='PGx results', index=False, columns=["Gene", "Genotype", "Phenotype", "Source"])
                     ws = writer.book["FG results"]
                     start_row = ws.max_row + 2
                     ws.cell(row=start_row, column=1).value = "PharmCAT full results are available at " + pharmCAT_report_file

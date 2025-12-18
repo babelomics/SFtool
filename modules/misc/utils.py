@@ -18,27 +18,28 @@ def write_category_results_to_tsv(results, output_tsv):
 
         writer.writeheader()
 
-        for variant, info in results.items():
-            # Be sure that info dictionary has all necessary keys
-            row = {
-                "Variant": variant,
-                "Gene": info.get("Gene", ""),
-                "Genotype": info.get("Genotype", ""),
-                "Consequence": info.get("Consequence", "-"),
-                "rs": info.get("rs", ""),
-                "Transcript": info.get("Transcript",""),
-                "HGVSC": info.get("HGVSC",""),
-                "HGVSP": info.get("HGVSP",""),
-                "GeneBe ACMG Classification": info.get("GeneBeClassification", ""),
-                "GeneBe ACMG criteria": info.get("ACMG_criteria",""),
-                "Clinvar Clinical Significance": info.get("ClinvarClinicalSignificance", "-"),
-                "ReviewStatus": info.get("ReviewStatus", "-"),
-                "ClinvarSummary": info.get("ClinvarSummary", "-"),
-                "ClinvarID": info.get("ClinvarID", "-"),
-                "Orpha": info.get("Orpha", "")
-            }
+        for variant, info_variant in results.items():
+            for info in info_variant:  # iterate over each entry of genebe
+                # Be sure that info dictionary has all necessary keys
+                row = {
+                    "Variant": variant,
+                    "Gene": info.get("Gene", ""),
+                    "Genotype": info.get("Genotype", ""),
+                    "Consequence": info.get("Consequence", "-"),
+                    "rs": info.get("rs", ""),
+                    "Transcript": info.get("Transcript",""),
+                    "HGVSC": info.get("HGVSC",""),
+                    "HGVSP": info.get("HGVSP",""),
+                    "GeneBe ACMG Classification": info.get("GeneBeClassification", ""),
+                    "GeneBe ACMG criteria": info.get("ACMG_criteria",""),
+                    "Clinvar Clinical Significance": info.get("ClinvarClinicalSignificance", "-"),
+                    "ReviewStatus": info.get("ReviewStatus", "-"),
+                    "ClinvarSummary": info.get("ClinvarSummary", "-"),
+                    "ClinvarID": info.get("ClinvarID", "-"),
+                    "Orpha": info.get("Orpha", "")
+                }
 
-            writer.writerow(row)
+                writer.writerow(row)
 
 
 def get_clinvar_main_gene(variant_name):
