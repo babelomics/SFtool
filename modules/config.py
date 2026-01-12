@@ -40,6 +40,14 @@ class GeneBeConfig:
     def __init__(self, cfg: dict):
         self.cfg = cfg
 
+    @property
+    def api_key(self) -> str:
+        return self.cfg["api_key"]
+
+    @property
+    def username(self) -> str:
+        return self.cfg["username"]
+
 
 class SMAcaConfig:
     """
@@ -47,6 +55,12 @@ class SMAcaConfig:
     """
     def __init__(self, cfg: dict):
         self.cfg = cfg
+
+        # Explicit attributes
+        self.cv_fail: float = cfg.get("cv_fail")
+        self.cv_warn: float = cfg.get("cv_warn")
+        self.low_cov_absolute: float = cfg.get("low_cov_absolute")
+        self.low_cov_relative: float = cfg.get("low_cov_relative")
 
 
 class ReferenceDataConfig:
@@ -57,3 +71,46 @@ class ReferenceDataConfig:
     """
     def __init__(self, cfg: dict):
         self.cfg = cfg
+
+class PathsConfig:
+    """
+    Tool and resource paths.
+
+    This maps to the top-level 'paths' block in config.json.
+    """
+    def __init__(self, cfg: dict):
+        self.cfg = cfg
+
+    @property
+    def categories(self) -> str:
+        """
+        Base directory for PR / RR / PGx category BED/JSON files.
+        """
+        return self.cfg["categories"]
+
+    @property
+    def bcftools(self) -> str:
+        """
+        Path to bcftools executable.
+        """
+        return self.cfg["bcftools"]
+
+    @property
+    def java(self) -> str:
+        return self.cfg["java"]
+
+    @property
+    def genebe(self) -> str:
+        return self.cfg["genebe"]
+
+    @property
+    def htslib(self) -> str:
+        return self.cfg["htslib"]
+
+    @property
+    def python(self) -> str:
+        return self.cfg["python"]
+
+    @property
+    def pharmCAT(self) -> str:
+        return self.cfg["pharmCAT"]
