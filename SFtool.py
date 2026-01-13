@@ -30,7 +30,7 @@ from modules.misc.errors import (
 )
 
 from modules.misc.arguments import parse_arguments
-from modules.misc.validation import validate_all
+from modules.misc.bootstrap import bootstrap_execution
 
 from modules.misc.build_json_bed_files import build_json_bed_files
 from modules.misc.clinvar_utils import clinvar_manager
@@ -63,9 +63,9 @@ def main():
 
     try:
         # --------------------------
-        # Validate JSON inputs and create execution context object
+        # Validate JSON inputs, create execution context object and validate run dependencies
         # --------------------------
-        ctx = validate_all(args.samples, args.config, outdir)
+        ctx = bootstrap_execution(args.samples, args.config, outdir)
 
         # --------------------------
         # Prepare output and temporal directory

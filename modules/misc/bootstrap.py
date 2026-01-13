@@ -1,22 +1,16 @@
 """
-Validation and construction of ExecutionContext for SFtool.
 
-This module preserves the validation semantics of the original
-validation.py while adapting them to the new Context + Config
-architecture.
+Execution bootstrap:
+- validate samples_info and config files
+- build Config and ExecutionContext object
+- check runtime dependencies
 
-Legacy-equivalent validations preserved:
-- validate_execution_block
-- validate_sample_block
-- validate_samples_info
-- validate_config
 """
 
 from __future__ import annotations
 
 import json
 import os
-import sys
 from pathlib import Path
 from typing import Dict, Any, List
 
@@ -31,7 +25,7 @@ from modules.misc.errors import ValidationError
 # Public API
 # =====================================================================
 
-def validate_all(
+def bootstrap_execution(
         samples_json: str | Path,
         config_json: str | Path,
         output_dir: str | Path,
