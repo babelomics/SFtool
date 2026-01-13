@@ -13,6 +13,13 @@ class BootstrapError(Exception):
     pass
 
 
+class ValidationError(BootstrapError):
+    """
+    Raised when Validation fails
+    """
+    pass
+
+
 class RuntimeDependencyError(Exception):
     """
     Raised when the runtime environment is invalid:
