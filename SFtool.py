@@ -25,7 +25,7 @@ import os
 import sys
 
 from modules.misc.errors import (
-    ValidationError
+    BootstrapError
 )
 
 from modules.misc.arguments import parse_arguments
@@ -63,11 +63,10 @@ def main():
         # SFtool bootstraping: JSON inputs validation, create execution context object and validate run dependencies
         # --------------------------
         ctx = bootstrap_execution(args.samples, args.config, outdir)
-    except ValidationError as e:
+    except BootstrapError as e:
         print(f"[ERROR] {e}")
         sys.exit(1)
 
-    # Create execution context
 
     """
     1. Generate JSON and BED files for PR or RR categories
