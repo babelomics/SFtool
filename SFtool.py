@@ -71,8 +71,8 @@ def main():
     """
     1. Generate JSON and BED files for PR or RR categories
     """
-    catalogs_cfg = CatalogConfig(config_data["catalogs"])
-    reference_cfg = ReferenceDataConfig(config_data["references"])
+    catalogs_cfg = ctx.config.catalogs
+    reference_cfg = ctx.config.references
 
     # ------------------------------------------------------------
     # Sample-level (same semantics as samples_data["samples"][0])
@@ -85,21 +85,21 @@ def main():
     # Run-level
     # ------------------------------------------------------------
     assembly = ctx.assembly
-    paths_cfg = PathsConfig(config_data["paths"])
+    paths_cfg = ctx.config.paths
 
-    categories_path = paths_cfg.categories
+    categories_path = ctx.config.paths.categories
 
     # ------------------------------------------------------------
     # Reference genome (via ReferenceDataConfig wrapper)
     # ------------------------------------------------------------
-    reference_genome = reference_cfg.cfg["genomes"][assembly]
+    reference_genome = ctx.config.references.genomes["GRCh37"]
 
     # ------------------------------------------------------------
     # Personal Risk (PR)
     # ------------------------------------------------------------
     if "PR" in categories:
         personal_risk_geneset_file = (
-            catalogs_cfg.cfg["personal_risk_geneset"]
+            catalogs_cfg.personal_risk_geneset
         )
 
         bed_path = f"{categories_path}/PR/PR_risk_genes_{assembly}.bed"
@@ -117,7 +117,7 @@ def main():
     # ------------------------------------------------------------
     if "RR" in categories:
         reproductive_risk_geneset_file = (
-            catalogs_cfg.cfg["reproductive_risk_geneset"]
+            catalogs_cfg.reproductive_risk_geneset
         )
 
         bed_path = f"{categories_path}/RR/RR_risk_genes_{assembly}.bed"
@@ -136,12 +136,11 @@ def main():
     """
     # If "advanced" mode, check whether Clinvar Database exists
     profile = ctx.profile
-    clinvar_cfg = ClinVarConfig(config_data["clinvar"])
 
     if profile == 'advanced' and ("PR" in categories or "RR" in categories):
         [clinvar_db, clinvar_submission] = clinvar_manager(
-            clinvar_cfg.db_path,
-            clinvar_cfg.version,
+            ctx.config.clinvar.db_path,
+            ctx.config.clinvar.version,
             assembly,
         )
     else:
@@ -152,10 +151,9 @@ def main():
     VCF normalization: only of PR or RR cateogry (FG has its own normalization procedure)
     """
 
-    bcftools_path = paths_cfg.bcftools
+    bcftools_path = ctx.config.paths.bcftools
     if "PR" in categories or "RR" in categories:
-        temp_path = ctx.tmp_dir
-        norm_vcf_file = normalize_vcf(vcf_file, temp_path, bcftools_path, reference_genome)
+        norm_vcf_file = normalize_vcf(vcf_file, ctx.tmp_dir, os.path.dirname(bcftools_path)+'/', reference_genome)
 
     """
     Normalized VCF and BED intersection for each category
@@ -164,7 +162,7 @@ def main():
     for category in categories:
         if category == "PR" or category == "RR":
             category_bed_file = os.path.join(categories_path + category.upper(), category + '_risk_genes_' + assembly + '.bed')
-            generated_vcf_file = intersect_vcf_with_bed(norm_vcf_file, category_bed_file, temp_path, category)
+            generated_vcf_file = intersect_vcf_with_bed(norm_vcf_file, category_bed_file, ctx.tmp_dir, category)
             input_vcf_files[category] = generated_vcf_file
 
     """
@@ -178,12 +176,12 @@ def main():
     SMAca_results_rr = None
     haplot_results = None
     pharmCAT_report_file = None
-    genebe_path = paths_cfg.genebe
-    java_path = paths_cfg.java
+    genebe_path = ctx.config.paths.genebe
+    java_path = ctx.config.paths.java
 
-    genebe_cfg = GeneBeConfig(config_data["genebe_credentials"])
-    genebe_apikey = genebe_cfg.api_key
-    genebe_username = genebe_cfg.username
+
+    genebe_apikey = ctx.config.genebe_credentials.api_key
+    genebe_username = ctx.config.genebe_credentials.username
 
     clinvar_evidence = ctx.clinvar_evidence
 
@@ -194,29 +192,29 @@ def main():
         # Run Reproductive Risk (RR) module. P/LP variants from GeneBe and/or CLINVAR in Genes related to rr category
         rr_results = run_pers_repro_risk_module(input_vcf_files['RR'], assembly, profile, clinvar_evidence, clinvar_db, clinvar_submission, 'rr', reproductive_risk_geneset_file, genebe_path, java_path, genebe_apikey, genebe_username)
         # Parse STRipy JSON file (if provided)
-        STRipy_output = samples_data.get("samples")[0].get("stripy_path")
+        STRipy_output = ctx.samples[0].stripy_path
         if STRipy_output != "None":
             reproductive_risk_geneset_STR_file = (
-                catalogs_cfg.cfg["reproductive_risk_geneset_STR"]
+                catalogs_cfg.reproductive_risk_geneset_STR
             )
             STRipy_results_rr = parse_STRipy_output(reproductive_risk_geneset_STR_file, STRipy_output)
         # Parse SMAca CSV file (if provided)
         SMAca_output = sample.smaca_path
         if SMAca_output != "None" and "RR" in categories:
-            smaca_cfg = SMAcaConfig(config_data.get("smaca_thresholds", {}))
-            smaca_cv_fail_threshold = smaca_cfg.cv_fail
-            smaca_cv_warn_threshold = smaca_cfg.cv_warn
-            smaca_low_cov_abs = smaca_cfg.low_cov_absolute
-            smaca_low_cov_rel = smaca_cfg.low_cov_relative
+
+            smaca_cv_fail_threshold = ctx.config.smaca_thresholds.cv_fail
+            smaca_cv_warn_threshold = ctx.config.smaca_thresholds.cv_warn
+            smaca_low_cov_abs = ctx.config.smaca_thresholds.low_cov_absolute
+            smaca_low_cov_rel = ctx.config.smaca_thresholds.low_cov_relative
             SMAca_results_rr = parse_SMAca_output(SMAca_output, smaca_cv_fail_threshold, smaca_cv_warn_threshold, smaca_low_cov_abs, smaca_low_cov_rel)
     if "PGx" in categories: # Run Pharmacogenetic (FG) module - pharmCAT
         if assembly == "GRCh38": # pharmCAT is only allowed for GRCh38 assembly
-            python_path = config_data.get("paths").get("python")
-            pharmCAT_path = paths_cfg.pharmCAT
-            htslib_path = paths_cfg.htslib
-            java_path = paths_cfg.java
-            bcftools_path = paths_cfg.bcftools
-            out_path = outdir
+            python_path = ctx.config.paths.python
+            pharmCAT_path = ctx.config.paths.pharmCAT
+            htslib_path = ctx.config.paths.htslib
+            java_path = ctx.config.paths.java
+            bcftools_path = ctx.config.paths.bcftools
+            out_path = ctx.base_output_dir
             [pharmCAT_report_file, haplot_results] = run_pharmacogenomic_risk_module(vcf_file, python_path, pharmCAT_path, bcftools_path, htslib_path, java_path, out_path)
         else:
             print("Farmacogenomic module (pharmCAT) is available only for GRCh38 human assembly")
@@ -225,7 +223,7 @@ def main():
     Create report
     """
     out_path = outdir
-    generate_report(pr_results, rr_results, haplot_results, pharmCAT_report_file, config_data, args, clinvar_db, categories, out_path)
+    generate_report(pr_results, rr_results, haplot_results, pharmCAT_report_file, ctx.config, args, clinvar_db, categories, out_path)
 
 
     
