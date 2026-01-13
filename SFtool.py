@@ -60,20 +60,9 @@ def main():
 
     try:
         # --------------------------
-        # Validate JSON inputs, create execution context object and validate run dependencies
+        # SFtool bootstraping: JSON inputs validation, create execution context object and validate run dependencies
         # --------------------------
         ctx = bootstrap_execution(args.samples, args.config, outdir)
-
-        # --------------------------
-        # Prepare output and temporal directory
-        # --------------------------
-        if os.path.exists(outdir):
-            if not args.force:
-                print(f"ERROR: Output directory '{outdir}' already exists. Use --force to overwrite.")
-                sys.exit(1)
-        else:
-            os.makedirs(outdir, exist_ok=True)
-
     except ValidationError as e:
         print(f"[ERROR] {e}")
         sys.exit(1)
