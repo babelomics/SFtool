@@ -6,13 +6,32 @@ in config_example.json. Internal structures are preserved
 exactly as provided.
 """
 
+from typing import Dict
+
+class Config:
+    """
+    Run-level configuration facade.
+
+    Aggregates all config block wrappers.
+    """
+
+    def __init__(self, cfg: dict):
+        self.paths = PathsConfig(cfg.get("paths", {}))
+        self.references = ReferenceDataConfig(cfg.get("references", {}))
+        self.catalogs = CatalogConfig(cfg.get("catalogs", {}))
+        self.clinvar = ClinVarConfig(cfg.get("clinvar", {}))
+        self.smaca_thresholds = SMAcaConfig(cfg.get("smaca_thresholds", {}))
+        self.genebe_credentials = GeneBeConfig(cfg.get("genebe_credentials", {}))
+
 
 class CatalogConfig:
     """
     Catalog definitions (PR / RR / PGx).
     """
     def __init__(self, cfg: dict):
-        self.cfg = cfg
+        self.personal_risk_geneset = cfg["personal_risk_geneset"]
+        self.reproductive_risk_geneset = cfg["reproductive_risk_geneset"]
+        self.personal_risk_geneset_STR = cfg["reproductive_risk_geneset_STR"]
 
 
 class ClinVarConfig:
@@ -20,15 +39,8 @@ class ClinVarConfig:
     ClinVar database configuration.
     """
     def __init__(self, cfg: dict):
-        self.cfg = cfg
-
-    @property
-    def db_path(self) -> str:
-        return self.cfg["db_path"]
-
-    @property
-    def version(self) -> str:
-        return self.cfg["version"]
+        self.db_path = cfg["db_path"]
+        self.version = cfg["version"]
 
 
 class GeneBeConfig:
@@ -38,25 +50,14 @@ class GeneBeConfig:
     Structure preserved as-is.
     """
     def __init__(self, cfg: dict):
-        self.cfg = cfg
-
-    @property
-    def api_key(self) -> str:
-        return self.cfg["api_key"]
-
-    @property
-    def username(self) -> str:
-        return self.cfg["username"]
-
+        self.api_key = cfg["api_key"]
+        self.username = cfg["username"]
 
 class SMAcaConfig:
     """
     SMAca thresholds and parameters.
     """
     def __init__(self, cfg: dict):
-        self.cfg = cfg
-
-        # Explicit attributes
         self.cv_fail: float = cfg.get("cv_fail")
         self.cv_warn: float = cfg.get("cv_warn")
         self.low_cov_absolute: float = cfg.get("low_cov_absolute")
@@ -70,7 +71,10 @@ class ReferenceDataConfig:
       - gene-to-phenotype mappings
     """
     def __init__(self, cfg: dict):
-        self.cfg = cfg
+        self.genomes: Dict = cfg.get("genomes", {})
+        self.gene_to_phenotype_file: Optional[str] = cfg.get(
+            "gene_to_phenotype_file"
+        )
 
 class PathsConfig:
     """
@@ -79,38 +83,11 @@ class PathsConfig:
     This maps to the top-level 'paths' block in config.json.
     """
     def __init__(self, cfg: dict):
-        self.cfg = cfg
+        self.categories = cfg["categories"]
+        self.bcftools = cfg["bcftools"]
+        self.java = cfg["java"]
+        self.genebe = cfg["genebe"]
+        self.htslib = cfg["htslib"]
+        self.python = cfg["python"]
+        self.pharmCAT = cfg["pharmCAT"]
 
-    @property
-    def categories(self) -> str:
-        """
-        Base directory for PR / RR / PGx category BED/JSON files.
-        """
-        return self.cfg["categories"]
-
-    @property
-    def bcftools(self) -> str:
-        """
-        Path to bcftools executable.
-        """
-        return self.cfg["bcftools"]
-
-    @property
-    def java(self) -> str:
-        return self.cfg["java"]
-
-    @property
-    def genebe(self) -> str:
-        return self.cfg["genebe"]
-
-    @property
-    def htslib(self) -> str:
-        return self.cfg["htslib"]
-
-    @property
-    def python(self) -> str:
-        return self.cfg["python"]
-
-    @property
-    def pharmCAT(self) -> str:
-        return self.cfg["pharmCAT"]

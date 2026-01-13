@@ -1,27 +1,137 @@
+"""
+Validation and construction of ExecutionContext for SFtool.
+
+This module preserves the validation semantics of the original
+validation.py while adapting them to the new Context + Config
+architecture.
+
+Legacy-equivalent validations preserved:
+- validate_execution_block
+- validate_sample_block
+- validate_samples_info
+- validate_config
+"""
+
+from __future__ import annotations
+
 import json
 import os
 import sys
+from pathlib import Path
+from typing import Dict, Any, List
+
+from modules.context import ExecutionContext, SampleContext
+from modules.config import Config
+from modules.misc.runtime import check_runtime_dependencies
 
 from modules.misc.errors import ValidationError
 
-# =====================================================
-# LOAD JSON
-# =====================================================
-def load_json(path):
-    if not os.path.exists(path):
-        raise ValidationError(f"JSON file not found: {path}")
 
+# =====================================================================
+# Public API
+# =====================================================================
+
+def validate_all(
+        samples_json: str | Path,
+        config_json: str | Path,
+        output_dir: str | Path,
+        tmp_dir: str | Path | None = None,
+) -> ExecutionContext:
+    """
+    Load, validate and normalize all inputs, returning an ExecutionContext.
+    """
+
+    samples_json = Path(samples_json)
+    config_json = Path(config_json)
+    output_dir = Path(output_dir)
+    tmp_dir = Path(tmp_dir) if tmp_dir else None
+
+    _validate_file_exists(samples_json, "samples_info JSON")
+    _validate_file_exists(config_json, "config JSON")
+
+    samples_info = _load_json(samples_json)
+    config_data = _load_json(config_json)
+
+    # -----------------------------------------------------------------
+    # Legacy-equivalent validations (dict-level)
+    # -----------------------------------------------------------------
+    validate_samples_info(samples_info)
+    validate_config(config_data)
+
+    # -----------------------------------------------------------------
+    # Instantiate Config (run-level)
+    # -----------------------------------------------------------------
+    config = Config(config_data)
+    check_runtime_dependencies(config.paths)
+
+    # -----------------------------------------------------------------
+    # Build ExecutionContext
+    # -----------------------------------------------------------------
+    ctx = ExecutionContext(
+        execution_meta=samples_info["execution"],
+        config=config,
+        output_dir=output_dir,
+        tmp_dir=tmp_dir,
+    )
+
+    # -----------------------------------------------------------------
+    # Build SampleContexts
+    # -----------------------------------------------------------------
+    for sample_data in samples_info["samples"]:
+        sample_ctx = SampleContext(sample_data=sample_data, exec_ctx=ctx)
+        ctx.add_sample(sample_ctx)
+
+    # -----------------------------------------------------------------
+    # Cross-object semantic validation
+    # -----------------------------------------------------------------
+    validate_execution_context(ctx)
+
+    return ctx
+
+
+# =====================================================================
+# JSON utilities
+# =====================================================================
+
+def _load_json(path: Path) -> Dict[str, Any]:
     try:
-        with open(path, "r") as f:
-            return json.load(f)
+        with path.open() as fh:
+            return json.load(fh)
     except json.JSONDecodeError as e:
-        raise ValidationError(f"Invalid JSON format in {path}: {e}")
+        raise ValueError(f"Invalid JSON in {path}: {e}") from e
 
 
-# =====================================================
-# VALIDATE EXECUTION BLOCK
-# =====================================================
-def validate_execution_block(exec_data, num_samples):
+def _validate_file_exists(path: Path, label: str):
+    if not path.exists():
+        raise FileNotFoundError(f"{label} not found: {path}")
+    if not path.is_file():
+        raise ValueError(f"{label} is not a file: {path}")
+
+
+# =====================================================================
+# Legacy-equivalent validation functions
+# =====================================================================
+
+def validate_samples_info(samples_info: Dict[str, Any]):
+    """
+    Equivalent to legacy validate_samples_info()
+    """
+    if "execution" not in samples_info:
+        raise ValueError("samples_info must contain an 'execution' block")
+
+    if "samples" not in samples_info:
+        raise ValueError("samples_info must contain a 'samples' block")
+
+    validate_execution_block(samples_info["execution"], num_samples=len(samples_info["samples"]))
+
+    if not isinstance(samples_info["samples"], list) or not samples_info["samples"]:
+        raise ValueError("'samples' must be a non-empty list")
+
+
+    validate_sample_block(samples_info["samples"], samples_info["execution"]["mode"])
+
+
+def validate_execution_block(exec_data: Dict[str, Any], num_samples):
     # -------- Required fields --------
     if "mode" not in exec_data:
         raise ValidationError("Missing required field: execution.mode")
@@ -86,11 +196,7 @@ def validate_execution_block(exec_data, num_samples):
                 "RR_mode for two samples must be 'screening' or 'advanced'."
             )
 
-
-# =====================================================
-# VALIDATE SAMPLES
-# =====================================================
-def validate_sample_block(samples, mode):
+def validate_sample_block(samples: Dict[str, Any], mode):
     if not isinstance(samples, list):
         raise ValidationError("samples must be a list")
 
@@ -161,43 +267,21 @@ def validate_sample_block(samples, mode):
         s.setdefault("smaca_path", "")
 
 
-# =====================================================
-# VALIDATE BOTH FILES
-# =====================================================
-def validate_samples_info(samples_json_path):
-    data = load_json(samples_json_path)
 
-    if "execution" not in data:
-        raise ValidationError("Missing 'execution' block in samples_info.json")
-
-    if "samples" not in data:
-        raise ValidationError("Missing 'samples' block in samples_info.json")
-
-    execution = data["execution"]
-    samples = data["samples"]
-
-    validate_execution_block(execution, num_samples=len(samples))
-    validate_sample_block(samples, execution["mode"])
-
-    return data
-
-
-def validate_config(config_json_path):
-    data = load_json(config_json_path)
-
+def validate_config(config: Dict[str, Any]):
     required = [
         "paths", "references", "catalogs",
         "clinvar", "genebe_credentials", "smaca_thresholds"
     ]
 
     for key in required:
-        if key not in data:
+        if key not in config:
             raise ValidationError(f"Missing '{key}' block in config.json")
 
     # Shorthand variables
-    references = data["references"]
-    catalogs = data["catalogs"]
-    clinvar = data["clinvar"]
+    references = config["references"]
+    catalogs = config["catalogs"]
+    clinvar = config["clinvar"]
 
     # ----------------------------------------------------
     # Validate reference genomes exist
@@ -294,11 +378,47 @@ def validate_config(config_json_path):
             f"ClinVar database path does not exist: {clinvar['db_path']}"
         )
 
-    return data
 
 
-def validate_all(samples_path, config_path):
-    samples_data = validate_samples_info(samples_path)
-    config_data = validate_config(config_path)
-    return samples_data, config_data
+# =====================================================================
+# Context-level semantic validation
+# =====================================================================
+
+def validate_execution_context(ctx: ExecutionContext):
+    """
+    Validations that require fully instantiated context objects.
+    """
+
+    _validate_unique_sample_ids(ctx)
+    _validate_vcf_paths(ctx)
+    _validate_categories(ctx)
+
+
+
+def _validate_unique_sample_ids(ctx: ExecutionContext):
+    seen = set()
+    for sample in ctx.samples:
+        if sample.sample_id in seen:
+            raise ValueError(f"Duplicated sample_id detected: {sample.sample_id}")
+        seen.add(sample.sample_id)
+
+
+def _validate_vcf_paths(ctx: ExecutionContext):
+    for sample in ctx.samples:
+        if not sample.vcf.exists():
+            raise FileNotFoundError(
+                f"VCF not found for sample '{sample.sample_id}': {sample.vcf}"
+            )
+
+
+def _validate_categories(ctx: ExecutionContext):
+    valid_categories = {"PR", "RR", "PGx"}
+    for sample in ctx.samples:
+        for cat in sample.categories:
+            if cat not in valid_categories:
+                raise ValueError(
+                    f"Invalid category '{cat}' for sample '{sample.sample_id}'. "
+                    f"Valid categories: {sorted(valid_categories)}"
+                )
+
 

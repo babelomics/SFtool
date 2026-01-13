@@ -59,16 +59,13 @@ def main():
     # Parse CLI arguments
     # --------------------------
     args = parse_arguments()
-
-    samples_path = args.samples
-    config_path = args.config
     outdir = args.outdir
 
     try:
         # --------------------------
-        # Validate JSON inputs
+        # Validate JSON inputs and create execution context object
         # --------------------------
-        samples_data, config_data = validate_all(samples_path, config_path)
+        ctx = validate_all(args.samples, args.config, outdir)
 
         # --------------------------
         # Prepare output and temporal directory
@@ -84,17 +81,7 @@ def main():
         print(f"[ERROR] {e}")
         sys.exit(1)
 
-    try:
-        # --------------------------
-        # Check dependencies
-        # --------------------------
-        check_runtime_dependencies(config_data)
-    except RuntimeDependencyError as e:
-        print(f"[ERROR] {e}")
-        sys.exit(1)
-
     # Create execution context
-    ctx = ExecutionContext(samples_data, outdir)
 
     """
     1. Generate JSON and BED files for PR or RR categories
