@@ -25,24 +25,21 @@ import os
 import sys
 
 from modules.misc.errors import (
-    ValidationError,
-    RuntimeDependencyError
+    ValidationError
 )
 
 from modules.misc.arguments import parse_arguments
-from modules.misc.bootstrap import bootstrap_execution
+from modules.bootstrap import bootstrap_execution
 
 from modules.misc.build_json_bed_files import build_json_bed_files
 from modules.misc.clinvar_utils import clinvar_manager
 from modules.FG.run_fg_module import run_pharmacogenomic_risk_module
 from modules.PR_RR.run_pers_repro_risk_module import run_pers_repro_risk_module
-from modules.misc.runtime import check_runtime_dependencies
 from modules.misc.vcf_utils import normalize_vcf, intersect_vcf_with_bed
 from modules.misc.report_utils import generate_report
 from modules.STRipy.parse_STRipy_output import parse_STRipy_output
 from modules.SMAca.parse_SMAca_output import parse_SMAca_output
 
-from modules.context import ExecutionContext
 from modules.config import (
     CatalogConfig,
     ClinVarConfig,
