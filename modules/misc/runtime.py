@@ -1,7 +1,13 @@
+"""
+Runtime dependency checks for SFtool.
 
+This module performs run-level preflight checks to ensure that
+required external tools and resources exist before execution.
+"""
 
 import os
 from modules.misc.errors import RuntimeDependencyError
+from modules.config import PathsConfig
 
 
 # =====================================================
@@ -50,37 +56,24 @@ def check_runtime_dependencies(config_data):
     SFtool.py is responsible for catching and reporting errors.
     """
 
-    paths = config_data.get("paths", {})
+def check_runtime_dependencies(paths_cfg: PathsConfig):
+    """
+    Check that required runtime dependencies exist.
 
-    # -----------------------------------------
-    # GeneBeClient.jar
-    # -----------------------------------------
-    genebe_jar = paths.get("genebe")
-    check_file_exists("GeneBeClient.jar", genebe_jar)
+    This function preserves the semantics of the legacy runtime.py
+    and only adapts the input interface to PathsConfig.
+    """
 
-    # -----------------------------------------
-    # bcftools executable
-    # -----------------------------------------
-    bcftools_bin = paths.get("bcftools")
-    check_executable("bcftools binary", bcftools_bin)
+    # --------------------------------------------------------------
+    # Executables (must be executable)
+    # --------------------------------------------------------------
+    check_executable("python interpreter", paths_cfg.python)
+    check_executable("bcftools binary", paths_cfg.bcftools)
+    check_executable("java binary", paths_cfg.java)
 
-    # -----------------------------------------
-    # Java binary
-    # -----------------------------------------
-    java_bin = paths.get("java")
-    check_executable("Java binary", java_bin)
-
-    # -----------------------------------------
-    # PharmCAT JAR file
-    # -----------------------------------------
-    pharmcat_jar = paths.get("pharmCAT")
-    check_file_exists("PharmCAT JAR file", pharmcat_jar)
-
-    # -----------------------------------------
-    # Python interpreter
-    # -----------------------------------------
-    python_bin = paths.get("python")
-    check_executable("Python interpreter", python_bin)
-
-    # All checks passed
-    return True
+    # --------------------------------------------------------------
+    # Files / resources (existence only)
+    # --------------------------------------------------------------
+    check_file_exists("GeneBe JAR file", paths_cfg.genebe)
+    check_file_exists("PharmCAT JAR file", paths_cfg.pharmCAT)
+    check_file_exists("htslib binary path", paths_cfg.htslib)

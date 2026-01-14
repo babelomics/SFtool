@@ -6,10 +6,16 @@ Each exception class represents a category of failure in the system.
 """
 
 
-class ValidationError(Exception):
+class BootstrapError(Exception):
     """
-    Raised when input JSON files (samples_info.json, config.json)
-    are malformed, missing required fields, or violate biological rules.
+    Raised when execution bootstrap fails
+    """
+    pass
+
+
+class ValidationError(BootstrapError):
+    """
+    Raised when Validation fails
     """
     pass
 
