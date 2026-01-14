@@ -10,7 +10,7 @@ import csv
 import urllib.request
 from datetime import datetime
 import shutil
-from modules.misc.build_json_bed_files import read_csv
+from modules.catalogs.build_json_bed_files import read_csv
 from collections import Counter
 
 def map_review_status(review_status):

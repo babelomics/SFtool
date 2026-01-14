@@ -8,7 +8,7 @@ import os
 import gzip
 import io
 import vcfpy
-from modules.misc.build_json_bed_files import read_csv
+from modules.catalogs.build_json_bed_files import read_csv
 
 def run_genebe(norm_vcf, category, assembly, genebe_path, java_path, api_key, username):
     """
