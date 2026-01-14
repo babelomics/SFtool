@@ -31,7 +31,6 @@ from modules.misc.errors import (
 from modules.misc.arguments import parse_arguments
 from modules.bootstrap import bootstrap_execution
 
-from modules.misc.build_json_bed_files import build_json_bed_files
 from modules.misc.clinvar_utils import clinvar_manager
 from modules.FG.run_fg_module import run_pharmacogenomic_risk_module
 from modules.PR_RR.run_pers_repro_risk_module import run_pers_repro_risk_module
@@ -40,14 +39,7 @@ from modules.misc.report_utils import generate_report
 from modules.STRipy.parse_STRipy_output import parse_STRipy_output
 from modules.SMAca.parse_SMAca_output import parse_SMAca_output
 
-from modules.config import (
-    CatalogConfig,
-    ClinVarConfig,
-    GeneBeConfig,
-    SMAcaConfig,
-    ReferenceDataConfig,
-    PathsConfig
-)
+from steps.catalog_generation import run as run_catalog_generation
 
 
 def main():
@@ -58,19 +50,22 @@ def main():
     args = parse_arguments()
     outdir = args.outdir
 
+    # ----------------------------
+    # STEP 1: SFtool bootstraping: JSON inputs validation, create execution context object and validate run dependencies
+    # ----------------------------
+
     try:
-        # --------------------------
-        # SFtool bootstraping: JSON inputs validation, create execution context object and validate run dependencies
-        # --------------------------
         ctx = bootstrap_execution(args.samples, args.config, outdir)
     except BootstrapError as e:
         print(f"[ERROR] {e}")
         sys.exit(1)
 
+    # ----------------------------
+    # STEP 2: JSON and BED files catalog generation
+    # ----------------------------
 
-    """
-    1. Generate JSON and BED files for PR or RR categories
-    """
+    run_catalog_generation(ctx)
+
     catalogs_cfg = ctx.config.catalogs
     reference_cfg = ctx.config.references
 
@@ -94,41 +89,6 @@ def main():
     # ------------------------------------------------------------
     reference_genome = ctx.config.references.genomes["GRCh37"]
 
-    # ------------------------------------------------------------
-    # Personal Risk (PR)
-    # ------------------------------------------------------------
-    if "PR" in categories:
-        personal_risk_geneset_file = (
-            catalogs_cfg.personal_risk_geneset
-        )
-
-        bed_path = f"{categories_path}/PR/PR_risk_genes_{assembly}.bed"
-        if not os.path.exists(bed_path):
-            build_json_bed_files(
-                "pr",
-                assembly,
-                categories_path,
-                personal_risk_geneset_file,
-                vcf_file,
-            )
-
-    # ------------------------------------------------------------
-    # Reproductive Risk (RR)
-    # ------------------------------------------------------------
-    if "RR" in categories:
-        reproductive_risk_geneset_file = (
-            catalogs_cfg.reproductive_risk_geneset
-        )
-
-        bed_path = f"{categories_path}/RR/RR_risk_genes_{assembly}.bed"
-        if not os.path.exists(bed_path):
-            build_json_bed_files(
-                "rr",
-                assembly,
-                categories_path,
-                reproductive_risk_geneset_file,
-                vcf_file,
-            )
 
 
     """
