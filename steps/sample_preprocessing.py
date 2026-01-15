@@ -2,7 +2,6 @@
 
 from modules.context import ExecutionContext
 from modules.misc.vcf_utils import normalize_vcf, intersect_vcf_with_bed
-from pathlib import Path
 
 
 def run(ctx: ExecutionContext) -> None:

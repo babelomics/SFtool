@@ -94,37 +94,12 @@ def main():
     # Sample-level (same semantics as samples_data["samples"][0])
     # ------------------------------------------------------------
     sample = ctx.samples[0]
-
     vcf_file = str(sample.vcf)
 
     # ------------------------------------------------------------
     # Run-level
     # ------------------------------------------------------------
     assembly = ctx.assembly
-    categories_path = ctx.config.paths.categories
-
-    # ------------------------------------------------------------
-    # Reference genome (via ReferenceDataConfig wrapper)
-    # ------------------------------------------------------------
-    reference_genome = ctx.config.references.genomes["GRCh37"]
-
-    """
-    VCF normalization: only of PR or RR cateogry (FG has its own normalization procedure)
-    """
-
-    bcftools_path = ctx.config.paths.bcftools
-    if "PR" in categories or "RR" in categories:
-        norm_vcf_file = normalize_vcf(vcf_file, ctx.tmp_dir, os.path.dirname(bcftools_path)+'/', reference_genome)
-
-    """
-    Normalized VCF and BED intersection for each category
-    """
-    input_vcf_files = {}
-    for category in categories:
-        if category == "PR" or category == "RR":
-            category_bed_file = os.path.join(categories_path + category.upper(), category + '_risk_genes_' + assembly + '.bed')
-            generated_vcf_file = intersect_vcf_with_bed(norm_vcf_file, category_bed_file, ctx.tmp_dir, category)
-            input_vcf_files[category] = generated_vcf_file
 
     """
     Execute modules selected by the user according to categories. For reproductive risk (rr) category, take into account results from SMAca or STRipy if available
@@ -148,10 +123,10 @@ def main():
 
     if "PR" in categories:
         # Run Personal Risk (PR) module. P/LP variants from GeneBe and/or CLINVAR in Genes related to pr category
-        pr_results = run_pers_repro_risk_module(input_vcf_files['PR'], assembly, profile, clinvar_evidence, ctx.outputs["clinvar"]["clinvar_db"], ctx.outputs["clinvar"]["clinvar_summary_db"], 'pr', personal_risk_geneset_file, genebe_path, java_path, genebe_apikey, genebe_username)
+        pr_results = run_pers_repro_risk_module(sample.vcf_outputs["intersected"]['PR'], assembly, profile, clinvar_evidence, ctx.outputs["clinvar"]["clinvar_db"], ctx.outputs["clinvar"]["clinvar_summary_db"], 'pr', ctx.config.catalogs.personal_risk_geneset, genebe_path, java_path, genebe_apikey, genebe_username)
     if "RR" in categories:
         # Run Reproductive Risk (RR) module. P/LP variants from GeneBe and/or CLINVAR in Genes related to rr category
-        rr_results = run_pers_repro_risk_module(input_vcf_files['RR'], assembly, profile, clinvar_evidence, ctx.outputs["clinvar"]["clinvar_db"], ctx.outputs["clinvar"]["clinvar_summary_db"], 'rr', reproductive_risk_geneset_file, genebe_path, java_path, genebe_apikey, genebe_username)
+        rr_results = run_pers_repro_risk_module(sample.vcf_outputs["intersected"]['RR'], assembly, profile, clinvar_evidence, ctx.outputs["clinvar"]["clinvar_db"], ctx.outputs["clinvar"]["clinvar_summary_db"], 'rr', ctx.config.catalogs.reproductive_risk_geneset, genebe_path, java_path, genebe_apikey, genebe_username)
         # Parse STRipy JSON file (if provided)
         STRipy_output = ctx.samples[0].stripy_path
         if STRipy_output != "None":
