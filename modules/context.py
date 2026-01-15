@@ -118,10 +118,16 @@ class ExecutionContext:
         # ------------------------------------------------------------------
         # Outputs populated during execution
         # ------------------------------------------------------------------
-        self.outputs: Dict[str, Dict[str, Dict[str, Path]]] = {
+        self.outputs: Dict[str, Dict[str, Dict[str, str | Path]]] = {
             "catalogs": {
                 "bed_files": {},
                 "json_files": {},
+            },
+            "clinvar": {
+                "clinvar_db": "",
+                "clinvar_summary_db": "",
+                "clinvar_db_version": "",
+                "clinvar_db_assembly": ""
             }
         }
 
