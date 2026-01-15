@@ -39,7 +39,10 @@ class SampleContext:
         # ------------------------------------------------------------------
         # Outputs populated during execution
         # ------------------------------------------------------------------
-        self.vcf_outputs: Dict[str, Path] = {}
+        self.vcf_outputs: Dict[str, Path | Dict[str, Path]] = {
+            "normalized": None,
+            "intersected": {}
+        }
         self.results: Dict[str, dict] = {}
 
     @staticmethod
