@@ -40,6 +40,7 @@ from modules.SMAca.parse_SMAca_output import parse_SMAca_output
 
 from steps.catalog_generation import run as run_catalog_generation
 from steps.clinvar_setup import run as run_clinvar_setup
+from steps.sample_preprocessing import run as run_sample_preprocessing
 
 
 def main():
@@ -79,7 +80,12 @@ def main():
         run_clinvar_setup(ctx)
 
 
-
+    # ----------------------------
+    # STEP 4: SAMPLE PREPROCESSING
+    #           Only for PR and RR categories
+    # ----------------------------
+    if "PR" in categories or "RR" in categories:
+        run_sample_preprocessing(ctx)
 
 
     catalogs_cfg = ctx.config.catalogs

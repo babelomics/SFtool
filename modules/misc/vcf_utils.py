@@ -31,7 +31,8 @@ def normalize_vcf(input_vcf_path, temp_path, bcftools_path, reference_genome_pat
 
         if not (os.path.exists(input_vcf_path + ".csi") or os.path.exists(input_vcf_path + ".tbi")):
             # Index VCF file if not indexed
-            index_command = [bcftools_path + "bcftools", "index", input_vcf_path]
+            #index_command = [bcftools_path + "bcftools", "index", input_vcf_path]
+            index_command = [bcftools_path, "index", input_vcf_path]
             subprocess.run(index_command, check=True, capture_output=True)
 
         # Output files
@@ -41,19 +42,22 @@ def normalize_vcf(input_vcf_path, temp_path, bcftools_path, reference_genome_pat
 
         # bcftools normalization command
 
-        bcftools_command = [bcftools_path + "bcftools", "norm", "-O", "z", "-m", "-any", "--check-ref", "w",  "-f", reference_genome_path, "-o", output_vcf_path, input_vcf_path]
+        #bcftools_command = [bcftools_path + "bcftools", "norm", "-O", "z", "-m", "-any", "--check-ref", "w",  "-f", reference_genome_path, "-o", output_vcf_path, input_vcf_path]
+        bcftools_command = [bcftools_path, "norm", "-O", "z", "-m", "-any", "--check-ref", "w",  "-f", reference_genome_path, "-o", output_vcf_path, input_vcf_path]
 
         # Normalize with bcftools
         subprocess.run(bcftools_command, check=True)
 
         # Remove duplicates with bcftools
-        rm_dup_command = [bcftools_path + "bcftools", "norm", "--rm-dup", "none", "-Oz", "-o", output2_vcf_path, output_vcf_path]
+        #rm_dup_command = [bcftools_path + "bcftools", "norm", "--rm-dup", "none", "-Oz", "-o", output2_vcf_path, output_vcf_path]
+        rm_dup_command = [bcftools_path, "norm", "--rm-dup", "none", "-Oz", "-o", output2_vcf_path, output_vcf_path]
         subprocess.run(rm_dup_command, check=True)
 
         print("bcftools normalization completed.")
 
         # Remove non-variant sites (genotypes with 0/0)
-        rm_nonvariantsites_command = [bcftools_path + "bcftools", "view", "-e", 'ALT="*" || GT="0/0"', "-Oz", "-o", output3_vcf_path, output2_vcf_path]
+        #rm_nonvariantsites_command = [bcftools_path + "bcftools", "view", "-e", 'ALT="*" || GT="0/0"', "-Oz", "-o", output3_vcf_path, output2_vcf_path]
+        rm_nonvariantsites_command = [bcftools_path, "view", "-e", 'ALT="*" || GT="0/0"', "-Oz", "-o", output3_vcf_path, output2_vcf_path]
         subprocess.run(rm_nonvariantsites_command, check=True)
 
         print("bcftools filtering non variant sites completed.")
