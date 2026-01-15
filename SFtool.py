@@ -31,7 +31,6 @@ from modules.misc.errors import (
 from modules.misc.arguments import parse_arguments
 from modules.bootstrap import bootstrap_execution
 
-from modules.misc.clinvar_utils import clinvar_manager
 from modules.FG.run_fg_module import run_pharmacogenomic_risk_module
 from modules.PR_RR.run_pers_repro_risk_module import run_pers_repro_risk_module
 from modules.misc.vcf_utils import normalize_vcf, intersect_vcf_with_bed
@@ -40,6 +39,7 @@ from modules.STRipy.parse_STRipy_output import parse_STRipy_output
 from modules.SMAca.parse_SMAca_output import parse_SMAca_output
 
 from steps.catalog_generation import run as run_catalog_generation
+from steps.clinvar_setup import run as run_clinvar_setup
 
 
 def main():
@@ -63,49 +63,44 @@ def main():
     # ----------------------------
     # STEP 2: JSON and BED files catalog generation
     # ----------------------------
-
     run_catalog_generation(ctx)
 
+    # ----------------------------
+    # STEP 3: CLINVAR DDBB MANAGEMENT
+    #           Only if profile is advanced and for PR and RR categories
+    # ----------------------------
+    profile = ctx.profile
+    # Get unique list of categories for all samples
+    categories = sorted({
+        c for s in ctx.samples for c in s.categories
+    })
+
+    if profile == 'advanced' and ("PR" in categories or "RR" in categories):
+        run_clinvar_setup(ctx)
+
+
+
+
+
     catalogs_cfg = ctx.config.catalogs
-    reference_cfg = ctx.config.references
 
     # ------------------------------------------------------------
     # Sample-level (same semantics as samples_data["samples"][0])
     # ------------------------------------------------------------
     sample = ctx.samples[0]
-    categories = sample.categories
+
     vcf_file = str(sample.vcf)
 
     # ------------------------------------------------------------
     # Run-level
     # ------------------------------------------------------------
     assembly = ctx.assembly
-    paths_cfg = ctx.config.paths
-
     categories_path = ctx.config.paths.categories
 
     # ------------------------------------------------------------
     # Reference genome (via ReferenceDataConfig wrapper)
     # ------------------------------------------------------------
     reference_genome = ctx.config.references.genomes["GRCh37"]
-
-
-
-    """
-    In advanced mode, check/update clinVar database
-    """
-    # If "advanced" mode, check whether Clinvar Database exists
-    profile = ctx.profile
-
-    if profile == 'advanced' and ("PR" in categories or "RR" in categories):
-        [clinvar_db, clinvar_submission] = clinvar_manager(
-            ctx.config.clinvar.db_path,
-            ctx.config.clinvar.version,
-            assembly,
-        )
-    else:
-        clinvar_db = None
-        clinvar_submission = None
 
     """
     VCF normalization: only of PR or RR cateogry (FG has its own normalization procedure)
@@ -147,10 +142,10 @@ def main():
 
     if "PR" in categories:
         # Run Personal Risk (PR) module. P/LP variants from GeneBe and/or CLINVAR in Genes related to pr category
-        pr_results = run_pers_repro_risk_module(input_vcf_files['PR'], assembly, profile, clinvar_evidence, clinvar_db, clinvar_submission, 'pr', personal_risk_geneset_file, genebe_path, java_path, genebe_apikey, genebe_username)
+        pr_results = run_pers_repro_risk_module(input_vcf_files['PR'], assembly, profile, clinvar_evidence, ctx.outputs["clinvar"]["clinvar_db"], ctx.outputs["clinvar"]["clinvar_summary_db"], 'pr', personal_risk_geneset_file, genebe_path, java_path, genebe_apikey, genebe_username)
     if "RR" in categories:
         # Run Reproductive Risk (RR) module. P/LP variants from GeneBe and/or CLINVAR in Genes related to rr category
-        rr_results = run_pers_repro_risk_module(input_vcf_files['RR'], assembly, profile, clinvar_evidence, clinvar_db, clinvar_submission, 'rr', reproductive_risk_geneset_file, genebe_path, java_path, genebe_apikey, genebe_username)
+        rr_results = run_pers_repro_risk_module(input_vcf_files['RR'], assembly, profile, clinvar_evidence, ctx.outputs["clinvar"]["clinvar_db"], ctx.outputs["clinvar"]["clinvar_summary_db"], 'rr', reproductive_risk_geneset_file, genebe_path, java_path, genebe_apikey, genebe_username)
         # Parse STRipy JSON file (if provided)
         STRipy_output = ctx.samples[0].stripy_path
         if STRipy_output != "None":
@@ -183,7 +178,7 @@ def main():
     Create report
     """
     out_path = outdir
-    generate_report(pr_results, rr_results, haplot_results, pharmCAT_report_file, ctx.config, args, clinvar_db, categories, out_path)
+    generate_report(pr_results, rr_results, haplot_results, pharmCAT_report_file, ctx.config, args, ctx.outputs["clinvar"]["clinvar_db"], categories, out_path)
 
 
     
