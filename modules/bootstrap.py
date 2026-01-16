@@ -218,6 +218,7 @@ def validate_sample_block(samples: Dict[str, Any], mode):
         if not os.path.exists(s["vcf_path"]):
             raise ValidationError(f"VCF file not found for sample {s['sample_id']}: {s['vcf_path']}")
 
+
         s.setdefault("hpo_path", "")
         s.setdefault("stripy_path", "")
         s.setdefault("smaca_path", "")
@@ -253,6 +254,22 @@ def validate_sample_block(samples: Dict[str, Any], mode):
         if not os.path.exists(s["vcf_path"]):
             raise ValidationError(
                 f"VCF file not found for sample {s['sample_id']}: {s['vcf_path']}"
+            )
+        if "sex" not in s:
+            raise ValidationError("Missing required field 'sex' for sample " + s['sample_id'])
+
+        sex = s["sex"]
+
+        if not isinstance(sex, str):
+            raise ValidationError(
+                f"Invalid type for 'sex' in sample {s['sample_id']}: "
+                f"expected string, got {type(sex).__name__}"
+            )
+
+        if sex not in {"male", "female", "unknown"}:
+            raise ValueError(
+                f"Invalid value for 'sex' in sample {s['sample_id']}: '{sex}'. "
+                "Allowed values are: male, female, unknown"
             )
 
         # Optional fields
