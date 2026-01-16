@@ -65,6 +65,12 @@
         "properties": {
           "sample_id": { "type": "string" },
 
+          "sex": {
+            "type": "string",
+            "description": "Biological sex of the sample",
+            "enum": ["male", "female", "unknown"]
+          },
+
           "relation": {
             "type": "string",
             "enum": ["proband", "parent1", "parent2"]
@@ -89,14 +95,7 @@
             "items": {
               "type": "string",
               "enum": ["PR", "RR", "PGx"]
-            },
-
-            "sex": {
-              "type": "string",
-              "description": "Biological sex of the sample"
-              "enum": ["male", "female", "unknown"]
             }
-
           }
         }
       }
