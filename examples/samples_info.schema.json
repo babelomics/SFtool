@@ -89,7 +89,14 @@
             "items": {
               "type": "string",
               "enum": ["PR", "RR", "PGx"]
+            },
+
+            "sex": {
+              "type": "string",
+              "description": "Biological sex of the sample"
+              "enum": ["male", "female", "unknown"]
             }
+
           }
         }
       }
