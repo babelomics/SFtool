@@ -27,6 +27,7 @@ class SampleContext:
         # Required sample-level fields
         # ------------------------------------------------------------------
         self.sample_id: str = sample_data["sample_id"]
+        self.sex: str = sample_data["sex"]
         self.vcf: Path = Path(sample_data["vcf_path"]).resolve()
 
         self.role: str = sample_data.get("relation", "proband")
