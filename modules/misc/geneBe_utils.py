@@ -34,10 +34,9 @@ def run_genebe(norm_vcf, category, assembly, genebe_path, java_path, api_key, us
             assembly_int = 'hg38'
 
         # Build command to run GeneBe
-        genebe_file_path = os.path.join(genebe_path, "GeneBeClient.jar")
         cmd = [java_path,
                "-jar",
-               genebe_file_path,
+               genebe_path,
                "vcf",  "annotate",
                "--input-vcf", norm_vcf,
                "--output-vcf", genebe_output_file,
@@ -47,7 +46,7 @@ def run_genebe(norm_vcf, category, assembly, genebe_path, java_path, api_key, us
                ]
 
         # Run command and get output
-        with subprocess.Popen(cmd, stderr=subprocess.STDOUT, text=True, cwd=genebe_path) as process:
+        with subprocess.Popen(cmd, stderr=subprocess.STDOUT, text=True, cwd=os.path.dirname(genebe_path)) as process:
             output, _ = process.communicate()
 
 

@@ -42,7 +42,8 @@ class SampleContext:
         # ------------------------------------------------------------------
         self.vcf_outputs: Dict[str, Path | Dict[str, Path]] = {
             "normalized": None,
-            "intersected": {}
+            "intersected": {},
+            "genebe_annotated": {}
         }
         self.results: Dict[str, dict] = {}
 
