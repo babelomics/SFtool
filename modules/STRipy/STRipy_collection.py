@@ -1,6 +1,7 @@
 
 import json
 import pandas as pd
+import re
 
 def collapse_val(val):
     """
@@ -10,6 +11,61 @@ def collapse_val(val):
     if isinstance(val, dict) and "Min" in val and "Max" in val:
         return f"[{val['Min']},{val['Max']}]"
     return str(val)
+
+
+def parse_genotype(genotype: str) -> list[int]:
+    """
+    Convert STRipy genotype string into a list of allele repeat sizes.
+
+    Examples:
+        "34"      -> [34]
+        "22/45"   -> [22, 45]
+    """
+    if not genotype:
+        return []
+
+    return [int(allele) for allele in genotype.split("/") if allele.isdigit()]
+
+def parse_threshold(threshold: str):
+    """
+    Parse pathogenic threshold string.
+
+    Supported formats:
+        "200"     -> allele > 200
+        "[6-25]"  -> 6 <= allele <= 25
+    """
+    threshold = threshold.strip()
+
+    # Interval: [a-b]
+    interval_match = re.fullmatch(r"\[(\d+),(\d+)\]", threshold)
+    if interval_match:
+        low, high = map(int, interval_match.groups())
+        return ("range", low, high)
+
+    # Single integer
+    if threshold.isdigit():
+        return ("gte", int(threshold))
+
+    raise ValueError(f"Unsupported PathogenicThreshold format: {threshold}")
+
+def is_pathogenic_allele(allele: int, threshold: str) -> bool:
+    mode, *values = parse_threshold(threshold)
+
+    if mode == "gte":
+        return allele > values[0]
+
+    if mode == "range":
+        low, high = values
+        return low <= allele <= high
+
+    return False
+
+
+def is_pathogenic_threshold(genotype: str, threshold: str) -> bool:
+
+    alleles = parse_genotype(genotype)
+    return any(is_pathogenic_allele(a, threshold) for a in alleles)
+
 
 
 
@@ -77,20 +133,26 @@ def STRipy_collection(reproductive_risk_geneset_STR_file, STRipy_output_file):
                 inheritance = rr_STRs_info.get(current_gene)['Inheritance']
 
 
-        STRipy_results[coords] = {
-            "Gene": current_gene,
-            "Genotype": repeats,
-            "Motif": motif,
-            "Outliers": outliers,
-            "NormalThreshold": normal_threshold,
-            "IntermediateThreshold": intermediate_threshold,
-            "PathogenicThreshold": pathogenic_threshold,
-            "Result": ranges,
-            "Filter": STRipy_info["Filter"],
-            "Phenotype": phenotype,
-            "OMIMdisorder": omim_disorder,
-            "Inheritance": inheritance
-        }
+        current_threshold = pathogenic_threshold
+        if current_gene == 'FMR1': # For FMR1, intermediate threshold is used
+            current_threshold = intermediate_threshold
+
+
+        if is_pathogenic_threshold(repeats,current_threshold): # Only store those entries above the threshold (pathogenic or intermediate)
+            STRipy_results[coords] = {
+                "Gene": current_gene,
+                "Genotype": repeats,
+                "Motif": motif,
+                "Outliers": outliers,
+                "NormalThreshold": normal_threshold,
+                "IntermediateThreshold": intermediate_threshold,
+                "PathogenicThreshold": pathogenic_threshold,
+                "Result": ranges,
+                "Filter": STRipy_info["Filter"],
+                "Phenotype": phenotype,
+                "OMIMdisorder": omim_disorder,
+                "Inheritance": inheritance
+            }
 
 
     return STRipy_results
