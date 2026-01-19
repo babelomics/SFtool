@@ -13,7 +13,7 @@ def collapse_val(val):
 
 
 
-def parse_STRipy_output(reproductive_risk_geneset_STR_file, STRipy_output_file):
+def STRipy_collection(reproductive_risk_geneset_STR_file, STRipy_output_file):
     '''
     Parse STRipy's JSON file
 
