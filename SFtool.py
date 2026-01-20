@@ -41,7 +41,7 @@ from modules.SMAca.parse_SMAca_output import parse_SMAca_output
 from steps.catalog_generation import run as run_catalog_generation
 from steps.clinvar_setup import run as run_clinvar_setup
 from steps.sample_preprocessing import run as run_sample_preprocessing
-from steps.variant_annotation import run as run_variant_annotation
+from steps.variant_evidence_preparation import run as run_variant_evidence_preparation
 
 
 def main():
@@ -90,11 +90,11 @@ def main():
 
 
     # ----------------------------
-    # STEP 5: VARIANT ANNOTATION (GENEBE AND/OR CLINVAR)
+    # STEP 5: VARIANT EVIDENCE PREPARATION (GENEBE AND/OR CLINVAR)
     #           Only for PR and RR categories
     # ----------------------------
     if "PR" in categories or "RR" in categories:
-        run_variant_annotation(ctx)
+        run_variant_evidence_preparation(ctx)
 
 
     catalogs_cfg = ctx.config.catalogs
