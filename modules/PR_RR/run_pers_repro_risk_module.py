@@ -37,6 +37,6 @@ def run_pers_repro_risk_module(mode, category, category_geneset_file, genebe_res
         category_results = genebe_clinvar_results
 
     # Write results of this category to a file
-    output_file = clinvar_results_file.parent / f"{category}.SF.json"
+    output_file = clinvar_results_file.parent / f"{category}.SF.csv"
     write_category_results_to_tsv(category_results, str(output_file))
     return category_results

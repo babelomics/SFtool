@@ -26,7 +26,7 @@ def run_genebe(norm_vcf, category, assembly, genebe_path, java_path, api_key, us
 
     try:
         # Path to VCF intersected and output directory
-        genebe_output_file = f"{norm_vcf.split('norm.' + category.upper() + '.vcf.gz')[0]}{category.upper()}{'.geneBe.vcf.gz'}"
+        genebe_output_file = f"{norm_vcf.split(category.upper() + '.vcf.gz')[0]}{category.upper()}{'.geneBe.vcf.gz'}"
 
         if assembly == 'GRCh37':
             assembly_int = "hg19"
