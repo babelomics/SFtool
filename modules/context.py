@@ -132,7 +132,9 @@ class ExecutionContext:
                 "clinvar_db": "",
                 "clinvar_summary_db": "",
                 "clinvar_db_version": "",
-                "clinvar_db_assembly": ""
+                "clinvar_db_assembly": "",
+                "PR_json": "",
+                "RR_json": ""
             }
         }
 

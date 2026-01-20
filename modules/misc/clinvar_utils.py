@@ -12,6 +12,8 @@ from datetime import datetime
 import shutil
 from modules.catalogs.build_json_bed_files import read_csv
 from collections import Counter
+import json
+from pathlib import Path
 
 def map_review_status(review_status):
     """
@@ -37,7 +39,7 @@ def map_review_status(review_status):
     }
     return mapping.get(review_status.lower(), 0)  # Valor predeterminado es 0 si no se encuentra en el mapeo
 
-def run_clinvar(evidence_level, clinvar_db, clinvar_submission, category, category_geneset_file):
+def run_clinvar(evidence_level, clinvar_db, clinvar_submission, category, category_geneset_file, output_clinvar_file):
     """
     Run clinvar using the database according to an evidence level
 
@@ -48,9 +50,10 @@ def run_clinvar(evidence_level, clinvar_db, clinvar_submission, category, catego
         assembly (str): Reference genome version
         category (str): either pr or rr
         category_geneset_file (str): Path to CSV file for the given category
+        output_clinvar_file (str): Output JSON file where clinvar results are saved
 
     Returns:
-        dict: A dictionary that contains variants from Clinvar and their related information.
+        dict:  A path to file that that contains variants from Clinvar and their related information.
 
     Raises:
         Exception: An exception occurs when an error arises in Clinvar
@@ -137,7 +140,16 @@ def run_clinvar(evidence_level, clinvar_db, clinvar_submission, category, catego
             else:
                 entry['ClinSigSummary'] = ""
 
-        return(clinvar_dct)
+        # Save dictionary to JSON file
+        with output_clinvar_file.open("w", encoding="utf-8") as fh:
+            json.dump(
+                clinvar_dct,
+                fh,
+                indent=2,
+                sort_keys=True,
+                ensure_ascii=False
+            )
+
 
     except Exception as e:
         print(f"Error when filtering variants: {e}")

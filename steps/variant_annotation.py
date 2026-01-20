@@ -2,6 +2,7 @@
 from modules.context import ExecutionContext
 from modules.misc.geneBe_utils import run_genebe
 from modules.misc.clinvar_utils import run_clinvar
+from pathlib import Path
 
 
 def run(ctx: ExecutionContext) -> None:
@@ -14,18 +15,36 @@ def run(ctx: ExecutionContext) -> None:
     genebe_path = ctx.config.paths.genebe
     java_path = ctx.config.paths.java
     assembly = ctx.assembly
+    profile = ctx.profile
 
-
+    # 1. GeneBe annotation: specific for each sample
     for sample in ctx.samples:
         categories = sample.categories
         for category in categories:
             if category == 'PR' or category == 'RR':
                 vcf_file = sample.vcf_outputs["intersected"][category]
-
-                # 1. GeneBe annotation
                 genebe_output_file = run_genebe(vcf_file, category, assembly, genebe_path, java_path, genebe_apikey, genebe_username)
                 sample.vcf_outputs["genebe_annotated"][category] = genebe_output_file
 
-    # # 2. Clinvar annotation (only in advanced mode)
-    # if mode == 'advanced':
-    #     clinvar_results = run_clinvar(evidence_level, clinvar_db, clinvar_submission, category, category_geneset_file)
+    # 2. Clinvar variant selection according to gene catalogs
+    if profile == 'advanced':
+        clinvar_evidence = ctx.clinvar_evidence
+        clinvar_db = ctx.outputs["clinvar"]["clinvar_db"]
+        clinvar_submission = ctx.outputs["clinvar"]["clinvar_summary_db"]
+        unique_categories = sorted(
+            {cat for sample in ctx.samples for cat in sample.categories}
+        )
+
+        for category in unique_categories:
+            if category == 'PR' or category == 'RR':
+                if category == 'PR':
+                    category_geneset_file = ctx.config.catalogs.personal_risk_geneset
+                elif category == 'RR':
+                    category_geneset_file = ctx.config.catalogs.reproductive_risk_geneset
+
+                path = Path(vcf_file)
+                clinvar_output_file = path.parent / f"clinvar.{category}.json"
+
+                run_clinvar(clinvar_evidence, clinvar_db, clinvar_submission, category, category_geneset_file, clinvar_output_file)
+                json_category = category + '_json'
+                ctx.outputs["clinvar"][json_category] = clinvar_output_file
