@@ -42,7 +42,8 @@ class SampleContext:
         # ------------------------------------------------------------------
         self.vcf_outputs: Dict[str, Path | Dict[str, Path]] = {
             "normalized": None,
-            "intersected": {}
+            "intersected": {},
+            "genebe_annotated": {}
         }
         self.results: Dict[str, dict] = {}
 
@@ -131,7 +132,9 @@ class ExecutionContext:
                 "clinvar_db": "",
                 "clinvar_summary_db": "",
                 "clinvar_db_version": "",
-                "clinvar_db_assembly": ""
+                "clinvar_db_assembly": "",
+                "PR_json": "",
+                "RR_json": ""
             }
         }
 
