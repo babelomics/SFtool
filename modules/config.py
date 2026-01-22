@@ -31,7 +31,7 @@ class CatalogConfig:
     def __init__(self, cfg: dict):
         self.personal_risk_geneset = cfg["personal_risk_geneset"]
         self.reproductive_risk_geneset = cfg["reproductive_risk_geneset"]
-        self.personal_risk_geneset_STR = cfg["reproductive_risk_geneset_STR"]
+        self.reproductive_risk_geneset_STR = cfg["reproductive_risk_geneset_STR"]
 
 
 class ClinVarConfig:

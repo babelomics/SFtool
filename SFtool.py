@@ -30,18 +30,13 @@ from modules.misc.errors import (
 
 from modules.misc.arguments import parse_arguments
 from modules.bootstrap import bootstrap_execution
-
 from modules.FG.run_fg_module import run_pharmacogenomic_risk_module
-from modules.PR_RR.run_pers_repro_risk_module import run_pers_repro_risk_module
-from modules.misc.vcf_utils import normalize_vcf, intersect_vcf_with_bed
 from modules.misc.report_utils import generate_report
-from modules.STRipy.STRipy_collection import STRipy_collection
-from modules.SMAca.parse_SMAca_output import parse_SMAca_output
-
 from steps.catalog_generation import run as run_catalog_generation
 from steps.clinvar_setup import run as run_clinvar_setup
 from steps.sample_preprocessing import run as run_sample_preprocessing
 from steps.variant_evidence_preparation import run as run_variant_evidence_preparation
+from steps.variant_collection import run as run_variant_collection
 
 
 def main():
@@ -97,7 +92,13 @@ def main():
         run_variant_evidence_preparation(ctx)
 
 
-    catalogs_cfg = ctx.config.catalogs
+    # ----------------------------
+    # STEP 6: VARIANT COLLECTION (GENEBE AND/OR CLINVAR, STRs and SMN1-copy)
+    #           Only for PR and RR categories
+    # ----------------------------
+    if "PR" in categories or "RR" in categories:
+        run_variant_collection(ctx)
+
 
     # ------------------------------------------------------------
     # Sample-level (same semantics as samples_data["samples"][0])
@@ -113,38 +114,12 @@ def main():
 
     pr_results = None
     rr_results = None
-    STRipy_results_rr = None
-    SMAca_results_rr = None
+
     haplot_results = None
     pharmCAT_report_file = None
 
 
-    if "PR" in categories:
-        # Run Personal Risk (PR) module. P/LP variants from GeneBe and/or CLINVAR in Genes related to pr category
-        genebe_results_file = sample.vcf_outputs["genebe_annotated"]['PR']
-        clinvar_results_file = ctx.outputs["clinvar"]["PR_json"]
-        pr_results = run_pers_repro_risk_module(profile, 'PR', ctx.config.catalogs.personal_risk_geneset, genebe_results_file, clinvar_results_file)
-    if "RR" in categories:
-        # Run Reproductive Risk (RR) module. P/LP variants from GeneBe and/or CLINVAR in Genes related to rr category
-        genebe_results_file = sample.vcf_outputs["genebe_annotated"]['RR']
-        clinvar_results_file = ctx.outputs["clinvar"]["RR_json"]
-        rr_results = run_pers_repro_risk_module(profile, 'RR', ctx.config.catalogs.reproductive_risk_geneset, genebe_results_file, clinvar_results_file)
-        # Parse STRipy JSON file (if provided)
-        STRipy_output = ctx.samples[0].stripy_path
-        if STRipy_output != "None":
-            reproductive_risk_geneset_STR_file = (
-                catalogs_cfg.reproductive_risk_geneset_STR
-            )
-            STRipy_results_rr = STRipy_collection(reproductive_risk_geneset_STR_file, STRipy_output)
-        # Parse SMAca CSV file (if provided)
-        SMAca_output = sample.smaca_path
-        if SMAca_output != "None" and "RR" in categories:
 
-            smaca_cv_fail_threshold = ctx.config.smaca_thresholds.cv_fail
-            smaca_cv_warn_threshold = ctx.config.smaca_thresholds.cv_warn
-            smaca_low_cov_abs = ctx.config.smaca_thresholds.low_cov_absolute
-            smaca_low_cov_rel = ctx.config.smaca_thresholds.low_cov_relative
-            SMAca_results_rr = parse_SMAca_output(SMAca_output, smaca_cv_fail_threshold, smaca_cv_warn_threshold, smaca_low_cov_abs, smaca_low_cov_rel)
     if "PGx" in categories: # Run Pharmacogenetic (FG) module - pharmCAT
         if assembly == "GRCh38": # pharmCAT is only allowed for GRCh38 assembly
             python_path = ctx.config.paths.python
