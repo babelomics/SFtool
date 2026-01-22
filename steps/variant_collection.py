@@ -42,8 +42,4 @@ def run(ctx: ExecutionContext) -> None:
                         sample.variant_collections[category]["STRs"] = STR_collection(reproductive_risk_geneset_STR_file, STRipy_file)
                     SMAca_file = sample.smaca_path
                     if SMAca_file != "None":
-                        smaca_cv_fail_threshold = ctx.config.smaca_thresholds.cv_fail
-                        smaca_cv_warn_threshold = ctx.config.smaca_thresholds.cv_warn
-                        smaca_low_cov_abs = ctx.config.smaca_thresholds.low_cov_absolute
-                        smaca_low_cov_rel = ctx.config.smaca_thresholds.low_cov_relative
-                        sample.variant_collections[category]["SMN1_copy"] = SMN1_collection(SMAca_file, smaca_cv_fail_threshold, smaca_cv_warn_threshold, smaca_low_cov_abs, smaca_low_cov_rel)
+                        sample.variant_collections[category]["SMN1_copy"] = SMN1_collection(SMAca_file, ctx.config.smaca_thresholds)
