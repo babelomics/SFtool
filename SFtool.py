@@ -35,8 +35,8 @@ from modules.FG.run_fg_module import run_pharmacogenomic_risk_module
 from modules.PR_RR.run_pers_repro_risk_module import run_pers_repro_risk_module
 from modules.misc.vcf_utils import normalize_vcf, intersect_vcf_with_bed
 from modules.misc.report_utils import generate_report
-from modules.STRipy.STRipy_collection import STRipy_collection
-from modules.SMAca.parse_SMAca_output import parse_SMAca_output
+from modules.STRipy.STR_collection import STRipy_collection
+from modules.SMAca.SMN1_collection import parse_SMAca_output
 
 from steps.catalog_generation import run as run_catalog_generation
 from steps.clinvar_setup import run as run_clinvar_setup

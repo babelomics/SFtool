@@ -1,8 +1,8 @@
 from modules.context import ExecutionContext
 from modules.misc.geneBe_utils import parse_genebe_output
 from modules.misc.utils import combine_genebe_clinvar_results
-from modules.STRipy.STRipy_collection import STRipy_collection
-from modules.SMAca.parse_SMAca_output import parse_SMAca_output
+from modules.STRipy.STR_collection import STR_collection
+from modules.SMAca.SMN1_collection import SMN1_collection
 import json
 
 def run(ctx: ExecutionContext) -> None:
@@ -39,11 +39,11 @@ def run(ctx: ExecutionContext) -> None:
                     STRipy_file = sample.stripy_path
                     if STRipy_file != "None":
                         reproductive_risk_geneset_STR_file = ctx.config.catalogs.reproductive_risk_geneset_STR
-                        sample.variant_collections[category]["STRs"] = STRipy_collection(reproductive_risk_geneset_STR_file, STRipy_file)
+                        sample.variant_collections[category]["STRs"] = STR_collection(reproductive_risk_geneset_STR_file, STRipy_file)
                     SMAca_file = sample.smaca_path
                     if SMAca_file != "None":
                         smaca_cv_fail_threshold = ctx.config.smaca_thresholds.cv_fail
                         smaca_cv_warn_threshold = ctx.config.smaca_thresholds.cv_warn
                         smaca_low_cov_abs = ctx.config.smaca_thresholds.low_cov_absolute
                         smaca_low_cov_rel = ctx.config.smaca_thresholds.low_cov_relative
-                        sample.variant_collections[category]["SMN1_copy"] = parse_SMAca_output(SMAca_file, smaca_cv_fail_threshold, smaca_cv_warn_threshold, smaca_low_cov_abs, smaca_low_cov_rel)
+                        sample.variant_collections[category]["SMN1_copy"] = SMN1_collection(SMAca_file, smaca_cv_fail_threshold, smaca_cv_warn_threshold, smaca_low_cov_abs, smaca_low_cov_rel)
