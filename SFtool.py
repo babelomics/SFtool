@@ -42,6 +42,7 @@ from steps.catalog_generation import run as run_catalog_generation
 from steps.clinvar_setup import run as run_clinvar_setup
 from steps.sample_preprocessing import run as run_sample_preprocessing
 from steps.variant_evidence_preparation import run as run_variant_evidence_preparation
+from steps.variant_collection import run as run_variant_collection
 
 
 def main():
@@ -95,6 +96,15 @@ def main():
     # ----------------------------
     if "PR" in categories or "RR" in categories:
         run_variant_evidence_preparation(ctx)
+
+
+    # ----------------------------
+    # STEP 6: VARIANT COLLECTION (GENEBE AND/OR CLINVAR, STRs and SMN1-copy)
+    #           Only for PR and RR categories
+    # ----------------------------
+    if "PR" in categories or "RR" in categories:
+        run_variant_collection(ctx)
+
 
 
     catalogs_cfg = ctx.config.catalogs
