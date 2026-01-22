@@ -45,6 +45,16 @@ class SampleContext:
             "intersected": {},
             "genebe_annotated": {}
         }
+        self.variant_collections: dict = {
+            "PR": {
+                "snv_indels_genebe_clinvar": {},
+            },
+            "RR": {
+                "snv_indels_genebe_clinvar": {},
+                "STRs": {},
+                "SMN1_copy": {},
+            }
+        }
         self.results: Dict[str, dict] = {}
 
     @staticmethod
