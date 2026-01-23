@@ -55,6 +55,16 @@ class SampleContext:
                 "SMN1_copy": {},
             }
         }
+        self.variant_selection: dict = {
+            "PR": {
+                "snv_indels_genebe_clinvar": {},
+            },
+            "RR": {
+                "snv_indels_genebe_clinvar": {},
+                "STRs": {},
+                "SMN1_copy": {},
+            }
+        }
         self.results: Dict[str, dict] = {}
 
     @staticmethod
