@@ -100,3 +100,32 @@ def index_by_gene_symbol(entries: list[dict]) -> dict[str, dict]:
         if "gene_symbol" in entry
     }
 
+def classify_genotype(gt: str) -> str | None:
+    """
+    Classify a genotype string as heterozygous or homozygous.
+
+    Parameters
+    ----------
+    gt : str
+        Genotype string (e.g. '0/1', '1|1', '1/0', '0|0').
+
+    Returns
+    -------
+    str | None
+        'het' for heterozygous genotypes,
+        'hom' for homozygous genotypes,
+        None if genotype is missing or unsupported.
+    """
+    if not gt or gt in {".", "./.", ".|."}:
+        return None
+
+    # Normalize separator
+    sep = "/" if "/" in gt else "|" if "|" in gt else None
+    if sep is None:
+        return None
+
+    alleles = gt.split(sep)
+    if len(alleles) != 2 or "." in alleles:
+        return None
+
+    return "HOM" if alleles[0] == alleles[1] else "HET"

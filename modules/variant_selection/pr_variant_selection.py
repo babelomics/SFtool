@@ -1,7 +1,5 @@
 import json
-from modules.variant_selection.utils import check_specific_criteria
-from modules.variant_selection.utils import combine_variant_and_gene_info
-from modules.variant_selection.utils import index_by_gene_symbol
+from modules.variant_selection.utils import check_specific_criteria, combine_variant_and_gene_info, index_by_gene_symbol, classify_genotype
 
 # PR module
 
@@ -39,14 +37,14 @@ def pr_variant_selection(snv_indels_pr_collection, pr_json_file, assembly):
                     # For Autosomic Recessive, check genotype and/or other variants in the same gene
                     elif inher == 'AR':
                         # For a variant in HOM, report variant
-                        if variant_info["Genotype"] == 'hom':
+                        if classify_genotype(variant_info["Genotype"]) == 'HOM':
                             # Merge information for gene and variant
                             combined_info = combine_variant_and_gene_info(variant_info, gene)
                             # Add merged information to the dictionary
                             snv_indels_selected[variant_key] = combined_info
 
                         # For a variant in HET, only report if there is another variant in the same gene
-                        elif variant_info["Genotype"] == 'het':
+                        elif classify_genotype(variant_info["Genotype"]) == 'HET':
                             # Look for another variant in the same gene
                             other_variant_in_gene = False
                             for other_variant_key in snv_indels_pr_collection:
