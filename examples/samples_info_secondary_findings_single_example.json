@@ -21,7 +21,7 @@
       "sex": "female",
       "relation": "proband",
       "vcf_path": "/mnt/lustre/scratch/CBRA/projects/ACCI/secondary_findings/analysis/LaFe/FE_28523/hs37d5/wgs/WDL-pipeline/variation/FE_28523/FE_28523.labeled.PASS.vcf.gz",
-      "stripy_path": "/mnt/lustre/scratch/CBRA/projects/ACCI/secondary_findings/analysis/STR_benchmarking/LaFe/FE_28358/hs37d5/Stripy/FE_28358.sorted.dedup.filtered.recalibrated.bam.json",
+      "stripy_path": "/mnt/lustre/scratch/CBRA/projects/ACCI/secondary_findings/analysis/STR_benchmarking/LaFe/FE_28358/hs37d5/Stripy/FE_28358.sorted.dedup.filtered.recalibrated.bam_fake.json",
       "smaca_path": "/mnt/lustre/scratch/CBRA/projects/ACCI/secondary_findings/analysis/SMAca/FE_16608.csv",
       "categories": ["RR"]
     }

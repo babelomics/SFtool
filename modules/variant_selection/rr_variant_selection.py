@@ -101,5 +101,6 @@ def rr_smn1_copy_selection(SMN1_copy_collection, RR_mode):
     :return: a copy of SMN1_copy_collection
     '''
 
+    SMN1_copy_collection = {}
     if SMN1_copy_collection["call"] in ["LIKELY_SMA_CARRIER (1-copy SMN1)", "Inconclusive", "PUTATIVE_SILENT_SMA_CARRIER"] and RR_mode == 'screening':
         return SMN1_copy_collection
