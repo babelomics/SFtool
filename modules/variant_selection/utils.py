@@ -129,3 +129,38 @@ def classify_genotype(gt: str) -> str | None:
         return None
 
     return "HOM" if alleles[0] == alleles[1] else "HET"
+
+
+def classify_pathogenic_STRs(repeats: str, threshold: str) -> bool:
+    """
+        Classify repeat values relative to a threshold.
+
+        Parameters
+        ----------
+        repeats : str
+            Repeat values in the form 'value1/value2' (e.g. '28/35').
+        threshold : int
+            Threshold to classify repeats.
+
+        Returns
+        -------
+        str | None
+            'HOM' if both values are >= threshold,
+            'HET' if only one value is >= threshold,
+            None if neither value meets the threshold or input is invalid.
+        """
+    if not repeats or "/" not in repeats:
+        return None
+
+    try:
+        v1, v2 = (int(v) for v in repeats.split("/", 1))
+    except ValueError:
+        return None
+
+    if v1 >= threshold and v2 >= threshold:
+        return "HOM"
+    if v1 >= threshold or v2 >= threshold:
+        return "HET"
+
+    return None
+
