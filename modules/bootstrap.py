@@ -219,7 +219,7 @@ def validate_sample_block(samples: Dict[str, Any], mode):
             raise ValidationError(f"VCF file not found for sample {s['sample_id']}: {s['vcf_path']}")
 
 
-        s.setdefault("hpo_path", "")
+        s.setdefault("hpo_terms", [])
         s.setdefault("stripy_path", "")
         s.setdefault("smaca_path", "")
 
@@ -273,7 +273,7 @@ def validate_sample_block(samples: Dict[str, Any], mode):
             )
 
         # Optional fields
-        s.setdefault("hpo_path", "")
+        s.setdefault("hpo_terms", [])
         s.setdefault("stripy_path", "")
         s.setdefault("smaca_path", "")
 

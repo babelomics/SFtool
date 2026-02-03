@@ -77,10 +77,16 @@
           },
 
           "vcf_path": { "type": "string" },
-          "hpo_path": {
-            "type": "string",
-            "default": ""
+          "hpo_terms": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^HP:[0-9]{7}$"
+            },
+            "description": "List of HPO terms associated with the individual",
+            "default": []
           },
+
           "stripy_path": {
             "type": "string",
             "default": ""

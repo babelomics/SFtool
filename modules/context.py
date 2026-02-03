@@ -35,7 +35,7 @@ class SampleContext:
 
         self.stripy_path = sample_data.get("stripy_path")
         self.smaca_path = sample_data.get("smaca_path")
-        self.hpo_path = sample_data.get("hpo_path")
+        self.hpo_terms = sample_data.get("hpo_terms", [])
 
         # ------------------------------------------------------------------
         # Outputs populated during execution
