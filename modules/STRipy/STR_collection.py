@@ -56,7 +56,7 @@ def is_pathogenic_allele(allele: int, threshold: str) -> bool:
 
     if mode == "range":
         low, high = values
-        return low <= allele <= high
+        return low <= allele
 
     return False
 

@@ -35,7 +35,7 @@ class SampleContext:
 
         self.stripy_path = sample_data.get("stripy_path")
         self.smaca_path = sample_data.get("smaca_path")
-        self.hpo_path = sample_data.get("hpo_path")
+        self.hpo_terms = sample_data.get("hpo_terms", [])
 
         # ------------------------------------------------------------------
         # Outputs populated during execution
@@ -46,6 +46,16 @@ class SampleContext:
             "genebe_annotated": {}
         }
         self.variant_collections: dict = {
+            "PR": {
+                "snv_indels_genebe_clinvar": {},
+            },
+            "RR": {
+                "snv_indels_genebe_clinvar": {},
+                "STRs": {},
+                "SMN1_copy": {},
+            }
+        }
+        self.variant_selection: dict = {
             "PR": {
                 "snv_indels_genebe_clinvar": {},
             },

@@ -37,6 +37,7 @@ from steps.clinvar_setup import run as run_clinvar_setup
 from steps.sample_preprocessing import run as run_sample_preprocessing
 from steps.variant_evidence_preparation import run as run_variant_evidence_preparation
 from steps.variant_collection import run as run_variant_collection
+from steps.variant_selection import run as run_variant_selection
 
 
 def main():
@@ -98,6 +99,14 @@ def main():
     # ----------------------------
     if "PR" in categories or "RR" in categories:
         run_variant_collection(ctx)
+
+    # ----------------------------
+    # STEP 7: VARIANT SELECTION from the set of VARIANT COLLECTION
+    #           Only for PR and RR categories
+    # ----------------------------
+    if "PR" in categories or "RR" in categories:
+        run_variant_selection(ctx)
+
 
 
     # ------------------------------------------------------------
