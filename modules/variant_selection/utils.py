@@ -1,5 +1,7 @@
 # Set of utils functions
 
+from modules.STRipy.STR_collection import parse_threshold
+
 def check_specific_criteria(gene, variant, variant_key, assembly):
     """
     Check specific features for given gene: either specific consequence or specific variant
@@ -153,13 +155,21 @@ def classify_pathogenic_STRs(repeats: str, threshold: str) -> bool:
         return None
 
     try:
+        mode, *values = parse_threshold(threshold)
         v1, v2 = (int(v) for v in repeats.split("/", 1))
     except ValueError:
         return None
 
-    if v1 >= threshold and v2 >= threshold:
+
+    if mode == "gte":
+        current_threshold = values[0]
+    else: #mode = range
+        low, high = values
+        current_threshold = low
+
+    if v1 >= current_threshold and v2 >= current_threshold:
         return "HOM"
-    if v1 >= threshold or v2 >= threshold:
+    if v1 >= current_threshold or v2 >= current_threshold:
         return "HET"
 
     return None
