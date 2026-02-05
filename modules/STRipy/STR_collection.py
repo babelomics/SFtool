@@ -151,7 +151,8 @@ def STR_collection(reproductive_risk_geneset_STR_file, STRipy_output_file):
                 "Filter": STRipy_info["Filter"],
                 "Phenotype": phenotype,
                 "OMIMdisorder": omim_disorder,
-                "Inheritance": inheritance
+                "Inheritance": inheritance,
+                "related_HPOs_for_sample": 'NA'
             }
 
 

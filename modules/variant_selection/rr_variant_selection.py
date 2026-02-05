@@ -1,9 +1,9 @@
 import json
 from modules.variant_selection.utils import index_by_gene_symbol, is_autosomal_chromosome, combine_variant_and_gene_info,\
-    classify_genotype, classify_pathogenic_STRs
+    classify_genotype, classify_pathogenic_STRs, add_patient_HPOterms
 
 
-def rr_variant_selection(snv_indels_pr_collection, rr_json_file, RR_mode, sample_sex):
+def rr_variant_selection(snv_indels_pr_collection, rr_json_file, RR_mode, sample_sex, gene_to_phenotype_file, sample_hpo_terms):
 
 
     # Load JSON file for the given category. This file contains the inheritance mode for each gene
@@ -31,11 +31,14 @@ def rr_variant_selection(snv_indels_pr_collection, rr_json_file, RR_mode, sample
                     snv_indels_selected[variant_key] = combined_info
 
 
+    # Add HPO terms
+    snv_indels_selected_with_HPO = {}
+    if snv_indels_selected:
+        snv_indels_selected_with_HPO = add_patient_HPOterms(snv_indels_selected, 'snv_indels', gene_to_phenotype_file, sample_hpo_terms)
+    return snv_indels_selected_with_HPO
 
-    return snv_indels_selected
 
-
-def rr_str_selection(STR_collection, RR_mode, sample_sex):
+def rr_str_selection(STR_collection, RR_mode, sample_sex, gene_to_phenotype_file, sample_hpo_terms):
     '''
     Selection of STRs for Reproductive Risk category according to the following rules
     1. RR_mode: screenin
@@ -90,10 +93,16 @@ def rr_str_selection(STR_collection, RR_mode, sample_sex):
             if classify_pathogenic_STRs(repeats, threshold) in {"HET", "HOM"}:
                 STR_selected[STR_key] = current_STR
 
-    return STR_selected
+
+    # Add HPO terms
+    STR_selected_with_HPO = {}
+    if STR_selected:
+        STR_selected_with_HPO = add_patient_HPOterms(STR_selected, 'STR', gene_to_phenotype_file, sample_hpo_terms)
+    return STR_selected_with_HPO
 
 
-def rr_smn1_copy_selection(SMN1_copy_collection, RR_mode):
+
+def rr_smn1_copy_selection(SMN1_copy_collection, RR_mode, gene_to_phenotype_file, sample_hpo_terms):
     '''
     Function that returns SMA CARRIER, Inconclusive or Silent carrier individuals (only screening mode, since SMAca only detects carriers)
     :param SMN1_copy_collection
@@ -101,6 +110,8 @@ def rr_smn1_copy_selection(SMN1_copy_collection, RR_mode):
     :return: a copy of SMN1_copy_collection
     '''
 
-    SMN1_copy_collection = {}
+    SMN1_copy_selection_with_HPO = {}
     if SMN1_copy_collection["call"] in ["LIKELY_SMA_CARRIER (1-copy SMN1)", "Inconclusive", "PUTATIVE_SILENT_SMA_CARRIER"] and RR_mode == 'screening':
-        return SMN1_copy_collection
+        SMN1_copy_selection_with_HPO = add_patient_HPOterms(SMN1_copy_collection, 'SMN1-copy', gene_to_phenotype_file, sample_hpo_terms)
+
+    return SMN1_copy_selection_with_HPO

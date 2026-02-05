@@ -174,3 +174,61 @@ def classify_pathogenic_STRs(repeats: str, threshold: str) -> bool:
 
     return None
 
+
+def add_patient_HPOterms(variant_selection, variant_type, gene_to_phenotype_file, sample_hpo_terms):
+    """
+    Check if the set of HPOs provided for the sample must be added according the list of HPOs described for genes
+
+    Args:
+        variant_selection (dict): dictionary of variants
+        variant_type: snv_indels, STR, SMN1_copy
+        gene_to_phenotype_file (str): Gene to phenotype file containing correspondence between HPO, Genes and OMIM terms
+                                      (https://hpo.jax.org/app/data/annotations, genes to phenotype, https://github.com/obophenotype/human-phenotype-ontology/releases/)
+        sample_hpo_terms (list): HPO list provided for the sample
+
+
+    Returns:
+        dictionary: dictionary of variants with HPO terms added for each variant (if applicable)
+    """
+
+    gene_hpo_dict = {}
+
+    # Process file with information of HPO, Genes and OMIM terms
+    with open(gene_to_phenotype_file, 'r') as file:
+        next(file)
+        for line in file:
+            fields = line.strip().split('\t')
+            gene_symbol = fields[1]
+            hpo_id = fields[2]
+
+            # If gene symbol is in the dictionary, add the new HPO term
+            if gene_symbol in gene_hpo_dict:
+                gene_hpo_dict[gene_symbol].append(hpo_id)
+            else:  # If gene symbol is not in the dictionary, create a new entry
+                gene_hpo_dict[gene_symbol] = [hpo_id]
+
+    if variant_type != "SMN1-copy":
+        for variant_key, variant_info in variant_selection.items():
+            # Check wether HPOs for a given gene according to gene_to_phenotype_file are in the list of HPOs for a sample
+            gene = variant_info['Gene']
+            hpo_results = gene_hpo_dict.get(gene)
+
+            for hpo in hpo_results:
+                if hpo in sample_hpo_terms:
+                    if variant_info['related_HPOs_for_sample'] == 'NA':
+                        variant_info['related_HPOs_for_sample'] = hpo
+                    else:
+                        if hpo not in variant_info['related_HPOs_for_sample'].split(','):
+                            variant_info['related_HPOs_for_sample'] += ',' + hpo
+    else:
+        hpo_results = gene_hpo_dict.get('SMN1')
+
+        for hpo in hpo_results:
+            if hpo in sample_hpo_terms:
+                if variant_selection['related_HPOs_for_sample'] == 'NA':
+                    variant_selection['related_HPOs_for_sample'] = hpo
+                else:
+                    if hpo not in variant_selection['related_HPOs_for_sample'].split(','):
+                        variant_selection['related_HPOs_for_sample'] += ',' + hpo
+
+    return variant_selection
