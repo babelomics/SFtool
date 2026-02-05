@@ -1,9 +1,9 @@
 import json
-from modules.variant_selection.utils import check_specific_criteria, combine_variant_and_gene_info, index_by_gene_symbol, classify_genotype
+from modules.variant_selection.utils import check_specific_criteria, combine_variant_and_gene_info, index_by_gene_symbol, classify_genotype, add_patient_HPOterms
 
 # PR module
 
-def pr_variant_selection(snv_indels_pr_collection, pr_json_file, assembly):
+def pr_variant_selection(snv_indels_pr_collection, pr_json_file, assembly, gene_to_phenotype_file, sample_hpo_terms):
 
 
     # Load JSON file for the given category. This file contains the inheritance mode for each gene
@@ -57,4 +57,12 @@ def pr_variant_selection(snv_indels_pr_collection, pr_json_file, assembly):
                                         # Add merged information of the two variants of the gene to the dictionary
                                         snv_indels_selected[variant_key] = combined_info
                                         snv_indels_selected[other_variant_key] = other_combined_info
+
+    # Add HPO terms
+    snv_indels_selected_with_HPO = {}
+    if snv_indels_selected:
+        snv_indels_selected_with_HPO = add_patient_HPOterms(snv_indels_selected, 'snv_indels', gene_to_phenotype_file, sample_hpo_terms)
+    return snv_indels_selected_with_HPO
+
+
     return snv_indels_selected

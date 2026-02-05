@@ -228,7 +228,7 @@ def classify_smaca_sample(df_smaca, smaca_cv_fail_threshold, smaca_cv_warn_thres
     # ==============================================================    # STEP 5 – Silent carriers
     # ==============================================================
 
-    if call is "LIKELY_NON_CARRIER" and has_dup_marker:
+    if call == "LIKELY_NON_CARRIER" and has_dup_marker:
         call = "PUTATIVE_SILENT_SMA_CARRIER"
 
     # Final result dict
@@ -245,6 +245,7 @@ def classify_smaca_sample(df_smaca, smaca_cv_fail_threshold, smaca_cv_warn_thres
         "mean_cov_SMN2": mean_cov_SMN2,
         "mean_control": mean_control,
         "CV_control": CV_control,
+        "related_HPOs_for_sample": 'NA'
     }
 
     return result_dict
