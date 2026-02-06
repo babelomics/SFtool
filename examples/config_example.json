@@ -4,7 +4,7 @@
   "paths": {
     "categories": "/home/jpflorido/GBPA/projects/SFtool/categories/",
     "bcftools": "/home/jpflorido/software/bcftools/bin/bcftools",
-    "htslib": "/home/jpflorido/software/htslib/bin/",
+    "bgzip": "/home/jpflorido/software/htslib/bin/bgzip",
     "genebe": "/home/jpflorido/software/genebe/GeneBeClient.jar",
     "java": "/usr/lib/jvm/java-1.21.0-openjdk-amd64/bin/java",
     "python": "/home/jpflorido/miniconda3/bin/python3.10",

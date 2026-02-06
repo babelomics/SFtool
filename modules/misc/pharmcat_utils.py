@@ -1,7 +1,7 @@
 import subprocess
 import os
 
-def pharmCAT_vcf_preprocessor(vcf_input, python_path, pharmCAT_path, bcftools_path, htslib_path):
+def pharmCAT_vcf_preprocessor(vcf_input, python_path, pharmCAT_path, bgzip_path, htslib_path):
     """
     Run pharmCAT's VCF preprocessor: https://pharmcat.org/using/VCF-Preprocessor/
 
@@ -15,7 +15,7 @@ def pharmCAT_vcf_preprocessor(vcf_input, python_path, pharmCAT_path, bcftools_pa
 
     try:
         # Run pharmCAT's VCF preprocessor script
-        vcf_preprocessor_command = [python_path, os.path.dirname(pharmCAT_path) + "/pharmcat_vcf_preprocessor.py", "--path-to-bcftools", bcftools_path , "--path-to-bgzip", htslib_path + "bgzip", "-vcf", vcf_input]
+        vcf_preprocessor_command = [python_path, os.path.dirname(pharmCAT_path) + "/pharmcat_vcf_preprocessor.py", "--path-to-bcftools", bgzip_path , "--path-to-bgzip", htslib_path , "-vcf", vcf_input]
         with subprocess.Popen(vcf_preprocessor_command, stderr=subprocess.STDOUT, text=True, cwd=os.path.dirname(pharmCAT_path)) as process:
             output, _ = process.communicate()
 

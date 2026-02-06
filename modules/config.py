@@ -87,7 +87,7 @@ class PathsConfig:
         self.bcftools = cfg["bcftools"]
         self.java = cfg["java"]
         self.genebe = cfg["genebe"]
-        self.htslib = cfg["htslib"]
+        self.bgzip = cfg["bgzip"]
         self.python = cfg["python"]
         self.pharmCAT = cfg["pharmCAT"]
 
