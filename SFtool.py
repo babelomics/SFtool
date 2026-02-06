@@ -79,10 +79,10 @@ def main():
 
     # ----------------------------
     # STEP 4: SAMPLE PREPROCESSING
-    #           Only for PR and RR categories
+    #
     # ----------------------------
-    if "PR" in categories or "RR" in categories:
-        run_sample_preprocessing(ctx)
+
+    run_sample_preprocessing(ctx)
 
 
     # ----------------------------
