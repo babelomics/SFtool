@@ -81,7 +81,6 @@ def main():
     # STEP 4: SAMPLE PREPROCESSING
     #
     # ----------------------------
-
     run_sample_preprocessing(ctx)
 
 
@@ -89,8 +88,7 @@ def main():
     # STEP 5: VARIANT EVIDENCE PREPARATION (GENEBE AND/OR CLINVAR)
     #           Only for PR and RR categories
     # ----------------------------
-    if "PR" in categories or "RR" in categories:
-        run_variant_evidence_preparation(ctx)
+    run_variant_evidence_preparation(ctx)
 
 
     # ----------------------------

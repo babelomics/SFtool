@@ -47,6 +47,7 @@ class SampleContext:
             "PGx_preprocessed": None
         }
         self.reports: dict = {}
+        self.results: dict = {}
         self.variant_collections: dict = {
             "PR": {
                 "snv_indels_genebe_clinvar": {},

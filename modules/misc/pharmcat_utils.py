@@ -28,3 +28,31 @@ def pharmCAT_vcf_preprocessor(vcf_input, python_path, pharmCAT_path, bgzip_path,
 
     except subprocess.CalledProcessError as e:
         print(f"Error when running pharmCAT's VCF preprocessor script: {e.output}")
+
+
+def run_pharmCAT(preprocessed_vcf, pharmCAT_path, java_path, out_path):
+    """
+    Run pharmCAT
+
+    :param preprocessed_vcf:
+    :param out_path:
+    :return:
+    """
+
+    try:
+        pharmCAT_command = [java_path, "-jar", pharmCAT_path, "-vcf", preprocessed_vcf, "--output-dir", str(out_path)]
+        with subprocess.Popen(pharmCAT_command, stderr=subprocess.STDOUT, text=True, cwd=os.path.dirname(pharmCAT_path)) as process:
+            output, _ = process.communicate()
+
+        file_name_prefix = os.path.basename(preprocessed_vcf).split(".preprocessed.vcf.bgz")[0]
+
+        report_file = os.path.join(out_path, file_name_prefix + ".report.html")
+        phenotype_file = os.path.join(out_path, file_name_prefix + ".phenotype.json")
+
+        if os.path.exists(report_file) and os.path.exists(phenotype_file):
+            return [report_file, phenotype_file]
+        else:
+            print("pharmCAT report could not be generated. Exiting")
+            exit(-1)
+    except subprocess.CalledProcessError as e:
+        print(f"Error when running pharmCAT: {e.output}")
