@@ -1,7 +1,7 @@
 import subprocess
 import os
 
-def pharmCAT_vcf_preprocessor(vcf_input, python_path, pharmCAT_path, bgzip_path, htslib_path):
+def pharmCAT_vcf_preprocessor(vcf_input, python_path, pharmCAT_path, bgzip_path, htslib_path, tmp_dir):
     """
     Run pharmCAT's VCF preprocessor: https://pharmcat.org/using/VCF-Preprocessor/
 
@@ -21,7 +21,11 @@ def pharmCAT_vcf_preprocessor(vcf_input, python_path, pharmCAT_path, bgzip_path,
 
         preprocessed_vcf = vcf_input.split(".vcf.gz")[0] + ".preprocessed.vcf.bgz"
         if os.path.exists(preprocessed_vcf):
-            return preprocessed_vcf
+            file_name = os.path.basename(preprocessed_vcf)
+            pgx_output_dir = os.path.join(str(tmp_dir), "PGx")
+            os.makedirs(pgx_output_dir, exist_ok=True)
+            os.rename(preprocessed_vcf, os.path.join(pgx_output_dir, file_name))
+            return os.path.join(pgx_output_dir, file_name)
         else:
             print("pharmCAT's preprocessed file does not exist. Exiting")
             exit(-1)
@@ -40,14 +44,17 @@ def run_pharmCAT(preprocessed_vcf, pharmCAT_path, java_path, out_path):
     """
 
     try:
-        pharmCAT_command = [java_path, "-jar", pharmCAT_path, "-vcf", preprocessed_vcf, "--output-dir", str(out_path)]
+        pgx_output_dir = os.path.join(str(out_path),'PGx')
+        os.makedirs(pgx_output_dir, exist_ok=True)
+
+        pharmCAT_command = [java_path, "-jar", pharmCAT_path, "-vcf", preprocessed_vcf, "--output-dir", pgx_output_dir]
         with subprocess.Popen(pharmCAT_command, stderr=subprocess.STDOUT, text=True, cwd=os.path.dirname(pharmCAT_path)) as process:
             output, _ = process.communicate()
 
         file_name_prefix = os.path.basename(preprocessed_vcf).split(".preprocessed.vcf.bgz")[0]
 
-        report_file = os.path.join(out_path, file_name_prefix + ".report.html")
-        phenotype_file = os.path.join(out_path, file_name_prefix + ".phenotype.json")
+        report_file = os.path.join(pgx_output_dir, file_name_prefix + ".report.html")
+        phenotype_file = os.path.join(pgx_output_dir, file_name_prefix + ".phenotype.json")
 
         if os.path.exists(report_file) and os.path.exists(phenotype_file):
             return [report_file, phenotype_file]

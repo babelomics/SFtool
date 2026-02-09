@@ -28,9 +28,9 @@ def run(ctx: ExecutionContext) -> None:
                 genebe_output_file = run_genebe(vcf_file, category, assembly, genebe_path, java_path, genebe_apikey, genebe_username)
                 sample.vcf_outputs["genebe_annotated"][category] = genebe_output_file
             elif category == 'PGx' and assembly == 'GRCh38': # Run PharmCAT
-                [pharmCAT_report_file, pharmCAT_phenotype_file] = run_pharmCAT(sample.vcf_outputs["PGx_preprocessed"], pharmCAT_path, java_path, ctx.tmp_dir)
-                sample.reports["pharmcat"] = pharmCAT_report_file
-                sample.results["pharmcat"] = pharmCAT_phenotype_file
+                [pharmCAT_report_file, pharmCAT_phenotype_file] = run_pharmCAT(sample.vcf_outputs["PGx_preprocessed"], pharmCAT_path, java_path, ctx.run_dir)
+                sample.reports["PGx"] = pharmCAT_report_file
+                sample.results["PGx"] = pharmCAT_phenotype_file
 
     # 2. Clinvar variant selection according to gene catalogs
     if profile == 'advanced':

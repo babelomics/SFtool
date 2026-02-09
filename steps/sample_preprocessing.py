@@ -30,7 +30,7 @@ def run(ctx: ExecutionContext) -> None:
                 sample.vcf_outputs["intersected"][category] = intersect_vcf_with_bed(norm_vcf_file, ctx.outputs["catalogs"]["bed_files"][category], ctx.tmp_dir, category)
             elif category == 'PGx' and ctx.assembly == 'GRCh38':
                 # 1. Run pharmCAT's preprocessor script (https://pharmcat.org/using/VCF-Preprocessor/)
-                sample.vcf_outputs["PGx_preprocessed"] = pharmCAT_vcf_preprocessor(str(sample.vcf.resolve()), ctx.config.paths.python, ctx.config.paths.pharmCAT, ctx.config.paths.bcftools, ctx.config.paths.bgzip)
+                sample.vcf_outputs["PGx_preprocessed"] = pharmCAT_vcf_preprocessor(str(sample.vcf.resolve()), ctx.config.paths.python, ctx.config.paths.pharmCAT, ctx.config.paths.bcftools, ctx.config.paths.bgzip, ctx.tmp_dir)
 
 
 
