@@ -1,5 +1,7 @@
 import subprocess
 import os
+import json
+from collections import defaultdict
 
 def pharmCAT_vcf_preprocessor(vcf_input, python_path, pharmCAT_path, bgzip_path, htslib_path, tmp_dir):
     """
@@ -63,3 +65,48 @@ def run_pharmCAT(preprocessed_vcf, pharmCAT_path, java_path, out_path):
             exit(-1)
     except subprocess.CalledProcessError as e:
         print(f"Error when running pharmCAT: {e.output}")
+
+
+def pharmCAT_collection(phenotype_file):
+    """
+    Parse pharmCAT JSON file and return a data frame with basic information of genes, diplotypes and phenotypes
+
+    :param phenotype_file:
+    :return:
+    """
+
+    with open(phenotype_file, "r") as fd:
+        data = json.load(fd)
+
+    # Initialize data structure
+    pgx_variants = defaultdict(list)
+
+    def _process_source(source_name: str):
+        gene_reports = data.get("geneReports", {}).get(source_name, {})
+
+        for gene, details in gene_reports.items():
+            recommendation_diplotypes = details.get("recommendationDiplotypes", [])
+
+            for rec in recommendation_diplotypes:
+                label = rec.get("label", "N/A")
+                phenotypes = rec.get("phenotypes", [])
+
+                if label not in {"Unknown", "Unknown/Unknown"}:
+                    genotype = label
+                    phenotype = ",".join(map(str, phenotypes)) if phenotypes else "N/A"
+                else:
+                    genotype = "Not determined"
+                    phenotype = "Not determined"
+
+                pgx_variants[gene].append({
+                    "genotype": genotype,
+                    "phenotype": phenotype,
+                    "source": source_name
+                })
+
+    # Process CPIC and DPWG entries
+    _process_source("CPIC")
+    _process_source("DPWG")
+
+    return dict(pgx_variants)
+

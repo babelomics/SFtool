@@ -86,17 +86,16 @@ def main():
 
     # ----------------------------
     # STEP 5: VARIANT EVIDENCE PREPARATION (GENEBE AND/OR CLINVAR)
-    #           Only for PR and RR categories
+    #
     # ----------------------------
     run_variant_evidence_preparation(ctx)
 
 
     # ----------------------------
-    # STEP 6: VARIANT COLLECTION (GENEBE AND/OR CLINVAR, STRs and SMN1-copy)
-    #           Only for PR and RR categories
+    # STEP 6: VARIANT COLLECTION (GENEBE AND/OR CLINVAR, STRs and SMN1-copy, pharmCAT)
+    #
     # ----------------------------
-    if "PR" in categories or "RR" in categories:
-        run_variant_collection(ctx)
+    run_variant_collection(ctx)
 
     # ----------------------------
     # STEP 7: VARIANT SELECTION from the set of VARIANT COLLECTION

@@ -3,6 +3,7 @@ from modules.misc.geneBe_utils import parse_genebe_output
 from modules.misc.utils import combine_genebe_clinvar_results
 from modules.STRipy.STR_collection import STR_collection
 from modules.SMAca.SMN1_collection import SMN1_collection
+from modules.misc.pharmcat_utils import pharmCAT_collection
 import json
 
 def run(ctx: ExecutionContext) -> None:
@@ -19,7 +20,7 @@ def run(ctx: ExecutionContext) -> None:
     for sample in ctx.samples:
         categories = sample.categories
         for category in categories:
-            if category in CATEGORY_GENESETS:
+            if category == "PR" or category == "RR":
                 category_geneset_file = CATEGORY_GENESETS[category]
                 # Collect GENEBE variants (SNV/Indels)
                 genebe_file = sample.vcf_outputs["genebe_annotated"][category]
@@ -43,3 +44,5 @@ def run(ctx: ExecutionContext) -> None:
                     SMAca_file = sample.smaca_path
                     if SMAca_file != "None":
                         sample.variant_collections[category]["SMN1_copy"] = SMN1_collection(SMAca_file, ctx.config.smaca_thresholds)
+            elif category == "PGx":
+                sample.variant_collections[category]["pharmCAT_variants"] = pharmCAT_collection(sample.results["PGx"])
