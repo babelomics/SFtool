@@ -101,51 +101,9 @@ def main():
     # STEP 7: VARIANT SELECTION from the set of VARIANT COLLECTION
     #
     # ----------------------------
-
     run_variant_selection(ctx)
 
 
 
-    # ------------------------------------------------------------
-    # Sample-level (same semantics as samples_data["samples"][0])
-    # ------------------------------------------------------------
-    sample = ctx.samples[0]
-    vcf_file = str(sample.vcf)
-    assembly = ctx.assembly
-
-    """
-    Execute modules selected by the user according to categories. For reproductive risk (rr) category, take into account results from SMAca or STRipy if available
-    """
-    # Run modules selected by user
-
-    pr_results = None
-    rr_results = None
-
-    haplot_results = None
-    pharmCAT_report_file = None
-
-
-
-    if "PGx" in categories: # Run Pharmacogenetic (FG) module - pharmCAT
-        if assembly == "GRCh38": # pharmCAT is only allowed for GRCh38 assembly
-            python_path = ctx.config.paths.python
-            pharmCAT_path = ctx.config.paths.pharmCAT
-            htslib_path = ctx.config.paths.htslib
-            java_path = ctx.config.paths.java
-            bcftools_path = ctx.config.paths.bcftools
-            out_path = ctx.base_output_dir
-            [pharmCAT_report_file, haplot_results] = run_pharmacogenomic_risk_module(vcf_file, python_path, pharmCAT_path, bcftools_path, htslib_path, java_path, out_path)
-        else:
-            print("Farmacogenomic module (pharmCAT) is available only for GRCh38 human assembly")
-
-    """
-    Create report
-    """
-    out_path = outdir
-    generate_report(pr_results, rr_results, haplot_results, pharmCAT_report_file, ctx.config, args, ctx.outputs["clinvar"]["clinvar_db"], categories, out_path)
-
-
-    
-        
 if __name__ == "__main__":
     main()
