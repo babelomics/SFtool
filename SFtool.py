@@ -99,10 +99,10 @@ def main():
 
     # ----------------------------
     # STEP 7: VARIANT SELECTION from the set of VARIANT COLLECTION
-    #           Only for PR and RR categories
+    #
     # ----------------------------
-    if "PR" in categories or "RR" in categories:
-        run_variant_selection(ctx)
+
+    run_variant_selection(ctx)
 
 
 

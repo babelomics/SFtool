@@ -34,6 +34,7 @@ def run(ctx: ExecutionContext) -> None:
                     continue
 
                 sample.variant_selection[category]["snv_indels_genebe_clinvar"] = snv_indels_selection
-
+            elif category == "PGx":
+                sample.variant_selection[category]["pharmCAT_variants"] = sample.variant_collections[category]["pharmCAT_variants"]
 
 
