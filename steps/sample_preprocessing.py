@@ -2,6 +2,7 @@
 
 from modules.context import ExecutionContext
 from modules.misc.vcf_utils import normalize_vcf, intersect_vcf_with_bed
+from modules.misc.pharmcat_utils import pharmCAT_vcf_preprocessor
 
 
 def run(ctx: ExecutionContext) -> None:
@@ -10,22 +11,27 @@ def run(ctx: ExecutionContext) -> None:
     """
 
     for sample in ctx.samples:
+        categories = sample.categories
         # 1. VCF normalization
-        norm_vcf_file = normalize_vcf(
-            str(sample.vcf.resolve()),
-            ctx.tmp_dir,
-            ctx.config.paths.bcftools,
-            ctx.config.references.genomes[ctx.assembly]
-        )
 
-        sample.vcf_outputs["normalized"] = norm_vcf_file
+        if ('PR' or 'RR') in categories:
+            norm_vcf_file = normalize_vcf(
+                str(sample.vcf.resolve()),
+                ctx.tmp_dir,
+                ctx.config.paths.bcftools,
+                ctx.config.references.genomes[ctx.assembly]
+            )
+            sample.vcf_outputs["normalized"] = norm_vcf_file
 
         # 2. Normalized VCF file intersection with BED file for each category
-        categories = sample.categories
+
         for category in categories:
             if category == 'PR' or category == 'RR':
-                generated_vcf_file = intersect_vcf_with_bed(norm_vcf_file, ctx.outputs["catalogs"]["bed_files"][category], ctx.tmp_dir, category)
-                sample.vcf_outputs["intersected"][category] = generated_vcf_file
+                sample.vcf_outputs["intersected"][category] = intersect_vcf_with_bed(norm_vcf_file, ctx.outputs["catalogs"]["bed_files"][category], ctx.tmp_dir, category)
+            elif category == 'PGx' and ctx.assembly == 'GRCh38':
+                # 1. Run pharmCAT's preprocessor script (https://pharmcat.org/using/VCF-Preprocessor/)
+                sample.vcf_outputs["PGx_preprocessed"] = pharmCAT_vcf_preprocessor(str(sample.vcf.resolve()), ctx.config.paths.python, ctx.config.paths.pharmCAT, ctx.config.paths.bcftools, ctx.config.paths.bgzip, ctx.tmp_dir)
+
 
 
 

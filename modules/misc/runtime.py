@@ -70,10 +70,11 @@ def check_runtime_dependencies(paths_cfg: PathsConfig):
     check_executable("python interpreter", paths_cfg.python)
     check_executable("bcftools binary", paths_cfg.bcftools)
     check_executable("java binary", paths_cfg.java)
+    check_executable("bgzip binary", paths_cfg.bgzip)
 
     # --------------------------------------------------------------
     # Files / resources (existence only)
     # --------------------------------------------------------------
     check_file_exists("GeneBe JAR file", paths_cfg.genebe)
     check_file_exists("PharmCAT JAR file", paths_cfg.pharmCAT)
-    check_file_exists("htslib binary path", paths_cfg.htslib)
+

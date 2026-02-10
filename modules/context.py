@@ -43,8 +43,11 @@ class SampleContext:
         self.vcf_outputs: Dict[str, Path | Dict[str, Path]] = {
             "normalized": None,
             "intersected": {},
-            "genebe_annotated": {}
+            "genebe_annotated": {},
+            "PGx_preprocessed": None
         }
+        self.reports: dict = {}
+        self.results: dict = {}
         self.variant_collections: dict = {
             "PR": {
                 "snv_indels_genebe_clinvar": {},
@@ -53,6 +56,9 @@ class SampleContext:
                 "snv_indels_genebe_clinvar": {},
                 "STRs": {},
                 "SMN1_copy": {},
+            },
+            "PGx": {
+                "pharmCAT_variants": {}
             }
         }
         self.variant_selection: dict = {
@@ -63,6 +69,9 @@ class SampleContext:
                 "snv_indels_genebe_clinvar": {},
                 "STRs": {},
                 "SMN1_copy": {},
+            },
+            "PGx": {
+                "pharmCAT_variants": {}
             }
         }
         self.results: Dict[str, dict] = {}

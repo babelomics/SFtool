@@ -14,7 +14,7 @@
       "properties": {
         "categories": { "type": "string" },
         "bcftools": { "type": "string" },
-        "htslib": { "type": "string" },
+        "bgzip": { "type": "string" },
         "genebe": { "type": "string" },
         "java": { "type": "string" },
         "python": { "type": "string" },
