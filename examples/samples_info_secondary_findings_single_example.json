@@ -23,7 +23,7 @@
       "vcf_path": "/mnt/lustre/scratch/CBRA/projects/ACCI/secondary_findings/analysis/LaFe/FE_28523/hs37d5/wgs/WDL-pipeline/variation/FE_28523/FE_28523.labeled.PASS.vcf.gz",
       "stripy_path": "/mnt/lustre/scratch/CBRA/projects/ACCI/secondary_findings/analysis/STR_benchmarking/LaFe/FE_28523/hs37d5/Stripy/FE_28523.sorted.dedup.filtered.recalibrated.bam_fake.json",
       "smaca_path": "/mnt/lustre/scratch/CBRA/projects/ACCI/secondary_findings/analysis/SMAca/FE_77912_fake.csv",
-      "categories": ["PR,RR"],
+      "categories": ["PR","RR"],
       "hpo_terms": ["HP:0003560","HP:0003198","HP:0003236","HP:0003326","HP:0012646","HP:0030096", "HP:0007269"]
     }
   ]
