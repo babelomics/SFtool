@@ -79,27 +79,27 @@ class ReportManager:
         self.writer.write_couple_report(couple_report)
 
     # ===============================
-    # Table builders (pure logic)
+    # Table builders
     # ===============================
 
     def _build_pr_table(self, pr_data) -> ReportTable:
-        rows = []  # TODO: normalize PR rows
+        rows = list(pr_data.values())
         return ReportTable("PR", rows)
 
     def _build_rr_table(self, rr_data) -> ReportTable:
-        rows = []
+        rows = list(rr_data.values())
         return ReportTable("RR", rows)
 
     def _build_rr_str_table(self, rr_str_data) -> ReportTable:
-        rows = []
+        rows = list(rr_str_data.values())
         return ReportTable("RR-STR", rows)
 
     def _build_rr_smn1_table(self, rr_smn1_data) -> ReportTable:
-        rows = []
+        rows = list(rr_smn1_data.values())
         return ReportTable("RR-SMN1-copy", rows)
 
     def _build_pgx_table(self, pgx_data) -> ReportTable:
-        rows = []
+        rows = list(pgx_data.values())
         return ReportTable("PGx", rows)
 
     def _build_screening_rr_couple_table(self, rr_a, rr_b) -> ReportTable:
