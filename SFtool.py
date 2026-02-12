@@ -30,8 +30,6 @@ from modules.misc.errors import (
 
 from modules.misc.arguments import parse_arguments
 from modules.bootstrap import bootstrap_execution
-from modules.FG.run_fg_module import run_pharmacogenomic_risk_module
-from modules.misc.report_utils import generate_report
 from steps.catalog_generation import run as run_catalog_generation
 from steps.clinvar_setup import run as run_clinvar_setup
 from steps.sample_preprocessing import run as run_sample_preprocessing
