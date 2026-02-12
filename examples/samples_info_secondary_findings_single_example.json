@@ -2,7 +2,7 @@
   "execution": {
     "mode": "secondary_findings_discovery",
     "profile": "advanced",
-    "reference_genome": "GRCh38",
+    "reference_genome": "GRCh37",
     "clinvar_evidence": 1,
     "RR_mode": "screening",
 
@@ -17,13 +17,13 @@
 
   "samples": [
     {
-      "sample_id": "FE_77912",
+      "sample_id": "FE_28523",
       "sex": "female",
       "relation": "proband",
-      "vcf_path": "/mnt/lustre/scratch/CBRA/projects/ACCI/secondary_findings/analysis/LaFe/FE_16608/hg38/wgs/WDL-pipeline/variation/FE_16608/pharma/FE_16608.pharma.PR.RR.labeled.PASS.QUAL.vcf.gz",
+      "vcf_path": "/mnt/lustre/scratch/CBRA/projects/ACCI/secondary_findings/analysis/LaFe/FE_28523/hs37d5/wgs/WDL-pipeline/variation/FE_28523/pharma/FE_28523.labeled.PASS.vcf.gz",
       "stripy_path": "/mnt/lustre/scratch/CBRA/projects/ACCI/secondary_findings/analysis/STR_benchmarking/LaFe/FE_28523/hs37d5/Stripy/FE_28523.sorted.dedup.filtered.recalibrated.bam_fake.json",
       "smaca_path": "/mnt/lustre/scratch/CBRA/projects/ACCI/secondary_findings/analysis/SMAca/FE_77912_fake.csv",
-      "categories": ["PGx"],
+      "categories": ["PR,RR"],
       "hpo_terms": ["HP:0003560","HP:0003198","HP:0003236","HP:0003326","HP:0012646","HP:0030096", "HP:0007269"]
     }
   ]

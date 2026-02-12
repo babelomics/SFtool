@@ -3,7 +3,7 @@
 from modules.report.report_manager import ReportManager
 
 
-def run_report_generation(ctx):
+def run(ctx):
     """
     Pipeline step: report_generation
 

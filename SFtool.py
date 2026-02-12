@@ -38,6 +38,7 @@ from steps.sample_preprocessing import run as run_sample_preprocessing
 from steps.variant_evidence_preparation import run as run_variant_evidence_preparation
 from steps.variant_collection import run as run_variant_collection
 from steps.variant_selection import run as run_variant_selection
+from steps.report_generation import run as run_report_generation
 
 
 def main():
@@ -102,6 +103,14 @@ def main():
     #
     # ----------------------------
     run_variant_selection(ctx)
+
+    # ----------------------------
+    # STEP 6: REPORT GENERATION
+    #
+    # ----------------------------
+    run_report_generation(ctx)
+
+
 
 
 
