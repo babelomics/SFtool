@@ -14,7 +14,7 @@ class ReportTable:
                  rows: List[Dict[str, Any]],
                  metadata: Dict[str, Any] | None = None
                  ):
-        self.name = name
+        self.tab_name = name
         self.rows = rows
         self.metadata = metadata or {}
 
