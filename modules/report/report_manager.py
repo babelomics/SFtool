@@ -9,7 +9,7 @@ class ReportManager:
 
     def __init__(self, ctx):
         self.ctx = ctx
-        self.writer = ExcelWriter(ctx)
+        self.writer = ExcelWriter(ctx) # TO BE DONE: better ExcelWriter(output_dir=ctx.config.output_dir)
 
     # ===============================
     # Individual reports
@@ -21,29 +21,24 @@ class ReportManager:
         selected = sample.variant_selection
 
         # PR
-        if "PR" in selected:
-            table = self._build_pr_table(selected["PR"])
-            report.add_table(table)
+        table = self._build_pr_snv_indels_table(selected)
+        report.add_table(table)
 
         # RR
-        if "RR" in selected:
-            table = self._build_rr_table(selected["RR"])
-            report.add_table(table)
+        table = self._build_rr_snv_indels_table(selected)
+        report.add_table(table)
 
         # RR-STR
-        if "RR_STR" in selected:
-            table = self._build_rr_str_table(selected["RR_STR"])
-            report.add_table(table)
+        table = self._build_rr_str_table(selected)
+        report.add_table(table)
 
-        # RR-SMN1
-        if "RR_SMN1" in selected:
-            table = self._build_rr_smn1_table(selected["RR_SMN1"])
-            report.add_table(table)
+        # RR-SMN1-copy
+        table = self._build_rr_smn1_table(selected)
+        report.add_table(table)
 
         # PGx
-        if "PGx" in selected:
-            table = self._build_pgx_table(selected["PGx"])
-            report.add_table(table)
+        table = self._build_pgx_table(selected)
+        report.add_table(table)
 
         return report
 
@@ -81,25 +76,75 @@ class ReportManager:
     # ===============================
     # Table builders
     # ===============================
+    def _build_pr_snv_indels_table(self, variant_selection):
+        pr_data = variant_selection["PR"]
+        snv_indels_data = pr_data.get("snv_indels_genebe_clinvar", {})
 
-    def _build_pr_table(self, pr_data) -> ReportTable:
-        rows = list(pr_data.values())
+        if not snv_indels_data:
+            return None
+
+        rows = list(snv_indels_data.values())
         return ReportTable("PR", rows)
 
-    def _build_rr_table(self, rr_data) -> ReportTable:
-        rows = list(rr_data.values())
+    def _build_pr_snv_indels_table(self, variant_selection):
+
+        pr_data = variant_selection.get("PR")
+        snv_indels_data = pr_data.get("snv_indels_genebe_clinvar")
+        if not snv_indels_data:
+            return None
+
+        rows = []
+
+        for variant_id, gene_entries in snv_indels_data.items():
+            # gene_entries could be a list for a variant overlapping more than a gene
+            for entry in gene_entries:
+                row = {
+                    "Variant": variant_id,
+                    **entry
+                }
+                rows.append(row)
+
+        return ReportTable(
+            tab_name="PR results",
+            rows=rows
+        )
+
+
+    def _build_rr_snv_indels_table(self, variant_selection):
+        rr_data = variant_selection["RR"]
+        snv_indels_data = rr_data.get("snv_indels_genebe_clinvar", {})
+
+        if not snv_indels_data:
+            return None
+
+        rows = list(snv_indels_data.values())
         return ReportTable("RR", rows)
 
-    def _build_rr_str_table(self, rr_str_data) -> ReportTable:
-        rows = list(rr_str_data.values())
-        return ReportTable("RR-STR", rows)
+    def __build_rr_str_table(self, variant_selection):
+        rr_data = variant_selection["RR"]
+        str_data = rr_data.get("STRs", {})
 
-    def _build_rr_smn1_table(self, rr_smn1_data) -> ReportTable:
-        rows = list(rr_smn1_data.values())
-        return ReportTable("RR-SMN1-copy", rows)
+        if not str_data:
+            return None
 
-    def _build_pgx_table(self, pgx_data) -> ReportTable:
-        rows = list(pgx_data.values())
+        rows = list(str_data.values())
+        return ReportTable("RR-STRs", rows)
+
+    def _build_rr_smn1_table(self, variant_selection):
+        rr_data = variant_selection["RR"]
+        smn1_data = rr_data.get("SMN1_copy", {})
+
+        if not smn1_data:
+            return None
+
+        rows = list(smn1_data.values())
+        return ReportTable("RR_SMN1-copy", rows)
+
+    def _build_pgx_table(self, variant_selection):
+        pgx_data = variant_selection["PGx"]
+        pharmCAT_data = pgx_data.get("pharmCAT_variants", {})
+
+        rows = list(pharmCAT_data.values())
         return ReportTable("PGx", rows)
 
     def _build_screening_rr_couple_table(self, rr_a, rr_b) -> ReportTable:
