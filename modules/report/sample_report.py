@@ -9,7 +9,11 @@ class ReportTable:
     Independent of output format.
     """
 
-    def __init__(self, name: str, rows: List[Dict[str, Any]], metadata: Dict[str, Any] | None = None):
+    def __init__(self,
+                 name: str,
+                 rows: List[Dict[str, Any]],
+                 metadata: Dict[str, Any] | None = None
+                 ):
         self.name = name
         self.rows = rows
         self.metadata = metadata or {}
@@ -24,5 +28,7 @@ class SampleReport:
         self.sample_id = sample_id
         self.tables: List[ReportTable] = []
 
-    def add_table(self, table: ReportTable):
+    def add_table(self, table: ReportTable | None):
+        if table is None:
+            return
         self.tables.append(table)
