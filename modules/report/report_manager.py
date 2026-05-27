@@ -21,10 +21,10 @@ class ReportManager:
         selected_variants = sample.variant_selection
 
         # PR
-        report.add_table(self._build_pr_rr_snv_indels_table(selected_variants), "PR")
+        report.add_table(self._build_pr_rr_snv_indels_table(selected_variants, "PR"))
 
         # RR
-        report.add_table(self._build_pr_rr_snv_indels_table(selected_variants), "RR")
+        report.add_table(self._build_pr_rr_snv_indels_table(selected_variants, "RR"))
 
         # RR-STR
         report.add_table(self._build_rr_str_table(selected_variants))
