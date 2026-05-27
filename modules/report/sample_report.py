@@ -10,11 +10,11 @@ class ReportTable:
     """
 
     def __init__(self,
-                 name: str,
+                 tab_name: str,
                  rows: List[Dict[str, Any]],
                  metadata: Dict[str, Any] | None = None
                  ):
-        self.tab_name = name
+        self.tab_name = tab_name
         self.rows = rows
         self.metadata = metadata or {}
 
