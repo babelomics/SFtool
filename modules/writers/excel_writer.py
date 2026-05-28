@@ -19,7 +19,7 @@ class ExcelWriter:
         with pd.ExcelWriter(output_path, engine="xlsxwriter") as writer:
             for table in sample_report.tables:
                 df = pd.DataFrame(table.rows)
-                df.to_excel(writer, sheet_name=table.name, index=False)
+                df.to_excel(writer, sheet_name=table.tab_name, index=False)
 
     # =====================================
     # Couple report writing
