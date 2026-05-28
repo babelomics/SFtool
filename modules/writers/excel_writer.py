@@ -41,9 +41,9 @@ class ExcelWriter:
     # =====================================
 
     def _get_sample_output_path(self, sample_id):
-        outdir = Path(self.ctx.config.output_dir)
+        outdir = Path(self.ctx.run_dir)
         return outdir / f"{sample_id}_SFtool_report.xlsx"
 
     def _get_couple_output_path(self, sample_a_id, sample_b_id):
-        outdir = Path(self.ctx.config.output_dir)
+        outdir = Path(self.ctx.run_dir)
         return outdir / f"{sample_a_id}_{sample_b_id}_RR_couple_report.xlsx"

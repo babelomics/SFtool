@@ -9,7 +9,7 @@ class ReportManager:
 
     def __init__(self, ctx):
         self.ctx = ctx
-        self.writer = ExcelWriter(ctx) # TO BE DONE: better ExcelWriter(output_dir=ctx.config.output_dir)
+        self.writer = ExcelWriter(ctx)
 
     # ===============================
     # Individual reports
@@ -37,8 +37,8 @@ class ReportManager:
 
         return report
 
-    # def write_sample_report(self, sample_report: SampleReport):
-    #     self.writer.write_sample_report(sample_report)
+    def write_sample_report(self, sample_report: SampleReport):
+        self.writer.write_sample_report(sample_report)
     #
     #
     # def write_couple_report(self, couple_report: CoupleReport):
