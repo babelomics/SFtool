@@ -96,7 +96,7 @@ class ReportManager:
         if not smn1_data:
             return None
 
-        rows = list(smn1_data.values())
+        rows = [smn1_data]
         return ReportTable("RR_SMN1-copy", rows)
 
     # PGx
