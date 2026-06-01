@@ -38,11 +38,11 @@ def run(ctx: ExecutionContext) -> None:
                 # Collect STR results and SMN1 copy results (only for RR)
                 if category == 'RR':
                     STRipy_file = sample.stripy_path
-                    if STRipy_file != "None":
+                    if STRipy_file != "":
                         reproductive_risk_geneset_STR_file = ctx.config.catalogs.reproductive_risk_geneset_STR
                         sample.variant_collections[category]["STRs"] = STR_collection(reproductive_risk_geneset_STR_file, STRipy_file)
                     SMAca_file = sample.smaca_path
-                    if SMAca_file != "None":
+                    if SMAca_file != "":
                         sample.variant_collections[category]["SMN1_copy"] = SMN1_collection(SMAca_file, ctx.config.smaca_thresholds)
             elif category == "PGx":
                 sample.variant_collections[category]["pharmCAT_variants"] = pharmCAT_collection(sample.results["PGx"])
