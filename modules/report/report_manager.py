@@ -2,6 +2,7 @@
 
 from modules.report.sample_report import SampleReport, ReportTable
 from modules.report.couple_report import CoupleReport
+from modules.report.couple_rules import (ScreeningRRCoupleRule, AdvancedRRCoupleRule)
 from modules.writers.excel_writer import ExcelWriter
 import os
 import subprocess
@@ -122,7 +123,6 @@ class ReportManager:
     # Versions and paths
     def _build_versions_and_paths_table(self, sample):
 
-
         try:
             cmd = [self.ctx.config.paths.java,
                    "-jar",
@@ -203,35 +203,39 @@ class ReportManager:
         return ReportTable("Versions and paths", rows)
 
 
-    # # ===============================
-    # # Couple reports (RR only)
-    # # ===============================
-    #
-    # def build_couple_report(self, sample_a, sample_b) -> CoupleReport:
-    #     rr_mode = self.ctx.config.rr_mode
-    #
-    #     couple_report = CoupleReport(
-    #         sample_a.sample_id,
-    #         sample_b.sample_id,
-    #         rr_mode
-    #     )
-    #
-    #     rr_a = sample_a.variant_selection.get("RR", {})
-    #     rr_b = sample_b.variant_selection.get("RR", {})
-    #
-    #     if rr_mode == "screening":
-    #         table = self._build_screening_rr_couple_table(rr_a, rr_b)
-    #     else:
-    #         table = self._build_advanced_rr_couple_table(rr_a, rr_b)
-    #
-    #     couple_report.add_table(table)
-    #
-    #     return couple_report
-    #
-    # def _build_screening_rr_couple_table(self, rr_a, rr_b) -> ReportTable:
-    #     rows = []
-    #     return ReportTable("RR-Couple-Screening", rows)
-    #
-    # def _build_advanced_rr_couple_table(self, rr_a, rr_b) -> ReportTable:
-    #     rows = []
-    #     return ReportTable("RR-Couple-Advanced", rows)
+    # ===============================
+    # Couple reports (RR only)
+    # ===============================
+
+    def build_couple_report(self, sample_a, sample_b) -> CoupleReport:
+        rr_mode = self.ctx.config.rr_mode
+
+        couple_report = CoupleReport(
+            sample_a.sample_id,
+            sample_b.sample_id,
+            rr_mode
+        )
+
+        if rr_mode == "screening":
+            table = self._build_screening_rr_couple_table(sample_a, sample_b)
+        else:
+            table = self._build_advanced_rr_couple_table(sample_a, sample_b)
+
+        couple_report.add_table(table)
+
+        return couple_report
+
+    def _build_screening_rr_couple_table(self, sample_a, sample_b) -> ReportTable:
+        rows = ScreeningRRCoupleRule().build_rows(sample_a, sample_b)
+
+        if not rows:
+            return None
+
+        return ReportTable("RR Couple Screening", rows)
+
+    def _build_advanced_rr_couple_table(self, sample_a, sample_b) -> ReportTable:
+        rows = AdvancedRRCoupleRule().build_rows(sample_a, sample_b)
+
+        if not rows:
+            return None
+        return ReportTable("RR Couple Advanced", rows)
