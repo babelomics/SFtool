@@ -3,6 +3,9 @@
 from modules.report.sample_report import SampleReport, ReportTable
 from modules.report.couple_report import CoupleReport
 from modules.writers.excel_writer import ExcelWriter
+import os
+import subprocess
+import re
 
 
 class ReportManager:
@@ -17,6 +20,10 @@ class ReportManager:
 
     def build_sample_report(self, sample) -> SampleReport:
         report = SampleReport(sample.sample_id)
+
+
+        # Versions and paths
+        report.add_table(self._build_versions_and_paths_table(sample))
 
         selected_variants = sample.variant_selection
 
@@ -34,6 +41,8 @@ class ReportManager:
 
         # PGx
         report.add_table(self._build_pgx_table(selected_variants))
+
+
 
         return report
 
@@ -109,6 +118,90 @@ class ReportManager:
 
         rows = list(pharmCAT_data.values())
         return ReportTable("PGx", rows)
+
+    # Versions and paths
+    def _build_versions_and_paths_table(self, sample):
+
+
+        try:
+            cmd = [self.ctx.config.paths.java,
+                   "-jar",
+                   self.ctx.config.paths.genebe,
+                   "version"
+                   ]
+
+            # Run command and get output
+            genebe_process = subprocess.Popen(cmd, stdout = subprocess.PIPE)
+            genebe_out, genebe_err = genebe_process.communicate()
+
+        except subprocess.CalledProcessError as e:
+            print(f"Error running GeneBe: {e.output}")
+
+
+        # Bcftools version
+        try:
+            cmd = [self.ctx.config.paths.bcftools, "--version"]
+
+            bcftools_process = subprocess.Popen(cmd, stdout= subprocess.PIPE)
+            bcftools_out, bcftools_err = bcftools_process.communicate()
+
+        except subprocess.CalledProcessError as e:
+            print(f"Error running bcftools: {e.output}")
+
+        # PharmCAT version
+        try:
+            pharmCAT_command = [self.ctx.config.paths.java, "-jar", self.ctx.config.paths.pharmCAT , "-version"]
+            pharmCAT_process = subprocess.Popen(pharmCAT_command, stdout = subprocess.PIPE)
+            pharmCAT_output, pharmCAT_err = pharmCAT_process.communicate()
+
+        except subprocess.CalledProcessError as e:
+            print(f"Error running pharmCAT: {e.output}")
+
+        category_string = ''
+        for category in sample.categories:
+            if category == 'PR':
+                category_string += 'PR (Personal Risk), '
+            elif category == 'RR':
+                category_string += 'RR (Reproductive Risk), '
+            elif category == 'PGx':
+                category_string += 'PGx (Pharmacogenetic Risk), '
+
+        category_string = category_string.rstrip(", ")
+
+
+        rows = [
+            {"Field": "SF tool version", "Value": self.ctx.config.version},
+            {"Field": "SF tool general mode", "Value": self.ctx.mode},
+            {"Field": "Categories", "Value": category_string},
+            {"Field": "Reproductive Risk mode", "Value": self.ctx.RR_mode},
+            {"Field": "SF tool pathogenicity profile", "Value": self.ctx.profile},
+            {"Field": "Sample ID", "Value": sample.sample_id},
+            {"Field": "Sample sex", "Value": sample.sex},
+            {"Field": "Sample role", "Value": sample.role},
+            {"Field": "HPO list", "Value": ",".join(sample.hpo_terms)},
+            {"Field": "Input VCF file", "Value": str(sample.vcf)},
+            {"Field": "SMAca file", "Value": "Not provided" if sample.smaca_path == '' else sample.smaca_path},
+            {"Field": "STRipy file", "Value": "Not provided" if sample.stripy_path == '' else sample.stripy_path},
+            {"Field": "Personal Risk catalogue file", "Value": self.ctx.config.catalogs.personal_risk_geneset if 'PR' in sample.categories else "Not used"},
+            {"Field": "Reproductive Risk catalogue file", "Value": self.ctx.config.catalogs.reproductive_risk_geneset if 'RR' in sample.categories else "Not used"},
+            {"Field": "Base output dir", "Value": self.ctx.base_output_dir},
+            {"Field": "Run dir", "Value": self.ctx.run_dir},
+            {"Field": "Temporal dir", "Value": self.ctx.tmp_dir},
+            {"Field": "Human assembly", "Value": "hg19" if self.ctx.assembly == "GRCh37" else "hg38" },
+            {"Field": "Reference genome path", "Value": self.ctx.config.references.genomes["GRCh37"] if self.ctx.assembly == "GRCh37" else self.ctx.config.reference.genomes["GRCh38"]},
+            {"Field": "Clinvar version", "Value": self.ctx.config.clinvar.version if self.ctx.profile == "advanced" else "Not used"},
+            {"Field": "Clinvar path", "Value": self.ctx.config.clinvar.db_path if self.ctx.profile == "advanced" else "Not used"},
+            {"Field": "Clinvar evidence level", "Value": str(self.ctx.clinvar_evidence) if self.ctx.profile == "advanced" else "Not used"},
+            {"Field": "GeneBe version", "Value": "Not used" if ("PR" not in sample.categories and "rr" not in sample.categories) else re.search(r'version:\s*(.*?)\s*::', str(genebe_out)).group(1)},
+            {"Field": "GeneBe path", "Value": self.ctx.config.paths.genebe},
+            {"Field": "bcftools version", "Value": str(bcftools_out).split(" ")[1].split("\\n")[0]},
+            {"Field": "pharmCAT version", "Value": pharmCAT_output.decode().strip() if 'PGx' in sample.categories else "Not used"},
+            {"Field": "HPO genes to phenotype version", "Value": os.path.splitext(os.path.basename(self.ctx.config.references.gene_to_phenotype_file))[0].split("_")[-1]},
+            {"Field": "HPO genes to phenotype path", "Value": self.ctx.config.references.gene_to_phenotype_file}
+        ]
+
+        return ReportTable("Versions and paths", rows)
+
 
     # # ===============================
     # # Couple reports (RR only)

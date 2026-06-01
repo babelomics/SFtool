@@ -16,6 +16,7 @@ class Config:
     """
 
     def __init__(self, cfg: dict):
+        self.version = cfg.get("version",{})
         self.paths = PathsConfig(cfg.get("paths", {}))
         self.references = ReferenceDataConfig(cfg.get("references", {}))
         self.catalogs = CatalogConfig(cfg.get("catalogs", {}))

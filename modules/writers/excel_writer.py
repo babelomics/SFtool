@@ -17,9 +17,29 @@ class ExcelWriter:
         output_path = self._get_sample_output_path(sample_report.sample_id)
 
         with pd.ExcelWriter(output_path, engine="xlsxwriter") as writer:
+            workbook = writer.book
+            bold = workbook.add_format({"bold": True})
+
             for table in sample_report.tables:
-                df = pd.DataFrame(table.rows)
-                df.to_excel(writer, sheet_name=table.tab_name, index=False)
+                if table.tab_name == "Versions and paths":
+                    df = pd.DataFrame(table.rows)
+                    df.to_excel(
+                        writer,
+                        sheet_name=table.tab_name,
+                        index=False,
+                        header=False
+                    )
+                    worksheet = writer.sheets[table.tab_name]
+
+                    # Make first column bold
+                    worksheet.set_column(0, 0, 40, bold)
+
+                    # Optional widths
+                    worksheet.set_column(1, 1, 150)
+
+                else:
+                    df = pd.DataFrame(table.rows)
+                    df.to_excel(writer, sheet_name=table.tab_name, index=False)
 
     # =====================================
     # Couple report writing
