@@ -1,0 +1,42 @@
+{
+  "execution": {
+    "mode": "secondary_findings_discovery",
+    "profile": "advanced",
+    "reference_genome": "GRCh37",
+    "clinvar_evidence": 1,
+    "RR_mode": "screening",
+
+    "variant_confirmation": {
+      "enabled": false,
+      "chrom": "",
+      "pos": "",
+      "ref": "",
+      "alt": ""
+    }
+  },
+
+  "samples": [
+    {
+      "sample_id": "AC5490",
+      "sex": "female",
+      "relation": "parent1",
+      "vcf_path": "/home/jpflorido/GBPA/projects/SFtool/temp/examples/AC5490.PASS.vcf.gz",
+      "stripy_path": "",
+      "smaca_path": "",
+      "categories": ["RR"],
+      "hpo_terms": ["HP:0005948"]
+    },
+    {
+      "sample_id": "AC5491",
+      "sex": "male",
+      "relation": "parent2",
+      "vcf_path": "/home/jpflorido/GBPA/projects/SFtool/temp/examples/AC5491.PASS.vcf.gz",
+      "stripy_path": "",
+      "smaca_path": "",
+      "categories": ["RR"],
+      "hpo_terms": ["HP:0005948"]
+    }
+  ]
+}
+
+
