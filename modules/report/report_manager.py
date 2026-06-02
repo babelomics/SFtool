@@ -208,7 +208,7 @@ class ReportManager:
     # ===============================
 
     def build_couple_report(self, sample_a, sample_b) -> CoupleReport:
-        rr_mode = self.ctx.config.rr_mode
+        rr_mode = self.ctx.RR_mode
 
         couple_report = CoupleReport(
             sample_a.sample_id,
