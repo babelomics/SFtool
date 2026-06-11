@@ -51,8 +51,8 @@ class ReportManager:
         self.writer.write_sample_report(sample_report)
     #
     #
-    # def write_couple_report(self, couple_report: CoupleReport):
-    #     self.writer.write_couple_report(couple_report)
+    def write_couple_report(self, couple_report: CoupleReport):
+         self.writer.write_couple_report(couple_report)
 
     # ===============================
     # Table builders
@@ -202,6 +202,69 @@ class ReportManager:
 
         return ReportTable("Versions and paths", rows)
 
+    # ===============================
+    # Screening Couple report description (RR only)
+    # ===============================
+
+    def _build_screening_rr_couple_description(self, sample_1, sample_2):
+
+        description = (
+            "This excel report summarize reproductive risk findings identified in the analyzed couple (screening mode). Results are organized into " +
+            "1) SNVs/Indels in autosomal and X chromosomes tab. Contains: Variants in HET in both parents or variants in HET in a single parent for those " +
+            " genes with AR and AD inheritance mode (GJB2, CHRNE, ABCC8, AIRE and ALPL). Variants in X chromosomes are only reported for females. " +
+            "2) SNVs/Indels and STRs in FXN gene. Contains variants in HET in both parents. " +
+            "3) SMN1-copy. Results from SMAca software are showed for both parents (1-copy carrier / silent carrier). " +
+            "4) STRs. Variants in HET are shown only for females"
+        )
+
+
+        rows = [
+            {
+                "Field": "Sample ID",
+                "Sample 1": sample_1.sample_id,
+                "Sample 2": sample_2.sample_id
+            },
+            {
+                "Field": "Sample sex",
+                "Sample 1": sample_1.sex,
+                "Sample 2": sample_2.sex
+            },
+            {
+                "Field": "Sample role",
+                "Sample 1": sample_1.role,
+                "Sample 2": sample_2.role
+            },
+            {
+                "Field": "HPO list",
+                "Sample 1": ",".join(sample_1.hpo_terms),
+                "Sample 2": ",".join(sample_2.hpo_terms)
+            },
+            {
+                "Field": "Input VCF file",
+                "Sample 1": str(sample_1.vcf),
+                "Sample 2": str(sample_2.vcf)
+            },
+            {
+                "Field": "SMAca file",
+                "Sample 1": "Not provided" if sample_1.smaca_path == '' else sample_1.smaca_path,
+                "Sample 2": "Not provided" if sample_2.smaca_path == '' else sample_2.smaca_path
+            },
+            {
+                "Field": "STRipy file",
+                "Sample 1": "Not provided" if sample_1.stripy_path == '' else sample_1.stripy_path,
+                "Sample 2": "Not provided" if sample_2.stripy_path == '' else sample_2.stripy_path
+            }
+        ]
+
+        return ReportTable(
+            tab_name="Report information",
+            rows=rows,
+            metadata={
+                "description": description,
+                "description_merge": True
+            }
+        )
+
 
     # ===============================
     # Couple reports (RR only)
@@ -217,21 +280,41 @@ class ReportManager:
         )
 
         if rr_mode == "screening":
-            table = self._build_screening_rr_couple_table(sample_a, sample_b)
-        else:
-            table = self._build_advanced_rr_couple_table(sample_a, sample_b)
+            tables = self._build_screening_rr_couple_tables(
+                sample_a,
+                sample_b
+            )
 
-        couple_report.add_table(table)
+            # Table corresponding to description of screening rr
+            couple_report.add_table(self._build_screening_rr_couple_description(sample_a, sample_b))
+        else:
+            tables = self._build_advanced_rr_couple_tables(
+                sample_a,
+                sample_b
+            )
+
+        for table in tables:
+            couple_report.add_table(table)
 
         return couple_report
 
-    def _build_screening_rr_couple_table(self, sample_a, sample_b) -> ReportTable:
-        rows = ScreeningRRCoupleRule().build_rows(sample_a, sample_b)
 
-        if not rows:
-            return None
+    def _build_screening_rr_couple_tables(self, sample_a, sample_b) -> ReportTable:
 
-        return ReportTable("RR Couple Screening", rows)
+        table_rows = ScreeningRRCoupleRule(self.ctx.outputs['catalogs']['json_files']['RR']).build_tables(sample_a, sample_b)
+        tables = []
+
+        for tab_name, rows in table_rows.items():
+            if rows:
+                tables.append(
+                    ReportTable(
+                        tab_name=tab_name,
+                        rows=rows
+                    )
+                )
+
+        return tables
+
 
     def _build_advanced_rr_couple_table(self, sample_a, sample_b) -> ReportTable:
         rows = AdvancedRRCoupleRule().build_rows(sample_a, sample_b)

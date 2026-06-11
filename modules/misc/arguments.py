@@ -38,4 +38,16 @@ def parse_arguments():
         help="Overwrite output directory if it already exists"
     )
 
+    parser.add_argument(
+        "--debug-dump-ctx",
+        action="store_true",
+        help="Dump ExecutionContext where requested"
+    )
+
+    parser.add_argument(
+        "--debug-load-ctx",
+        action="store_true",
+        help="Load ExecutionContext from pickle file where requested"
+    )
+
     return parser.parse_args()

@@ -23,6 +23,8 @@ Esta herramienta permite a los usuarios analizar archivos VCF para el manejo aut
 
 import os
 import sys
+import pickle
+from pathlib import Path
 
 from modules.misc.errors import (
     BootstrapError
@@ -47,66 +49,79 @@ def main():
     args = parse_arguments()
     outdir = args.outdir
 
-    # ----------------------------
-    # STEP 1: SFtool bootstraping: JSON inputs validation, create execution context object and validate run dependencies
-    # ----------------------------
+    if not args.debug_load_ctx:
 
-    try:
-        ctx = bootstrap_execution(args.samples, args.config, outdir)
-    except BootstrapError as e:
-        print(f"[ERROR] {e}")
-        sys.exit(1)
+        # ----------------------------
+        # STEP 1: SFtool bootstraping: JSON inputs validation, create execution context object and validate run dependencies
+        # ----------------------------
 
-    # ----------------------------
-    # STEP 2: JSON and BED files catalog generation
-    # ----------------------------
-    run_catalog_generation(ctx)
+        try:
+            ctx = bootstrap_execution(args.samples, args.config, outdir)
+        except BootstrapError as e:
+            print(f"[ERROR] {e}")
+            sys.exit(1)
 
-    # ----------------------------
-    # STEP 3: CLINVAR DDBB MANAGEMENT
-    #           Only if profile is advanced and for PR and RR categories
-    # ----------------------------
-    profile = ctx.profile
-    # Get unique list of categories for all samples
-    categories = sorted({
-        c for s in ctx.samples for c in s.categories
-    })
+        # ----------------------------
+        # STEP 2: JSON and BED files catalog generation
+        # ----------------------------
+        run_catalog_generation(ctx)
 
-    if profile == 'advanced' and ("PR" in categories or "RR" in categories):
-        run_clinvar_setup(ctx)
+        # ----------------------------
+        # STEP 3: CLINVAR DDBB MANAGEMENT
+        #           Only if profile is advanced and for PR and RR categories
+        # ----------------------------
+        profile = ctx.profile
+        # Get unique list of categories for all samples
+        categories = sorted({
+            c for s in ctx.samples for c in s.categories
+        })
 
-
-    # ----------------------------
-    # STEP 4: SAMPLE PREPROCESSING
-    #
-    # ----------------------------
-    run_sample_preprocessing(ctx)
+        if profile == 'advanced' and ("PR" in categories or "RR" in categories):
+            run_clinvar_setup(ctx)
 
 
-    # ----------------------------
-    # STEP 5: VARIANT EVIDENCE PREPARATION (GENEBE AND/OR CLINVAR)
-    #
-    # ----------------------------
-    run_variant_evidence_preparation(ctx)
+        # ----------------------------
+        # STEP 4: SAMPLE PREPROCESSING
+        #
+        # ----------------------------
+        run_sample_preprocessing(ctx)
 
 
-    # ----------------------------
-    # STEP 6: VARIANT COLLECTION (GENEBE AND/OR CLINVAR, STRs and SMN1-copy, pharmCAT)
-    #
-    # ----------------------------
-    run_variant_collection(ctx)
+        # ----------------------------
+        # STEP 5: VARIANT EVIDENCE PREPARATION (GENEBE AND/OR CLINVAR)
+        #
+        # ----------------------------
+        run_variant_evidence_preparation(ctx)
 
-    # ----------------------------
-    # STEP 7: VARIANT SELECTION from the set of VARIANT COLLECTION
-    #
-    # ----------------------------
-    run_variant_selection(ctx)
 
-    # ----------------------------
-    # STEP 6: REPORT GENERATION
-    #
-    # ----------------------------
-    run_report_generation(ctx)
+
+        # ----------------------------
+        # STEP 6: VARIANT COLLECTION (GENEBE AND/OR CLINVAR, STRs and SMN1-copy, pharmCAT)
+        #
+        # ----------------------------
+        run_variant_collection(ctx)
+
+
+        # ----------------------------
+        # STEP 7: VARIANT SELECTION from the set of VARIANT COLLECTION
+        #
+        # ----------------------------
+        run_variant_selection(ctx)
+
+        if args.debug_dump_ctx:
+            debug_ctx_path = Path(outdir) / "ctx_backup.pkl"
+            with open(debug_ctx_path, 'wb') as f:
+                pickle.dump(ctx, f)
+
+    else:
+        debug_ctx_path = Path(outdir) / "ctx_backup.pkl"
+        with open(debug_ctx_path, "rb") as f:
+            ctx = pickle.load(f)
+        # ----------------------------
+        # STEP 6: REPORT GENERATION
+        #
+        # ----------------------------
+        run_report_generation(ctx)
 
 
 
