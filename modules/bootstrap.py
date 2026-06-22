@@ -340,43 +340,44 @@ def validate_config(config: Dict[str, Any]):
     version = clinvar["version"]
 
     # must be string of 8 digits
-    if not isinstance(version, str) or len(version) != 8 or not version.isdigit():
-        raise ValidationError(
-            f"Invalid clinvar.version '{version}'. Expected YYYYMMDD (8 digits)."
-        )
+    if not (isinstance(version, str) and (version == "latest" or (len(version) == 8 and version.isdigit()))):
+            raise ValidationError(
+                f"Invalid clinvar.version '{version}'. Expected YYYYMMDD (8 digits) or 'latest' string for the downloading of the latest Clinvar version."
+            )
 
-    # split into components
-    year = int(version[0:4])
-    month = int(version[4:6])
-    day = int(version[6:8])
+    if version != "latest":
+        # split into components
+        year = int(version[0:4])
+        month = int(version[4:6])
+        day = int(version[6:8])
 
-    # year range
-    if not (2015 <= year <= 2030):
-        raise ValidationError(
-            f"Invalid clinvar.version year '{year}'. Must be 2000–2030."
-        )
+        # year range
+        if not (2015 <= year <= 2030):
+            raise ValidationError(
+                f"Invalid clinvar.version year '{year}'. Must be 2000–2030."
+            )
 
-    # month range
-    if not (1 <= month <= 12):
-        raise ValidationError(
-            f"Invalid clinvar.version month '{month:02d}'. Must be 01–12."
-        )
+        # month range
+        if not (1 <= month <= 12):
+            raise ValidationError(
+                f"Invalid clinvar.version month '{month:02d}'. Must be 01–12."
+            )
 
-    # days per month (default February 28, updated later if leap year)
-    days_in_month = {
-        1: 31, 2: 28, 3: 31, 4: 30, 5: 31, 6: 30,
-        7: 31, 8: 31, 9: 30, 10: 31, 11: 30, 12: 31
-    }
+        # days per month (default February 28, updated later if leap year)
+        days_in_month = {
+            1: 31, 2: 28, 3: 31, 4: 30, 5: 31, 6: 30,
+            7: 31, 8: 31, 9: 30, 10: 31, 11: 30, 12: 31
+        }
 
-    # leap year adjustment
-    if (year % 4 == 0 and year % 100 != 0) or (year % 400 == 0):
-        days_in_month[2] = 29
+        # leap year adjustment
+        if (year % 4 == 0 and year % 100 != 0) or (year % 400 == 0):
+            days_in_month[2] = 29
 
-    # day range
-    if not (1 <= day <= days_in_month[month]):
-        raise ValidationError(
-            f"Invalid clinvar.version day '{day:02d}' for month {month:02d}."
-        )
+        # day range
+        if not (1 <= day <= days_in_month[month]):
+            raise ValidationError(
+                f"Invalid clinvar.version day '{day:02d}' for month {month:02d}."
+            )
 
     # ----------------------------------------------------
     # Validate clinvar.db_path existence

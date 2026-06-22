@@ -68,14 +68,14 @@ def run_clinvar(evidence_level, clinvar_db, clinvar_submission, category, catego
 
         all_clinvar_id = []
 
-        allowed_types = {"deletion", "duplication", "insertion", "indel", "single nucleotide variant", "Microsatellite", "Variation"} # Only check for variants that corresponds to SNVs and small indels (these are the variants expected in the VCF file)
+        allowed_types = {"deletion", "duplication", "insertion", "indel", "single nucleotide variant", "microsatellite", "variation"} # Only check for variants that corresponds to SNVs and small indels (these are the variants expected in the VCF file)
 
         with open(clinvar_db, "r") as db_file:
             for line in db_file:
                 line = line.rstrip()
                 if line == "":
                     continue
-                fields = line.strip().split("parsing \t")
+                fields = line.strip().split("\t")
                 gene = fields[2]
                 pos = fields[15]
                 variant_type = fields[0]
@@ -242,7 +242,7 @@ def get_clinvar(clinvar_path, assembly):
         release_date = datetime.strptime(last_modified, '%a, %d %b %Y %H:%M:%S %Z')
         
         # Process CLINVAR file for the assembly
-        if assembly == "37":
+        if assembly == "GRCh37":
             clinvar_variant_output_file = process_clinvar_data("GRCh37", release_date, clinvar_path)
             print(f"CLINVAR GRCh37 file is downloaded and processed. Version: {release_date.strftime('%Y%m%d')}")
         else:  # Assembly 38
