@@ -68,14 +68,14 @@ def run_clinvar(evidence_level, clinvar_db, clinvar_submission, category, catego
 
         all_clinvar_id = []
 
-        allowed_types = {"deletion", "duplication", "insertion", "indel", "single nucleotide variant"} # Only check for variants that corresponds to SNVs and small indels (these are the variants expected in the VCF file)
+        allowed_types = {"deletion", "duplication", "insertion", "indel", "single nucleotide variant", "Microsatellite", "Variation"} # Only check for variants that corresponds to SNVs and small indels (these are the variants expected in the VCF file)
 
         with open(clinvar_db, "r") as db_file:
             for line in db_file:
                 line = line.rstrip()
                 if line == "":
                     continue
-                fields = line.strip().split("\t")
+                fields = line.strip().split("parsing \t")
                 gene = fields[2]
                 pos = fields[15]
                 variant_type = fields[0]
