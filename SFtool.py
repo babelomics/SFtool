@@ -109,7 +109,7 @@ def main():
         run_variant_selection(ctx)
 
         if args.debug_dump_ctx:
-            debug_ctx_path = Path(outdir) / "ctx_backup.pkl"
+            debug_ctx_path = Path(outdir) / "ctx_backup_rr_advanced.pkl"
             with open(debug_ctx_path, 'wb') as f:
                 pickle.dump(ctx, f)
 

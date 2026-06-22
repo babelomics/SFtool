@@ -141,6 +141,11 @@ class ReportUtilsMixin:
         genotype = str(variant.get("Genotype", "")).upper()
         return genotype in {"0/1", "1/0", "HET", "HETEROZYGOUS"}
 
+    def _is_hom(self, variant):
+        genotype = str(variant.get("Genotype", "")).upper()
+        return genotype in {"1/1", "1/1", "HOM", "HOMOZYGOUS"}
+
+
     def _is_pathogenic_str(self, str_entry):
         value = " ".join(str(v).lower() for v in str_entry.values())
 
@@ -154,11 +159,11 @@ class ReportUtilsMixin:
         call = smn1_data.get("call", "")
         return call
 
-    def _get_female_sample(self, sample_a, sample_b):
-        if str(getattr(sample_a, "sex", "")).lower() == "female":
+    def _get_gender_sample(self, sample_a, sample_b, current_gender):
+        if str(getattr(sample_a, "sex", "")).lower() == current_gender:
             return sample_a
 
-        if str(getattr(sample_b, "sex", "")).lower() == "female":
+        if str(getattr(sample_b, "sex", "")).lower() == current_gender:
             return sample_b
 
         return None
