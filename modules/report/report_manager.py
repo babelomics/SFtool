@@ -210,7 +210,7 @@ class ReportManager:
 
         description = (
             "This excel report summarizes reproductive risk findings identified in the analyzed couple (screening mode). Results are organized into " +
-            "1) SNVs/Indels in autosomal and X chromosomes tab. Contains: Variants in HET in both parents (same vriant or compound heterogizosity) or " +
+            "1) SNVs/Indels in autosomal and X chromosomes tab. Contains: Variants in HET in both parents (same variant or compound heterogizosity) or " +
             " variants in HET in a single parent for those genes with AR and AD inheritance mode (GJB2, CHRNE, ABCC8, AIRE and ALPL). " +
             "Variants in X chromosomes are only reported for females. " +
             "2) SNVs/Indels and STRs in FXN gene. Contains variants in HET in both parents. " +
@@ -261,13 +261,14 @@ class ReportManager:
             tab_name="Report information",
             rows=rows,
             metadata={
+                "rr_mode": self.ctx.RR_mode,
                 "description": description,
                 "description_merge": True
             }
         )
 
     # ===============================
-    # Screening Couple report description (RR only)
+    # Advanced Couple report description (RR only)
     # ===============================
 
     def _build_advanced_rr_couple_description(self, sample_1, sample_2):
@@ -314,6 +315,7 @@ class ReportManager:
                 "Sample 1": "Not provided" if sample_1.stripy_path == '' else sample_1.stripy_path,
                 "Sample 2": "Not provided" if sample_2.stripy_path == '' else sample_2.stripy_path
             }
+
         ]
 
         return ReportTable(

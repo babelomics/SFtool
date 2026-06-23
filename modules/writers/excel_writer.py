@@ -45,16 +45,6 @@ class ExcelWriter:
     # Couple report writing
     # =====================================
 
-    # def write_couple_report(self, couple_report):
-    #     output_path = self._get_couple_output_path(
-    #         couple_report.sample_a_id,
-    #         couple_report.sample_b_id
-    #     )
-    #
-    #     with pd.ExcelWriter(output_path, engine="xlsxwriter") as writer:
-    #         for table in couple_report.tables:
-    #             df = pd.DataFrame(table.rows)
-    #             df.to_excel(writer, sheet_name=table.tab_name, index=False)
 
     def write_couple_report(self, couple_report):
         output_path = self._get_couple_output_path(
@@ -77,17 +67,44 @@ class ExcelWriter:
                 "valign": "top"
             })
 
+            rr_mode_format = workbook.add_format({
+                "bold": True,
+                "text_wrap": True,
+                "valign": "top"
+            })
+
             for table in couple_report.tables:
 
                 df = pd.DataFrame(table.rows)
 
+                if table.tab_name == "SMN1-copy" and "Gene" not in df.columns:
+                    df["Gene"] = "SMN1"
+
+                # Put Gene as second column when present
+                if "Gene" in df.columns:
+                    columns = list(df.columns)
+                    columns.remove("Gene")
+                    columns.insert(1, "Gene")
+                    df = df[columns]
+
+                rr_mode = table.metadata.get("rr_mode")
+
+                if table.tab_name == "Report information" and rr_mode:
+                    startrow = 2
+                else:
+                    startrow = 0
+
                 df.to_excel(
                     writer,
                     sheet_name=table.tab_name,
-                    index=False
+                    index=False,
+                    startrow=startrow
                 )
 
                 worksheet = writer.sheets[table.tab_name]
+
+                if table.tab_name == "Report information" and rr_mode:
+                    worksheet.merge_range(0, 0, 0, len(df.columns) - 1, f"Reproductive Risk mode: {rr_mode}", rr_mode_format)
 
                 if table.tab_name == "Report information":
                     worksheet.set_column(0, 0, 25, wrap_format)  # Field

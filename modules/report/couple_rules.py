@@ -61,7 +61,7 @@ class RRCoupleRule(ReportUtilsMixin):
                         # Sample A
                         for var_a in gene_variants_a:
                             rows.append({
-                                "Case study": "Autosomal AR+AD gene",
+                                "Case study": var_a["inheritance"] + " gene",
                                 "Sample": sample_a.sample_id,
                                 "Sample role": sample_a.role,
                                 "Sample sex": sample_a.sex,
@@ -77,7 +77,7 @@ class RRCoupleRule(ReportUtilsMixin):
                         # Sample B
                         for var_b in gene_variants_b:
                             rows.append({
-                                "Case study": "Autosomal AR+AD gene",
+                                "Case study": var_b["inheritance"] + " gene",
                                 "Sample": sample_b.sample_id,
                                 "Sample role": sample_b.role,
                                 "Sample sex": sample_b.sex,
@@ -103,7 +103,7 @@ class RRCoupleRule(ReportUtilsMixin):
                             # Sample A
                             for var_a in gene_variants_a:
                                 rows.append({
-                                    "Case study": "Autosomal AR gene",
+                                    "Case study": var_a["inheritance"] + " gene",
                                     "Sample": sample_a.sample_id,
                                     "Sample role": sample_a.role,
                                     "Sample sex": sample_a.sex,
@@ -117,7 +117,7 @@ class RRCoupleRule(ReportUtilsMixin):
                             # Sample B
                             for var_b in gene_variants_b:
                                 rows.append({
-                                    "Case study": "Autosomal AR gene",
+                                    "Case study": var_b["inheritance"] + " gene",
                                     "Sample": sample_b.sample_id,
                                     "Sample role": sample_b.role,
                                     "Sample sex": sample_b.sex,
@@ -151,7 +151,7 @@ class RRCoupleRule(ReportUtilsMixin):
                     if gene and self._is_xlinked_gene(gene) and self._is_het(entry):
                         var = self._add_variant_id(variant_id, entry)
                         rows.append({
-                            "Case study": "X-linked variant in female partner",
+                            "Case study": "X-linked variant in female partner. " + var["inheritance"] + " gene",
                             "Sample": female_sample.sample_id,
                             "Sample role": female_sample.role,
                             "Sample sex": female_sample.sex,
@@ -195,7 +195,7 @@ class RRCoupleRule(ReportUtilsMixin):
                         for var_female in gene_variants_female:
                             if self._is_hom(var_male) and var_male not in visited_variants_male:
                                 rows.append({
-                                    "Case study": "X-linked variant",
+                                    "Case study": "X-linked variant. " + var_male["inheritance"] + " gene",
                                     "Sample": male_sample.sample_id,
                                     "Sample role": male_sample.role,
                                     "Sample sex": male_sample.sex,
@@ -210,7 +210,7 @@ class RRCoupleRule(ReportUtilsMixin):
 
                             if var_female not in visited_variants_female: # HET or HOM variants in female
                                 rows.append({
-                                    "Case study": "X-linked variant",
+                                    "Case study": "X-linked variant. " + var_female["inheritance"] + " gene",
                                     "Sample": female_sample.sample_id,
                                     "Sample role": female_sample.role,
                                     "Sample sex": female_sample.sex,
@@ -251,25 +251,25 @@ class RRCoupleRule(ReportUtilsMixin):
 
                 if self._is_het(var_a) and self._is_het(var_b): # Any mode (screening or advanced)
                     if var_a["Variant"] == var_b["Variant"]:
-                        rule = "FXN same heterozygous SNV/indel in both parents"
+                        rule = "FXN same heterozygous SNV/indel in both parents. " + var_a["inheritance"] + " gene"
                     else:
-                        rule = "FXN compound heterozygous SNV/indel variants in both parents"
+                        rule = "FXN compound heterozygous SNV/indel variants in both parents. " + var_a["inheritance"] + " gene"
 
                     meet_criteria = True
 
                 if ((self._is_hom(var_a) and self._is_het(var_b)) or (self._is_het(var_a) and self._is_hom(var_b)) and rr_mode == 'advanced'):
                     if var_a["Variant"] == var_b["Variant"]:
-                        rule = "FXN same SNV/indel in both parents (HOM and HET)"
+                        rule = "FXN same SNV/indel in both parents (HOM and HET). " + var_a["inheritance"] + " gene"
                     else:
-                        rule = "FXN different SNV/indel variants in both parents (HOM and HET)"
+                        rule = "FXN different SNV/indel variants in both parents (HOM and HET). " + var_a["inheritance"] + " gene"
 
                     meet_criteria = True
 
                 if self._is_hom(var_a) and self._is_hom(var_b) and rr_mode == 'advanced':
                     if var_a["Variant"] == var_b["Variant"]:
-                        rule = "FXN same HOM SNV/indel in both parents"
+                        rule = "FXN same HOM SNV/indel in both parents. " + var_a["inheritance"] + " gene"
                     else:
-                        rule = "FXN different HOM SNV/indel variants in both parents"
+                        rule = "FXN different HOM SNV/indel variants in both parents. " + var_a["inheritance"] + " gene"
 
                     meet_criteria = True
 
@@ -308,7 +308,7 @@ class RRCoupleRule(ReportUtilsMixin):
                     # In advanced mode, any combination (HET/HET, HET/HOM, HOM/HET or HOM/HOM) is allowed
                     if str_a not in visited_variants_a:
                         rows.append({
-                            "Case study": "FXN pathogenic STR in both parents",
+                            "Case study": "FXN pathogenic STR in both parents. " + str_a["Inheritance"] + " gene",
                             "Sample": sample_a.sample_id,
                             "Sample role": sample_a.role,
                             "Sample sex": sample_a.sex,
@@ -321,7 +321,7 @@ class RRCoupleRule(ReportUtilsMixin):
                         visited_variants_a.append(str_a["Variant"])
                     if str_b not in visited_variants_b:
                         rows.append({
-                            "Case study": "FXN pathogenic STR in both parents",
+                            "Case study": "FXN pathogenic STR in both parents. " + str_b["Inheritance"] + " gene",
                             "Sample": sample_b.sample_id,
                             "Sample role": sample_b.role,
                             "Sample sex": sample_b.sex,
@@ -338,16 +338,16 @@ class RRCoupleRule(ReportUtilsMixin):
             for str_b in fxn_str_b:
                 meet_criteria = False
                 if self._is_het(var_a) and str_b['zigosity'] == 'HET':
-                    rule = "FXN HET SNV/indel in one parent and HET STR in the other"
+                    rule = "FXN HET SNV/indel in one parent and HET STR in the other. " + var_a["inheritance"] + " gene"
                     meet_criteria = True
                 if self._is_het(var_a) and str_b['zigosity'] == 'HOM':
-                    rule = "FXN HET SNV/indel in one parent and HOM STR in the other"
+                    rule = "FXN HET SNV/indel in one parent and HOM STR in the other. " + var_a["inheritance"] + " gene"
                     meet_criteria = True
                 if self._is_hom(var_a) and str_b['zigosity'] == 'HET':
-                    rule = "FXN HOM SNV/indel in one parent and HET STR in the other"
+                    rule = "FXN HOM SNV/indel in one parent and HET STR in the other. " + var_a["inheritance"] + " gene"
                     meet_criteria = True
                 if self._is_hom(var_a) and str_b['zigosity'] == 'HOM':
-                    rule = "FXN HOM SNV/indel in one parent and HOM STR in the other"
+                    rule = "FXN HOM SNV/indel in one parent and HOM STR in the other. " + var_a["inheritance"] + " gene"
                     meet_criteria = True
 
                 if meet_criteria:
@@ -384,16 +384,16 @@ class RRCoupleRule(ReportUtilsMixin):
             for var_b in fxn_snv_b:
                 meet_criteria = False
                 if str_a["zigosity"] == 'HET' and self._is_het(var_b):
-                    rule = "FXN HET STR in one parent and HET SNV/Indel in the other"
+                    rule = "FXN HET STR in one parent and HET SNV/Indel in the other. " + var_b["inheritance"] + " gene"
                     meet_criteria = True
                 if str_a["zigosity"] == 'HET' and self._is_hom(var_b):
-                    rule = "FXN HET STR in one parent and HOM SNV/Indel in the other"
+                    rule = "FXN HET STR in one parent and HOM SNV/Indel in the other. " + var_b["inheritance"] + " gene"
                     meet_criteria = True
                 if str_a["zigosity"] == 'HOM' and self._is_het(var_b):
-                    rule = "FXN HOM STR in one parent and HET SNV/Indel in the other"
+                    rule = "FXN HOM STR in one parent and HET SNV/Indel in the other. " + var_b["inheritance"] + " gene"
                     meet_criteria = True
                 if str_a["zigosity"] == 'HOM' and self._is_hom(var_b):
-                    rule = "FXN HOM STR in one parent and HOM SNV/Indel in the other"
+                    rule = "FXN HOM STR in one parent and HOM SNV/Indel in the other. " + var_b["inheritance"] + " gene"
                     meet_criteria = True
 
                 if meet_criteria:
@@ -454,7 +454,7 @@ class RRCoupleRule(ReportUtilsMixin):
                     warning = 'Confirmation using an orthogonal technique is highly recommended (e.g. MLPA)'
 
                 rows.append({
-                        "Case study": "SMN1-copy",
+                        "Case study": "SMN1-copy. AR gene",
                         "Sample": sample_a.sample_id,
                         "Sample role": sample_a.role,
                         "Sample sex": sample_a.sex,
@@ -466,7 +466,7 @@ class RRCoupleRule(ReportUtilsMixin):
                 })
 
                 rows.append({
-                    "Case study": "SMN1-copy",
+                    "Case study": "SMN1-copy. AR gene",
                     "Sample": sample_b.sample_id,
                     "Sample role": sample_b.role,
                     "Sample sex": sample_b.sex,
@@ -505,7 +505,7 @@ class RRCoupleRule(ReportUtilsMixin):
 
                 if gene in {'AFF2', 'DMD', 'ARX', 'FMR1'}:
                     rows.append({
-                        "Case study": "X-linked STR in female partner",
+                        "Case study": "X-linked STR in female partner. " + entry["Inheritance"] + " gene",
                         "Sample": female_sample.sample_id,
                         "Sample role": female_sample.role,
                         "Sample sex": female_sample.sex,
@@ -537,7 +537,7 @@ class RRCoupleRule(ReportUtilsMixin):
                             if str_male["zigosity"] == 'HOM' and (str_female["zigosity"] == 'HET' or str_female["zigosity"] == 'HOM'):
                                 if str_male["Variant"] not in visited_variants_male:
                                     rows.append({
-                                        "Case study": "X-linked STR variant",
+                                        "Case study": "X-linked STR variant. " + str_male["Inheritance"] + " gene",
                                         "Sample": male_sample.sample_id,
                                         "Sample role": male_sample.role,
                                         "Sample sex": male_sample.sex,
@@ -552,7 +552,7 @@ class RRCoupleRule(ReportUtilsMixin):
 
                                 if str_female["variant"] not in visited_variants_female:
                                     rows.append({
-                                        "Case study": "X-linked STR variant",
+                                        "Case study": "X-linked STR variant. " + str_female["Inheritance"] + " gene",
                                         "Sample": female_sample.sample_id,
                                         "Sample role": female_sample.role,
                                         "Sample sex": female_sample.sex,
