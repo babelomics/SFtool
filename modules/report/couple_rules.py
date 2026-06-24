@@ -27,9 +27,9 @@ class RRCoupleRule(ReportUtilsMixin):
 
         # Get all genes from variants in both samples
         genes = sorted(
-            self._get_genes_from_sample(sample_a)
+            self._get_genes_from_sample(sample_a, "snv/indel")
             |
-            self._get_genes_from_sample(sample_b)
+            self._get_genes_from_sample(sample_b, "snv/indel")
         )
 
         for gene in genes:
@@ -168,9 +168,9 @@ class RRCoupleRule(ReportUtilsMixin):
 
             # Get all genes from variants in both samples
             genes = sorted(
-                self._get_genes_from_sample(female_sample)
+                self._get_genes_from_sample(female_sample, "snv/indel")
                 |
-                self._get_genes_from_sample(male_sample)
+                self._get_genes_from_sample(male_sample, "snv/indel")
             )
 
             for gene in genes:
@@ -517,13 +517,13 @@ class RRCoupleRule(ReportUtilsMixin):
             male_sample = self._get_gender_sample(sample_a, sample_b, "male")
 
             # STRs in X-linked genes
-            str_data_male = self._get_str_data(male_sample)
+            #str_data_male = self._get_str_data(male_sample)
 
             # Get all genes from variants in both samples
             genes = sorted(
-                self._get_genes_from_sample(female_sample)
+                self._get_genes_from_sample(female_sample, "str")
                 |
-                self._get_genes_from_sample(male_sample)
+                self._get_genes_from_sample(male_sample, "str")
             )
 
             for gene in genes:
@@ -532,12 +532,15 @@ class RRCoupleRule(ReportUtilsMixin):
                     visited_variants_male = []
                     visited_variants_female = []
                     # Male Sample
-                    for str_male in str_data_male:
-                        for str_female in str_data_female:
-                            if str_male["zigosity"] == 'HOM' and (str_female["zigosity"] == 'HET' or str_female["zigosity"] == 'HOM'):
-                                if str_male["Variant"] not in visited_variants_male:
+                    str_male = self._get_gene_str_entries(male_sample, gene)
+                    str_female = self._get_gene_str_entries(female_sample, gene)
+
+                    for entry_male in str_male:
+                        for entry_female in str_female:
+                            if entry_male["zigosity"] == 'HOM' and (entry_female["zigosity"] == 'HET' or entry_female["zigosity"] == 'HOM'):
+                                if entry_male["Variant"] not in visited_variants_male:
                                     rows.append({
-                                        "Case study": "X-linked STR variant. " + str_male["Inheritance"] + " gene",
+                                        "Case study": "X-linked STR variant. " + entry_male["Inheritance"] + " gene",
                                         "Sample": male_sample.sample_id,
                                         "Sample role": male_sample.role,
                                         "Sample sex": male_sample.sex,
@@ -545,14 +548,14 @@ class RRCoupleRule(ReportUtilsMixin):
                                         "Partner role": female_sample.role,
                                         "Partner sex": female_sample.sex,
                                         "Partner has variant in the same gene": "-",
-                                        **self._flatten_entry(str_male),
+                                        **self._flatten_entry(item_male),
                                         "Warning": ""
                                     })
-                                    visited_variants_male.append(str_male["Variant"])
+                                    visited_variants_male.append(entry_male["Variant"])
 
-                                if str_female["variant"] not in visited_variants_female:
+                                if entry_female["variant"] not in visited_variants_female:
                                     rows.append({
-                                        "Case study": "X-linked STR variant. " + str_female["Inheritance"] + " gene",
+                                        "Case study": "X-linked STR variant. " + entry_female["Inheritance"] + " gene",
                                         "Sample": female_sample.sample_id,
                                         "Sample role": female_sample.role,
                                         "Sample sex": female_sample.sex,
@@ -560,10 +563,10 @@ class RRCoupleRule(ReportUtilsMixin):
                                         "Partner role": male_sample.role,
                                         "Partner sex": male_sample.sex,
                                         "Partner has variant in the same gene": "-",
-                                        **self._flatten_entry(str_female),
+                                        **self._flatten_entry(item_female),
                                         "Warning": ""
                                     })
-                                    visited_variants_female.append(str_female["Variant"])
+                                    visited_variants_female.append(entry_female["Variant"])
 
 
 

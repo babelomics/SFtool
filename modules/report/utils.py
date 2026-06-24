@@ -168,10 +168,16 @@ class ReportUtilsMixin:
 
         return None
 
-    def _get_genes_from_sample(self, sample):
+    def _get_genes_from_sample(self, sample, type):
         genes = set()
 
-        for variant_id, entries in self._get_snv_indels(sample).items():
+        if type == "snv/indel":
+            variant_set = self._get_snv_indels(sample).items()
+        elif type == "str":
+            variant_set = self._get_str_data(sample).items()
+
+
+        for variant_id, entries in variant_set:
             entries = self._as_list(entries)
 
             for entry in entries:

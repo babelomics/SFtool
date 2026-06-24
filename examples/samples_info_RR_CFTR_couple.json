@@ -4,7 +4,7 @@
     "profile": "advanced",
     "reference_genome": "GRCh37",
     "clinvar_evidence": 1,
-    "RR_mode": "screening",
+    "RR_mode": "advanced",
 
     "variant_confirmation": {
       "enabled": false,
