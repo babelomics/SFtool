@@ -2,4 +2,3 @@
 
 from .report_manager import ReportManager
 from .models import SampleReport, ReportTable
-from .couple_report import CoupleReport
