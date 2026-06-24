@@ -202,6 +202,56 @@ class ReportManager:
 
         return ReportTable("Versions and paths", rows)
 
+
+
+    # ===============================
+    # Couple reports (RR only)
+    # ===============================
+
+    def build_couple_report(self, sample_a, sample_b) -> CoupleReport:
+        rr_mode = self.ctx.RR_mode
+
+        couple_report = CoupleReport(
+            sample_a.sample_id,
+            sample_b.sample_id,
+            rr_mode
+        )
+
+        tables = self._build_rr_couple_tables(
+            sample_a,
+            sample_b,
+            rr_mode
+        )
+
+        if rr_mode == "screening":
+            # Table corresponding to description of screening rr
+            couple_report.add_table(self._build_screening_rr_couple_description(sample_a, sample_b))
+        else:
+            couple_report.add_table(self._build_advanced_rr_couple_description(sample_a, sample_b))
+
+        for table in tables:
+            couple_report.add_table(table)
+
+        return couple_report
+
+
+    def _build_rr_couple_tables(self, sample_a, sample_b, rr_mode) -> ReportTable:
+
+        table_rows = RRCoupleRule(self.ctx.outputs['catalogs']['json_files']['RR']).build_tables(sample_a, sample_b, rr_mode)
+        tables = []
+
+        for tab_name, rows in table_rows.items():
+            if rows:
+                tables.append(
+                    ReportTable(
+                        tab_name=tab_name,
+                        rows=rows
+                    )
+                )
+
+        return tables
+
+
     # ===============================
     # Screening Couple report description (RR only)
     # ===============================
@@ -209,13 +259,13 @@ class ReportManager:
     def _build_screening_rr_couple_description(self, sample_1, sample_2):
 
         description = (
-            "This excel report summarizes reproductive risk findings identified in the analyzed couple (screening mode). Results are organized into " +
-            "1) SNVs/Indels in autosomal and X chromosomes tab. Contains: Variants in HET in both parents (same variant or compound heterogizosity) or " +
-            " variants in HET in a single parent for those genes with AR and AD inheritance mode (GJB2, CHRNE, ABCC8, AIRE and ALPL). " +
-            "Variants in X chromosomes are only reported for females. " +
-            "2) SNVs/Indels and STRs in FXN gene. Contains variants in HET in both parents. " +
-            "3) SMN1-copy. Results from SMAca software are showed for both parents (1-copy carrier / silent carrier). " +
-            "4) STRs. Variants in HET are shown only for females"
+                "This excel report summarizes reproductive risk findings identified in the analyzed couple (screening mode). Results are organized into " +
+                "1) SNVs/Indels in autosomal and X chromosomes tab. Contains: Variants in HET in both parents (same variant or compound heterogizosity) or " +
+                " variants in HET in a single parent for those genes with AR and AD inheritance mode (GJB2, CHRNE, ABCC8, AIRE and ALPL). " +
+                "Variants in X chromosomes are only reported for females. " +
+                "2) SNVs/Indels and STRs in FXN gene. Contains variants in HET in both parents. " +
+                "3) SMN1-copy. Results from SMAca software are showed for both parents (1-copy carrier / silent carrier). " +
+                "4) STRs. Variants in HET are shown only for females"
         )
 
 
@@ -326,53 +376,3 @@ class ReportManager:
                 "description_merge": True
             }
         )
-
-
-    # ===============================
-    # Couple reports (RR only)
-    # ===============================
-
-    def build_couple_report(self, sample_a, sample_b) -> CoupleReport:
-        rr_mode = self.ctx.RR_mode
-
-        couple_report = CoupleReport(
-            sample_a.sample_id,
-            sample_b.sample_id,
-            rr_mode
-        )
-
-        tables = self._build_rr_couple_tables(
-            sample_a,
-            sample_b,
-            rr_mode
-        )
-
-        if rr_mode == "screening":
-            # Table corresponding to description of screening rr
-            couple_report.add_table(self._build_screening_rr_couple_description(sample_a, sample_b))
-        else:
-            couple_report.add_table(self._build_advanced_rr_couple_description(sample_a, sample_b))
-
-        for table in tables:
-            couple_report.add_table(table)
-
-        return couple_report
-
-
-    def _build_rr_couple_tables(self, sample_a, sample_b, rr_mode) -> ReportTable:
-
-        table_rows = RRCoupleRule(self.ctx.outputs['catalogs']['json_files']['RR']).build_tables(sample_a, sample_b, rr_mode)
-        tables = []
-
-        for tab_name, rows in table_rows.items():
-            if rows:
-                tables.append(
-                    ReportTable(
-                        tab_name=tab_name,
-                        rows=rows
-                    )
-                )
-
-        return tables
-
-
