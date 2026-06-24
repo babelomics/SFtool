@@ -1,7 +1,6 @@
 # modules/report/report_manager.py
 
-from modules.report.sample_report import SampleReport, ReportTable
-from modules.report.couple_report import CoupleReport
+from modules.report.models import SampleReport, CoupleReport, ReportTable
 from modules.report.couple_rules import RRCoupleRule
 from modules.writers.excel_writer import ExcelWriter
 import os
