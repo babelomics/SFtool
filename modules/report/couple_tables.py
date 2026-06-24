@@ -42,12 +42,12 @@ def build_couple_tables(ctx, sample_a, sample_b):
 def _build_screening_rr_couple_description(sample_1, sample_2, rr_mode):
 
     description = (
-            "This excel report summarizes reproductive risk findings identified in the analyzed couple (screening mode). Results are organized into " +
-            "1) SNVs/Indels in autosomal and X chromosomes tab. Contains: Variants in HET in both parents (same variant or compound heterogizosity) or " +
+            "This Excel report summarizes reproductive risk findings identified in the analyzed couple (screening mode). Results are organized into " +
+            "1) SNVs/Indels in autosomal and X chromosomes tab. Contains: Variants in HET in both parents (same variant or compound heterogyzosity) or " +
             " variants in HET in a single parent for those genes with AR and AD inheritance mode (GJB2, CHRNE, ABCC8, AIRE and ALPL). " +
             "Variants in X chromosomes are only reported for females. " +
             "2) SNVs/Indels and STRs in FXN gene. Contains variants in HET in both parents. " +
-            "3) SMN1-copy. Results from SMAca software are showed for both parents (1-copy carrier / silent carrier). " +
+            "3) SMN1-copy. Results from SMAca software are shown for both parents (1-copy carrier / silent carrier). " +
             "4) STRs. Variants in HET are shown only for females"
     )
 
@@ -107,7 +107,7 @@ def _build_screening_rr_couple_description(sample_1, sample_2, rr_mode):
 def _build_advanced_rr_couple_description(sample_1, sample_2, rr_mode):
 
     description = (
-            "This excel report summarizes reproductive risk findings identified in the analyzed couple (advanced mode). Results are organized into " +
+            "This Excel report summarizes reproductive risk findings identified in the analyzed couple (advanced mode). Results are organized into " +
             "1) SNVs/Indels in autosomal and X chromosomes tab. Contains: HET/HOM variants in both parents for the same gene or " +
             " HET/HOM variants in a single parent for those genes with AR and AD inheritance mode (GJB2, CHRNE, ABCC8, AIRE and ALPL). " +
             "For X chromosome, HOM variants in male and HET/HOM variants in female for the same gene are reported." +
