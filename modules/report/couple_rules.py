@@ -476,8 +476,13 @@ class RRCoupleRule(ReportUtilsMixin):
                     **self._flatten_entry(smn1_b),
                     "Warning": warning
                 })
-        else: # Advanced mode
-            rows.append("SMAca software only detects SMA carriers and its not applied in Advanced Mode.")
+        else:
+            # Advanced mode
+            rows.append({
+                "Case study": "SMN1-copy. AR gene",
+                "Warning": "SMAca software only detects SMA carriers and its not applied in Advanced Mode."
+
+            })
 
         return rows
 
