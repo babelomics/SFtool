@@ -90,7 +90,7 @@ def _build_versions_and_paths_table(ctx, sample):
         {"Field": "Run dir", "Value": ctx.run_dir},
         {"Field": "Temporal dir", "Value": ctx.tmp_dir},
         {"Field": "Human assembly", "Value": "hg19" if ctx.assembly == "GRCh37" else "hg38" },
-        {"Field": "Reference genome path", "Value": ctx.config.references.genomes["GRCh37"] if ctx.assembly == "GRCh37" else ctx.config.reference.genomes["GRCh38"]},
+        {"Field": "Reference genome path", "Value": ctx.config.references.genomes["GRCh37"] if ctx.assembly == "GRCh37" else ctx.config.references.genomes["GRCh38"]},
         {"Field": "Clinvar version", "Value": ctx.config.clinvar.version if ctx.profile == "advanced" else "Not used"},
         {"Field": "Clinvar path", "Value": ctx.config.clinvar.db_path if ctx.profile == "advanced" else "Not used"},
         {"Field": "Clinvar evidence level", "Value": str(ctx.clinvar_evidence) if ctx.profile == "advanced" else "Not used"},
