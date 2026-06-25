@@ -18,17 +18,7 @@ class ExcelWriter:
 
         with pd.ExcelWriter(output_path, engine="xlsxwriter") as writer:
             workbook = writer.book
-
-            wrap_format = workbook.add_format({
-                "text_wrap": True,
-                "valign": "top"
-            })
-
-            bold_wrap_format = workbook.add_format({
-                "bold": True,
-                "text_wrap": True,
-                "valign": "top"
-            })
+            formats = self._create_formats(workbook)
 
             for table in sample_report.tables:
                 df = pd.DataFrame(table.rows)
@@ -42,10 +32,10 @@ class ExcelWriter:
                     worksheet = writer.sheets[table.tab_name]
 
                     # Make first column bold
-                    worksheet.set_column(0, 0, 40, bold_wrap_format)
+                    worksheet.set_column(0, 0, 40, formats["bold_wrap"])
 
                     # Optional widths
-                    worksheet.set_column(1, 1, 150, wrap_format)
+                    worksheet.set_column(1, 1, 150, formats["wrap"])
 
                 elif table.tab_name == "PGx":
 
@@ -60,7 +50,7 @@ class ExcelWriter:
                     self._autosize_columns(
                         worksheet,
                         df,
-                        wrap_format,
+                        formats["wrap"],
                         min_width=20,
                         max_width=45
                     )
@@ -75,7 +65,7 @@ class ExcelWriter:
                             footer_row,
                             len(df.columns) - 1,
                             footer,
-                            wrap_format
+                            formats["wrap"]
                         )
 
                 else:
@@ -84,7 +74,7 @@ class ExcelWriter:
                     self._autosize_columns(
                         worksheet,
                         df,
-                        wrap_format,
+                        formats["wrap"],
                         min_width=15,
                         max_width=60
                     )
@@ -104,23 +94,7 @@ class ExcelWriter:
         with pd.ExcelWriter(output_path, engine="xlsxwriter") as writer:
 
             workbook = writer.book
-
-            description_format = workbook.add_format({
-                "bold": False,
-                "text_wrap": True,
-                "valign": "top"
-            })
-
-            wrap_format = workbook.add_format({
-                "text_wrap": True,
-                "valign": "top"
-            })
-
-            rr_mode_format = workbook.add_format({
-                "bold": True,
-                "text_wrap": True,
-                "valign": "top"
-            })
+            formats = self._create_formats(workbook)
 
             for table in couple_report.tables:
 
@@ -153,13 +127,13 @@ class ExcelWriter:
                 worksheet = writer.sheets[table.tab_name]
 
                 if table.tab_name == "Report information" and rr_mode:
-                    worksheet.merge_range(0, 0, 0, len(df.columns) - 1, f"Reproductive Risk mode: {rr_mode}", rr_mode_format)
+                    worksheet.merge_range(0, 0, 0, len(df.columns) - 1, f"Reproductive Risk mode: {rr_mode}", formats["rr_mode"])
 
                 if table.tab_name == "Report information":
                     self._autosize_columns(
                         worksheet,
                         df,
-                        wrap_format,
+                        formats["wrap"],
                         min_width=25,
                         max_width=80,
                         fixed_widths={
@@ -170,7 +144,7 @@ class ExcelWriter:
                     self._autosize_columns(
                         worksheet,
                         df,
-                        wrap_format,
+                        formats["wrap"],
                         min_width=15,
                         max_width=60
                     )
@@ -187,7 +161,7 @@ class ExcelWriter:
                         description_row + 2,
                         len(df.columns) - 1,
                         description,
-                        description_format
+                        formats["description"]
                     )
 
     # =====================================
@@ -243,3 +217,29 @@ class ExcelWriter:
             width = min(max(max_len + 2, min_width), max_width)
 
             worksheet.set_column(i, i, width, cell_format)
+
+
+    def _create_formats(self, workbook):
+        return {
+            "wrap": workbook.add_format({
+                "text_wrap": True,
+                "valign": "top"
+            }),
+
+            "bold_wrap": workbook.add_format({
+                "bold": True,
+                "text_wrap": True,
+                "valign": "top"
+            }),
+
+            "description": workbook.add_format({
+                "text_wrap": True,
+                "valign": "top"
+            }),
+
+            "rr_mode": workbook.add_format({
+                "bold": True,
+                "text_wrap": True,
+                "valign": "top"
+            }),
+        }
