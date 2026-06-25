@@ -20,9 +20,14 @@ class ExcelWriter:
             workbook = writer.book
             bold = workbook.add_format({"bold": True})
 
+            wrap_format = workbook.add_format({
+                "text_wrap": True,
+                "valign": "top"
+            })
+
             for table in sample_report.tables:
+                df = pd.DataFrame(table.rows)
                 if table.tab_name == "Versions and paths":
-                    df = pd.DataFrame(table.rows)
                     df.to_excel(
                         writer,
                         sheet_name=table.tab_name,
@@ -35,8 +40,22 @@ class ExcelWriter:
                     worksheet.set_column(0, 0, 40, bold)
 
                     # Optional widths
-                    worksheet.set_column(1, 1, 150)
+                    worksheet.set_column(1, 1, 150, wrap_format)
 
+                elif table.tab_name == "PGx":
+
+                    df.to_excel(
+                        writer,
+                        sheet_name=table.tab_name,
+                        index=False
+                    )
+
+                    worksheet = writer.sheets[table.tab_name]
+
+                    worksheet.set_column(0, 0, 20, wrap_format)   # Gene
+                    worksheet.set_column(1, 1, 40, wrap_format)   # Genotype
+                    worksheet.set_column(2, 2, 40, wrap_format)   # Phenotype
+                    worksheet.set_column(3, 3, 20, wrap_format)   # Source
                 else:
                     df = pd.DataFrame(table.rows)
                     df.to_excel(writer, sheet_name=table.tab_name, index=False)
