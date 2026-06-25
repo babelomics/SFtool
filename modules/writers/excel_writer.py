@@ -18,9 +18,14 @@ class ExcelWriter:
 
         with pd.ExcelWriter(output_path, engine="xlsxwriter") as writer:
             workbook = writer.book
-            bold = workbook.add_format({"bold": True})
 
             wrap_format = workbook.add_format({
+                "text_wrap": True,
+                "valign": "top"
+            })
+
+            bold_wrap_format = workbook.add_format({
+                "bold": True,
                 "text_wrap": True,
                 "valign": "top"
             })
@@ -37,7 +42,7 @@ class ExcelWriter:
                     worksheet = writer.sheets[table.tab_name]
 
                     # Make first column bold
-                    worksheet.set_column(0, 0, 40, bold)
+                    worksheet.set_column(0, 0, 40, bold_wrap_format)
 
                     # Optional widths
                     worksheet.set_column(1, 1, 150, wrap_format)
@@ -52,21 +57,23 @@ class ExcelWriter:
 
                     worksheet = writer.sheets[table.tab_name]
 
-                    worksheet.set_column(0, 0, 20, wrap_format)   # Gene
-                    worksheet.set_column(1, 1, 40, wrap_format)   # Genotype
-                    worksheet.set_column(2, 2, 40, wrap_format)   # Phenotype
-                    worksheet.set_column(3, 3, 20, wrap_format)   # Source
-
+                    self._autosize_columns(
+                        worksheet,
+                        df,
+                        wrap_format,
+                        min_width=20,
+                        max_width=45
+                    )
 
                     footer = table.metadata.get("footer")
 
                     if footer:
-                        footer_row = len(df) + 2    # one empty row after the table
+                        footer_row = len(df) + 2
                         worksheet.merge_range(
                             footer_row,
                             0,
                             footer_row,
-                            3,
+                            len(df.columns) - 1,
                             footer,
                             wrap_format
                         )
@@ -81,6 +88,7 @@ class ExcelWriter:
                         min_width=15,
                         max_width=60
                     )
+
 
     # =====================================
     # Couple report writing
@@ -188,9 +196,33 @@ class ExcelWriter:
             return outdir / f"{sample_a_id}_{sample_b_id}_RR_couple_advanced_report.xlsx"
 
 
-    def _autosize_columns(self, worksheet, df, cell_format,
-                          min_width=15, max_width=60):
+    def _autosize_columns(
+            self,
+            worksheet,
+            df,
+            cell_format,
+            min_width=20,
+            max_width=60,
+            fixed_widths=None
+    ):
+        """
+        Automatically adjusts column widths according to their contents.
+
+        Parameters
+        ----------
+        fixed_widths : dict[int, int], optional
+            Mapping {column_index: width}. These columns are kept fixed and are
+            excluded from autosizing.
+        """
+        fixed_widths = fixed_widths or {}
+
+        for col_idx, width in fixed_widths.items():
+            worksheet.set_column(col_idx, col_idx, width, cell_format)
+
         for i, column in enumerate(df.columns):
+
+            if i in fixed_widths:
+                continue
 
             max_len = max(
                 len(str(column)),
