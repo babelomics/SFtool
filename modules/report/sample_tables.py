@@ -163,7 +163,32 @@ def _build_pgx_table(variant_selection):
     if not pharmCAT_data:
         return None
 
-    rows = list(pharmCAT_data.values())
+    rows = []
+
+    for gene, phenotype_entries in pharmCAT_data.items():
+
+        if isinstance(phenotype_entries, dict):
+            phenotype_entries = [phenotype_entries]
+
+        grouped = {}
+
+        for entry in phenotype_entries:
+            genotype = entry.get("genotype", "")
+            phenotype = entry.get("phenotype", "")
+            source = entry.get("source", "")
+
+            key = (gene, genotype, phenotype)
+
+            grouped.setdefault(key, set()).add(source)
+
+        for (gene, genotype, phenotype), sources in grouped.items():
+            rows.append({
+                "Gene": gene,
+                "Genotype": genotype,
+                "Phenotype": phenotype,
+                "Source": ", ".join(sorted(sources))
+            })
+
     return ReportTable("PGx", rows)
 
 
