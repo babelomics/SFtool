@@ -72,8 +72,15 @@ class ExcelWriter:
                         )
 
                 else:
-                    df = pd.DataFrame(table.rows)
                     df.to_excel(writer, sheet_name=table.tab_name, index=False)
+                    worksheet = writer.sheets[table.tab_name]
+                    self._autosize_columns(
+                        worksheet,
+                        df,
+                        wrap_format,
+                        min_width=15,
+                        max_width=60
+                    )
 
     # =====================================
     # Couple report writing
@@ -179,3 +186,17 @@ class ExcelWriter:
             return outdir / f"{sample_a_id}_{sample_b_id}_RR_couple_screening_report.xlsx"
         else:
             return outdir / f"{sample_a_id}_{sample_b_id}_RR_couple_advanced_report.xlsx"
+
+
+    def _autosize_columns(self, worksheet, df, cell_format,
+                          min_width=15, max_width=60):
+        for i, column in enumerate(df.columns):
+
+            max_len = max(
+                len(str(column)),
+                *(len(str(v)) for v in df[column].fillna(""))
+            )
+
+            width = min(max(max_len + 2, min_width), max_width)
+
+            worksheet.set_column(i, i, width, cell_format)
