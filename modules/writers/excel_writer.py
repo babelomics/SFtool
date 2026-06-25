@@ -156,17 +156,28 @@ class ExcelWriter:
                     worksheet.merge_range(0, 0, 0, len(df.columns) - 1, f"Reproductive Risk mode: {rr_mode}", rr_mode_format)
 
                 if table.tab_name == "Report information":
-                    worksheet.set_column(0, 0, 25, wrap_format)  # Field
-                    worksheet.set_column(1, 2, 80, wrap_format)  # Sample 1 and Sample 2
+                    self._autosize_columns(
+                        worksheet,
+                        df,
+                        wrap_format,
+                        min_width=25,
+                        max_width=80,
+                        fixed_widths={
+                            0: 25
+                        }
+                    )
                 else:
-                    worksheet.set_column(0, len(df.columns) - 1, 25, wrap_format)
-                    for row_num in range(1, len(df) + 1):
-                        worksheet.set_row(row_num, 25)
+                    self._autosize_columns(
+                        worksheet,
+                        df,
+                        wrap_format,
+                        min_width=15,
+                        max_width=60
+                    )
 
                 description = table.metadata.get("description")
 
                 if description:
-
                     # Leave 2 blank rows after dataframe
                     description_row = len(df) + 4
 
