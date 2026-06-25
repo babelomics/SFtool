@@ -1,5 +1,6 @@
 import subprocess
 import os
+import shutil
 import json
 from collections import defaultdict
 
@@ -26,7 +27,7 @@ def pharmCAT_vcf_preprocessor(vcf_input, python_path, pharmCAT_path, bgzip_path,
             file_name = os.path.basename(preprocessed_vcf)
             pgx_output_dir = os.path.join(str(tmp_dir), "PGx")
             os.makedirs(pgx_output_dir, exist_ok=True)
-            os.rename(preprocessed_vcf, os.path.join(pgx_output_dir, file_name))
+            shutil.move(preprocessed_vcf, os.path.join(pgx_output_dir, file_name))
             return os.path.join(pgx_output_dir, file_name)
         else:
             print("pharmCAT's preprocessed file does not exist. Exiting")

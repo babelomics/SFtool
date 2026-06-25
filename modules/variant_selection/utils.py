@@ -57,6 +57,7 @@ def combine_variant_and_gene_info(variant_info, gene_info):
         "ClinvarSummary": variant_info.get("ClinvarSummary", "-"),
         "ClinvarID": variant_info.get("ClinvarID", "-"),
         "Orpha": variant_info.get("Orpha", ""),
+        "OMIM_clinvar": variant_info.get("OMIM", "-"),
         "Phenotype": gene_info["phenotype"],
         "ACMG_version": gene_info.get("ACMG_version", ""),  # Usar get para manejar la falta de 'ACMG_version'
         "OMIM_disorder": gene_info["OMIM_disorder"],

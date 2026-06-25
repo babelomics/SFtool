@@ -69,12 +69,16 @@ def rr_str_selection(STR_collection, RR_mode, sample_sex, gene_to_phenotype_file
         if RR_mode == "screening":
             if gene == "FXN" or (gene in AR_GENES and sample_sex == "female"):
                 threshold = current_STR["PathogenicThreshold"]
-                if classify_pathogenic_STRs(repeats, threshold) == "HET":
+                zigosity = classify_pathogenic_STRs(repeats, threshold)
+                if zigosity == "HET":
+                    current_STR['zigosity'] = zigosity
                     STR_selected[STR_key] = current_STR
 
             elif gene in XLD_GENES and sample_sex == "female":
                 threshold = current_STR["IntermediateThreshold"]
-                if classify_pathogenic_STRs(repeats, threshold) == "HET":
+                zigosity = classify_pathogenic_STRs(repeats, threshold)
+                if zigosity == "HET" or zigosity == "HOM":
+                    current_STR['zigosity'] = zigosity
                     STR_selected[STR_key] = current_STR
 
         # -----------------------------
@@ -90,7 +94,9 @@ def rr_str_selection(STR_collection, RR_mode, sample_sex, gene_to_phenotype_file
             else:
                 continue
 
-            if classify_pathogenic_STRs(repeats, threshold) in {"HET", "HOM"}:
+            zigosity = classify_pathogenic_STRs(repeats, threshold)
+            if zigosity in {"HET", "HOM"}:
+                current_STR['zigosity'] = zigosity
                 STR_selected[STR_key] = current_STR
 
 

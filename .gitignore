@@ -1,5 +1,5 @@
 .idea
-modules/__pycache__/
+__pycache__/
 temp
 final_output
 sftool.sif

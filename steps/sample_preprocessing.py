@@ -14,7 +14,7 @@ def run(ctx: ExecutionContext) -> None:
         categories = sample.categories
         # 1. VCF normalization
 
-        if ('PR' or 'RR') in categories:
+        if 'PR' in categories or 'RR' in categories:
             norm_vcf_file = normalize_vcf(
                 str(sample.vcf.resolve()),
                 ctx.tmp_dir,
