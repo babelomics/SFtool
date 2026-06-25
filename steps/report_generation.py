@@ -20,8 +20,8 @@ def run(ctx):
         sample_report = manager.build_sample_report(sample)
         manager.write_sample_report(sample_report)
 
-    # Couple report (RR only)
-    if len(ctx.samples) == 2:
+    # Build & write couple report (RR must be selected for both samples)
+    if len(ctx.samples) == 2 and all('RR' in sample.categories for sample in ctx.samples):
         couple_report = manager.build_couple_report(
             ctx.samples[0],
             ctx.samples[1]
