@@ -56,6 +56,21 @@ class ExcelWriter:
                     worksheet.set_column(1, 1, 40, wrap_format)   # Genotype
                     worksheet.set_column(2, 2, 40, wrap_format)   # Phenotype
                     worksheet.set_column(3, 3, 20, wrap_format)   # Source
+
+
+                    footer = table.metadata.get("footer")
+
+                    if footer:
+                        footer_row = len(df) + 2    # one empty row after the table
+                        worksheet.merge_range(
+                            footer_row,
+                            0,
+                            footer_row,
+                            3,
+                            footer,
+                            wrap_format
+                        )
+
                 else:
                     df = pd.DataFrame(table.rows)
                     df.to_excel(writer, sheet_name=table.tab_name, index=False)

@@ -13,7 +13,7 @@ def build_sample_tables(ctx, sample):
         _build_pr_rr_snv_indels_table(selected_variants, "RR"),
         _build_rr_str_table(selected_variants),
         _build_rr_smn1_table(selected_variants),
-        _build_pgx_table(selected_variants),
+        _build_pgx_table(selected_variants, sample),
     ]
 
     return [table for table in tables if table is not None]
@@ -156,7 +156,7 @@ def _build_rr_smn1_table(variant_selection):
     return ReportTable("RR_SMN1-copy", rows)
 
 # PGx
-def _build_pgx_table(variant_selection):
+def _build_pgx_table(variant_selection, sample):
     pgx_data = variant_selection["PGx"]
     pharmCAT_data = pgx_data.get("pharmCAT_variants")
 
@@ -189,6 +189,12 @@ def _build_pgx_table(variant_selection):
                 "Source": ", ".join(sorted(sources))
             })
 
-    return ReportTable("PGx", rows)
+    return ReportTable(
+        tab_name = "PGx",
+        rows=rows,
+        metadata={
+            "footer": f"PharmCAT full results are available at: {sample.reports['PGx']}",
+            "footer_merge": True
+        })
 
 
