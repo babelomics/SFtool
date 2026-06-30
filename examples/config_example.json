@@ -8,7 +8,7 @@
     "genebe": "/home/jpflorido/software/genebe/GeneBeClient.jar",
     "java": "/usr/lib/jvm/java-1.21.0-openjdk-amd64/bin/java",
     "python": "/home/jpflorido/miniconda3/bin/python3.10",
-    "pharmCAT": "/home/jpflorido/software/pharmCAT/pharmcat-pipeline-2.15.5/pharmcat.jar"
+    "pharmCAT": "/home/jpflorido/software/pharmCAT/3.2.0/pharmcat-pipeline-3.2.0/pharmcat.jar"
   },
 
   "references": {
@@ -16,7 +16,8 @@
       "GRCh37": "/mnt/lustre/scratch/CBRA/data/indexed_genomes/bwa/hs37d5/hs37d5.fa",
       "GRCh38": "/mnt/lustre/scratch/CBRA/data/indexed_genomes/bwa/hg38_no_alt/hg38_no_alt.fa"
     },
-    "gene_to_phenotype_file": "/home/jpflorido/GBPA/projects/SFtool/categories/genes_to_phenotype_20250506.txt"
+    "gene_to_phenotype_file": "/home/jpflorido/GBPA/projects/SFtool/categories/genes_to_phenotype_20250506.txt",
+    "pharmCAT_positions_vcf": "/mnt/lustre/scratch/CBRA/projects/ACCI/secondary_findings/resources/pharmcat_positions_3.2.0.vcf"
   },
 
   "catalogs": {

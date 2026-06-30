@@ -76,6 +76,7 @@
             "enum": ["proband", "parent1", "parent2"]
           },
 
+          "pgx_vcf_path": { "type": "string" },
           "vcf_path": { "type": "string" },
           "hpo_terms": {
             "type": "array",

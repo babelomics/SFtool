@@ -25,6 +25,7 @@ class Config:
         self.genebe_credentials = GeneBeConfig(cfg.get("genebe_credentials", {}))
 
 
+
 class CatalogConfig:
     """
     Catalog definitions (PR / RR / PGx).
@@ -70,11 +71,15 @@ class ReferenceDataConfig:
     Reference-related resources, including:
       - reference genomes
       - gene-to-phenotype mappings
+      - pharmcat_positions_vcf
     """
     def __init__(self, cfg: dict):
         self.genomes: Dict = cfg.get("genomes", {})
         self.gene_to_phenotype_file: Optional[str] = cfg.get(
             "gene_to_phenotype_file"
+        )
+        self.pharmCAT_positions_vcf: Optional[str] = cfg.get(
+            "pharmCAT_positions_vcf"
         )
 
 class PathsConfig:

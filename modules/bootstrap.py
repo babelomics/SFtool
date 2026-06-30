@@ -13,13 +13,14 @@ import json
 import os
 from pathlib import Path
 from typing import Dict, Any, List
-
 from modules.context import ExecutionContext, SampleContext
 from modules.config import Config
 from modules.misc.runtime import check_runtime_dependencies
-
 from modules.misc.errors import ValidationError
-
+from modules.misc.vcf_utils import (
+    validate_chr_prefix,
+    check_vcf_positions_present
+)
 
 # =====================================================================
 # Public API
@@ -50,7 +51,7 @@ def bootstrap_execution(
     # Legacy-equivalent validations (dict-level)
     # -----------------------------------------------------------------
     validate_samples_info(samples_info)
-    validate_config(config_data)
+    validate_config(config_data, samples_info)
 
     # -----------------------------------------------------------------
     # Instantiate Config (run-level)
@@ -279,7 +280,7 @@ def validate_sample_block(samples: Dict[str, Any], mode):
 
 
 
-def validate_config(config: Dict[str, Any]):
+def validate_config(config: Dict[str, Any], samples_info: dict):
     required = [
         "paths", "references", "catalogs",
         "clinvar", "genebe_credentials", "smaca_thresholds"
@@ -321,6 +322,29 @@ def validate_config(config: Dict[str, Any]):
         raise ValidationError(
             f"gene_to_phenotype_file does not exist: {g2p}"
         )
+
+    # ----------------------------------------------------
+    # Validate pharmCAT_positions_vcf file existence when PGx category exists
+    # ----------------------------------------------------
+    requested_categories = {
+        category
+        for sample in samples_info["samples"]
+        for category in sample.get("categories", [])
+    }
+
+    if "PGx" in requested_categories:
+        if "pharmCAT_positions_vcf" not in references:
+            raise ValidationError("Missing 'references.pharmCAT_positions_vcf' in config.json")
+
+        pharmCAT_positions = references["pharmCAT_positions_vcf"]
+
+        if not os.path.exists(pharmCAT_positions):
+            raise ValidationError(
+                f"pharmCAT_positions_vcf does not exist: {pharmCAT_positions}"
+            )
+
+
+
 
     # ----------------------------------------------------
     # Validate catalogs (PR, RR, STR, PGx) file existence
@@ -404,6 +428,7 @@ def validate_execution_context(ctx: ExecutionContext):
     _validate_unique_sample_ids(ctx)
     _validate_vcf_paths(ctx)
     _validate_categories(ctx)
+    _validate_pgx_inputs(ctx)
 
 
 
@@ -434,3 +459,39 @@ def _validate_categories(ctx: ExecutionContext):
                 )
 
 
+def _validate_pgx_inputs(ctx: ExecutionContext):
+    """
+    Validate PGx-specific VCF requirements.
+
+    Rules:
+    - All VCFs must match execution.reference_genome.
+    - If PGx is requested:
+        - reference genome must be GRCh38.
+        - the VCF used for PGx must have chr-prefixed chromosomes.
+        - the VCF used for PGx must contain all PharmCAT positions.
+    - If PGx is requested and two VCFs are provided:
+        - both vcf_path and pgx_vcf_path must have chr-prefixed chromosomes.
+    """
+    for sample in ctx.samples:
+        if "PGx" in sample.categories:
+
+            if ctx.assembly != "GRCh38":
+                raise ValidationError(
+                    f"Sample {sample.sample_id}: PGx requires GRCh38. "
+                    f"Current reference_genome is {ctx.assembly}."
+                )
+
+            pgx_vcf = sample.pgx_vcf or sample.vcf
+
+            validate_chr_prefix(pgx_vcf)
+
+            if sample.pgx_vcf:
+                validate_chr_prefix(
+                    vcf_path=sample.vcf
+                )
+
+            check_vcf_positions_present(
+                input_vcf=pgx_vcf,
+                required_vcf=ctx.config.references.pharmCAT_positions_vcf,
+                output_file=ctx.tmp_dir / "PGx" / f"{sample.sample_id}.missing_pharmcat_positions.tsv"
+            )
