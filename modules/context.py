@@ -131,9 +131,11 @@ class ExecutionContext:
         self.assembly: Optional[str] = execution_meta.get("reference_genome")
         self.mode: Optional[str] = execution_meta.get("mode")
         self.clinvar_evidence: Optional[int] = execution_meta.get("clinvar_evidence")
-        self.profile: Optional[str] = execution_meta.get("profile")
+        self.variant_classification_sources: list[str] = execution_meta.get("variant_classification_sources")
         self.RR_mode: Optional[str] = execution_meta.get("RR_mode")
         self.variant_confirmation: Optional[str] = execution_meta.get("variant_confirmation")
+
+
 
         # ------------------------------------------------------------------
         # Output directory layout
