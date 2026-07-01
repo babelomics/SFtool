@@ -20,10 +20,11 @@
       "sample_id": "FE_34045",
       "sex": "male",
       "relation": "proband",
-      "vcf_path": "/mnt/lustre/scratch/CBRA/projects/ACCI/secondary_findings/analysis/LaFe/FE_34045/hg38/wgs/WDL-pipeline/variation/FE_34045/pharma/FE_34045.pharma.PR.RR.labeled.PASS.QUAL.vcf.gz",
+      "vcf_path": "/mnt/lustre/scratch/CBRA/projects/ACCI/secondary_findings/analysis/LaFe/FE_34045/hg38/wgs/WDL-pipeline/variation/FE_34045/FE_34045.labeled.vcf.gz",
+      "pgx_vcf_path":"/mnt/lustre/scratch/CBRA/projects/ACCI/secondary_findings/analysis/LaFe/FE_34045/hg38/wgs/WDL-pipeline/variation/FE_34045/pharmCAT_3.2.0/FE_34045.pharma.labeled.PASS.QUAL.vcf.gz",
       "stripy_path": "",
       "smaca_path": "",
-      "categories": ["PR","RR", "PGx"],
+      "categories": ["PR","RR","PGx"],
       "hpo_terms": ["HP:0003198\n"]
     }
   ]

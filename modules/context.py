@@ -29,6 +29,8 @@ class SampleContext:
         self.sample_id: str = sample_data["sample_id"]
         self.sex: str = sample_data["sex"]
         self.vcf: Path = Path(sample_data["vcf_path"]).resolve()
+        pgx_vcf_path = sample_data.get("pgx_vcf_path")
+        self.pgx_vcf = Path(pgx_vcf_path).resolve() if pgx_vcf_path else None
 
         self.role: str = sample_data.get("relation", "proband")
         self.categories: List[str] = sample_data.get("categories", [])

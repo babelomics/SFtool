@@ -18,7 +18,7 @@ def pharmCAT_vcf_preprocessor(vcf_input, python_path, pharmCAT_path, bgzip_path,
 
     try:
         # Run pharmCAT's VCF preprocessor script
-        vcf_preprocessor_command = [python_path, os.path.dirname(pharmCAT_path) + "/pharmcat_vcf_preprocessor.py", "--path-to-bcftools", bgzip_path , "--path-to-bgzip", htslib_path , "-vcf", vcf_input]
+        vcf_preprocessor_command = [python_path, os.path.dirname(pharmCAT_path) + "/pharmcat_vcf_preprocessor", "--path-to-bcftools", bgzip_path , "--path-to-bgzip", htslib_path , "-vcf", vcf_input]
         with subprocess.Popen(vcf_preprocessor_command, stderr=subprocess.STDOUT, text=True, cwd=os.path.dirname(pharmCAT_path)) as process:
             output, _ = process.communicate()
 
@@ -82,32 +82,38 @@ def pharmCAT_collection(phenotype_file):
     # Initialize data structure
     pgx_variants = defaultdict(list)
 
-    def _process_source(source_name: str):
-        gene_reports = data.get("geneReports", {}).get(source_name, {})
+    gene_reports = data.get("geneReports", {})
 
-        for gene, details in gene_reports.items():
-            recommendation_diplotypes = details.get("recommendationDiplotypes", [])
+    for gene, details in gene_reports.items():
+        recommendation_diplotypes = details.get(
+            "recommendationDiplotypes",
+            []
+        )
 
-            for rec in recommendation_diplotypes:
-                label = rec.get("label", "N/A")
-                phenotypes = rec.get("phenotypes", [])
+        grouped = defaultdict(list)
 
-                if label not in {"Unknown", "Unknown/Unknown"}:
-                    genotype = label
-                    phenotype = ",".join(map(str, phenotypes)) if phenotypes else "N/A"
-                else:
-                    genotype = "Not determined"
-                    phenotype = "Not determined"
+        for rec in recommendation_diplotypes:
+            label = rec.get("label", "N/A")
+            phenotypes = rec.get("phenotypes", [])
 
-                pgx_variants[gene].append({
-                    "genotype": genotype,
-                    "phenotype": phenotype,
-                    "source": source_name
-                })
+            if label in {"Unknown", "Unknown/Unknown"}:
+                genotype = "Not determined"
+                phenotype = "Not determined"
+            else:
+                genotype = label
+                phenotype = (
+                    ",".join(map(str, phenotypes))
+                    if phenotypes
+                    else "N/A"
+                )
 
-    # Process CPIC and DPWG entries
-    _process_source("CPIC")
-    _process_source("DPWG")
+            grouped[phenotype].append(genotype)
+
+        for phenotype, genotypes in grouped.items():
+            pgx_variants[gene].append({
+                "genotype": "; ".join(sorted(set(genotypes))),
+                "phenotype": phenotype
+            })
 
     return dict(pgx_variants)
 
