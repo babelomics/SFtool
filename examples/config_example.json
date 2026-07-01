@@ -7,7 +7,7 @@
     "bgzip": "/home/jpflorido/software/htslib/bin/bgzip",
     "genebe": "/home/jpflorido/software/genebe/GeneBeClient.jar",
     "java": "/usr/lib/jvm/java-1.21.0-openjdk-amd64/bin/java",
-    "python": "/home/jpflorido/miniconda3/bin/python3.10",
+    "python": "/home/jpflorido/miniconda3/envs/pharmcat_py312/bin/python",
     "pharmCAT": "/home/jpflorido/software/pharmCAT/3.2.0/pharmcat-pipeline-3.2.0/pharmcat.jar"
   },
 

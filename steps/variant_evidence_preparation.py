@@ -19,6 +19,10 @@ def run(ctx: ExecutionContext) -> None:
     assembly = ctx.assembly
     profile = ctx.profile
 
+    unique_categories = sorted(
+        {cat for sample in ctx.samples for cat in sample.categories}
+    )
+
     # 1. GeneBe annotation and PharmCAT execution: specific for each sample
     for sample in ctx.samples:
         categories = sample.categories
@@ -33,13 +37,10 @@ def run(ctx: ExecutionContext) -> None:
                 sample.results["PGx"] = pharmCAT_phenotype_file
 
     # 2. Clinvar variant selection according to gene catalogs
-    if profile == 'advanced':
+    if profile == 'advanced' and ('PR' in unique_categories or 'RR' in unique_categories):
         clinvar_evidence = ctx.clinvar_evidence
         clinvar_db = ctx.outputs["clinvar"]["clinvar_db"]
         clinvar_submission = ctx.outputs["clinvar"]["clinvar_summary_db"]
-        unique_categories = sorted(
-            {cat for sample in ctx.samples for cat in sample.categories}
-        )
 
         for category in unique_categories:
             if category == 'PR' or category == 'RR':
