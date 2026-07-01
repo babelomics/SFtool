@@ -9,8 +9,9 @@ import gzip
 import io
 import vcfpy
 from modules.catalogs.build_json_bed_files import read_csv
+from pathlib import Path
 
-def run_genebe(norm_vcf, category, assembly, genebe_path, java_path, api_key, username):
+def run_genebe(norm_vcf, category, assembly, genebe_path, java_path, api_key, username, tmp_dir):
     """
     Run GeneBe for annotate variants
 
@@ -21,12 +22,26 @@ def run_genebe(norm_vcf, category, assembly, genebe_path, java_path, api_key, us
     :param java_path: Path to Java
     :param api_key: Api key for annotating using GeneBe
     :param username: User name for annotating using GeneBe
+    :param tmp_dir: temporary dir where output file will be saved
     :return: Annotated VCF file
     """
 
     try:
         # Path to VCF intersected and output directory
-        genebe_output_file = f"{norm_vcf.split(category.upper() + '.vcf.gz')[0]}{category.upper()}{'.geneBe.vcf.gz'}"
+        #genebe_output_file = f"{norm_vcf.split(category.upper() + '.vcf.gz')[0]}{category.upper()}{'.geneBe.vcf.gz'}"
+
+        norm_vcf = Path(norm_vcf)
+
+        category_tmp_dir = Path(tmp_dir) / category.upper()
+        category_tmp_dir.mkdir(parents=True, exist_ok=True)
+
+        basename = norm_vcf.name.replace(
+            f".{category.upper()}.vcf.gz",
+            f".{category.upper()}.geneBe.vcf.gz"
+        )
+
+        genebe_output_file = category_tmp_dir / basename
+
 
         if assembly == 'GRCh37':
             assembly_int = "hg19"

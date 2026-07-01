@@ -101,7 +101,9 @@ def intersect_vcf_with_bed(vcf_norm_file, category_bed_file, temp_path, category
 
         print("Intersecting VCF file with BED file ( " + category.upper() + " category)...")
         just_filename = os.path.basename(vcf_norm_file)
-        output_vcf_path = os.path.join(temp_path, just_filename.split(".vcf.gz")[0] + "." + category.upper() + ".vcf.gz")
+        output_dir = os.path.join(str(temp_path), category)
+        os.makedirs(output_dir, exist_ok=True)
+        output_vcf_path = os.path.join(output_dir, just_filename.split(".vcf.gz")[0] + "." + category.upper() + ".vcf.gz")
 
         # Load VCF and BED files using Python's BedTools
         vcf = BedTool(vcf_norm_file)

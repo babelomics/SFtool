@@ -18,6 +18,7 @@ def run(ctx: ExecutionContext) -> None:
     pharmCAT_path = ctx.config.paths.pharmCAT
     assembly = ctx.assembly
     profile = ctx.profile
+    tmp_dir = ctx.tmp_dir
 
     unique_categories = sorted(
         {cat for sample in ctx.samples for cat in sample.categories}
@@ -29,7 +30,7 @@ def run(ctx: ExecutionContext) -> None:
         for category in categories:
             if category == 'PR' or category == 'RR':
                 vcf_file = sample.vcf_outputs["intersected"][category]
-                genebe_output_file = run_genebe(vcf_file, category, assembly, genebe_path, java_path, genebe_apikey, genebe_username)
+                genebe_output_file = run_genebe(vcf_file, category, assembly, genebe_path, java_path, genebe_apikey, genebe_username, tmp_dir)
                 sample.vcf_outputs["genebe_annotated"][category] = genebe_output_file
             elif category == 'PGx' and assembly == 'GRCh38': # Run PharmCAT
                 [pharmCAT_report_file, pharmCAT_phenotype_file] = run_pharmCAT(sample.vcf_outputs["PGx_preprocessed"], pharmCAT_path, java_path, ctx.run_dir)
