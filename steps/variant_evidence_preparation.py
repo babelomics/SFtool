@@ -50,8 +50,10 @@ def run(ctx: ExecutionContext) -> None:
                 elif category == 'RR':
                     category_geneset_file = ctx.config.catalogs.reproductive_risk_geneset
 
-                path = Path(vcf_file)
-                clinvar_output_file = path.parent / f"clinvar.{category}.json"
+                category_tmp_dir = Path(tmp_dir) / category.upper()
+                category_tmp_dir.mkdir(parents=True, exist_ok=True)
+
+                clinvar_output_file = category_tmp_dir / f"clinvar.{category}.json"
 
                 run_clinvar(clinvar_evidence, clinvar_db, clinvar_submission, category, category_geneset_file, clinvar_output_file)
                 json_category = category + '_json'
