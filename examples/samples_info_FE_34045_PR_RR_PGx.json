@@ -1,7 +1,7 @@
 {
   "execution": {
     "mode": "secondary_findings_discovery",
-    "profile": "advanced",
+    "variant_classification_sources": ["genebe", "clinvar"],
     "reference_genome": "GRCh38",
     "clinvar_evidence": 1,
     "RR_mode": "screening",

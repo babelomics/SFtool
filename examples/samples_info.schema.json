@@ -15,10 +15,21 @@
           "enum": ["secondary_findings_discovery", "variant_confirmation"]
         },
 
-        "profile": {
-          "type": "string",
-          "enum": ["basic", "advanced"],
-          "default": "advanced"
+        "variant_classification_sources": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "genebe",
+              "clinvar"
+            ]
+          },
+          "uniqueItems": true,
+          "minItems": 1,
+          "default": [
+            "genebe",
+            "clinvar"
+          ]
         },
 
         "reference_genome": {
