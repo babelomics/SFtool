@@ -17,7 +17,8 @@ def run(ctx: ExecutionContext) -> None:
     java_path = ctx.config.paths.java
     pharmCAT_path = ctx.config.paths.pharmCAT
     assembly = ctx.assembly
-    profile = ctx.profile
+    variant_classification_sources = ctx.variant_classification_sources
+    tmp_dir = ctx.tmp_dir
 
     unique_categories = sorted(
         {cat for sample in ctx.samples for cat in sample.categories}
@@ -29,7 +30,7 @@ def run(ctx: ExecutionContext) -> None:
         for category in categories:
             if category == 'PR' or category == 'RR':
                 vcf_file = sample.vcf_outputs["intersected"][category]
-                genebe_output_file = run_genebe(vcf_file, category, assembly, genebe_path, java_path, genebe_apikey, genebe_username)
+                genebe_output_file = run_genebe(vcf_file, category, assembly, genebe_path, java_path, genebe_apikey, genebe_username, tmp_dir)
                 sample.vcf_outputs["genebe_annotated"][category] = genebe_output_file
             elif category == 'PGx' and assembly == 'GRCh38': # Run PharmCAT
                 [pharmCAT_report_file, pharmCAT_phenotype_file] = run_pharmCAT(sample.vcf_outputs["PGx_preprocessed"], pharmCAT_path, java_path, ctx.run_dir)
@@ -37,7 +38,7 @@ def run(ctx: ExecutionContext) -> None:
                 sample.results["PGx"] = pharmCAT_phenotype_file
 
     # 2. Clinvar variant selection according to gene catalogs
-    if profile == 'advanced' and ('PR' in unique_categories or 'RR' in unique_categories):
+    if 'clinvar' in variant_classification_sources and ('PR' in unique_categories or 'RR' in unique_categories):
         clinvar_evidence = ctx.clinvar_evidence
         clinvar_db = ctx.outputs["clinvar"]["clinvar_db"]
         clinvar_submission = ctx.outputs["clinvar"]["clinvar_summary_db"]
@@ -49,8 +50,10 @@ def run(ctx: ExecutionContext) -> None:
                 elif category == 'RR':
                     category_geneset_file = ctx.config.catalogs.reproductive_risk_geneset
 
-                path = Path(vcf_file)
-                clinvar_output_file = path.parent / f"clinvar.{category}.json"
+                category_tmp_dir = Path(tmp_dir) / category.upper()
+                category_tmp_dir.mkdir(parents=True, exist_ok=True)
+
+                clinvar_output_file = category_tmp_dir / f"clinvar.{category}.json"
 
                 run_clinvar(clinvar_evidence, clinvar_db, clinvar_submission, category, category_geneset_file, clinvar_output_file)
                 json_category = category + '_json'

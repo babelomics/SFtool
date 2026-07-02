@@ -9,8 +9,9 @@ import gzip
 import io
 import vcfpy
 from modules.catalogs.build_json_bed_files import read_csv
+from pathlib import Path
 
-def run_genebe(norm_vcf, category, assembly, genebe_path, java_path, api_key, username):
+def run_genebe(norm_vcf, category, assembly, genebe_path, java_path, api_key, username, tmp_dir):
     """
     Run GeneBe for annotate variants
 
@@ -21,12 +22,25 @@ def run_genebe(norm_vcf, category, assembly, genebe_path, java_path, api_key, us
     :param java_path: Path to Java
     :param api_key: Api key for annotating using GeneBe
     :param username: User name for annotating using GeneBe
+    :param tmp_dir: temporary dir where output file will be saved
     :return: Annotated VCF file
     """
 
     try:
         # Path to VCF intersected and output directory
-        genebe_output_file = f"{norm_vcf.split(category.upper() + '.vcf.gz')[0]}{category.upper()}{'.geneBe.vcf.gz'}"
+
+        norm_vcf = Path(norm_vcf)
+
+        category_tmp_dir = Path(tmp_dir) / category.upper()
+        category_tmp_dir.mkdir(parents=True, exist_ok=True)
+
+        basename = norm_vcf.name.replace(
+            f".{category.upper()}.vcf.gz",
+            f".{category.upper()}.geneBe.vcf.gz"
+        )
+
+        genebe_output_file = category_tmp_dir / basename
+
 
         if assembly == 'GRCh37':
             assembly_int = "hg19"
@@ -55,11 +69,11 @@ def run_genebe(norm_vcf, category, assembly, genebe_path, java_path, api_key, us
     except subprocess.CalledProcessError as e:
         print(f"Error when running Genebe: {e.output}")
 
-def parse_genebe_output(genebe_output_vcf_file, mode, category, category_geneset_file):
+def parse_genebe_output(genebe_output_vcf_file, variant_classification_sources, category, category_geneset_file):
     """
 
     :param genebe_output_vcf_file: VCF annotated by GeneBe
-    :param mode: basic or avdanced
+    :param variant_classification_sources: list of variant classification sources
     :param category: pr or rr
     :param category_geneset_file: Path to CSV file for the given category
     :return:
@@ -101,8 +115,8 @@ def parse_genebe_output(genebe_output_vcf_file, mode, category, category_geneset
                             genotype = variant_record.calls[0].data['GT'] # A single sample in the VCF is assumed
                             rs = variant_record.INFO.get('dbsnp_base','.')
 
-                            # Get only pathogenic and likely pathogenic variants or add them all if advanced (Clinvar) mode
-                            if classification in ["Pathogenic", "Likely_pathogenic"] or mode == 'advanced':
+                            # Get only pathogenic and likely pathogenic variants or add them all if clinvar in variant_classification_sources
+                            if classification in ["Pathogenic", "Likely_pathogenic"] or 'clinvar' in variant_classification_sources:
                                 # Create a dictionary with interesting fields
 
                                 if variant not in genebe_results:

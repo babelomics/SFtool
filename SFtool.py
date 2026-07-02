@@ -68,15 +68,15 @@ def main():
 
         # ----------------------------
         # STEP 3: CLINVAR DDBB MANAGEMENT
-        #           Only if profile is advanced and for PR and RR categories
+        #           Only if 'clinvar' is present in variant_classification_sources
         # ----------------------------
-        profile = ctx.profile
+        variant_classification_sources = ctx.variant_classification_sources
         # Get unique list of categories for all samples
         categories = sorted({
             c for s in ctx.samples for c in s.categories
         })
 
-        if profile == 'advanced' and ("PR" in categories or "RR" in categories):
+        if 'clinvar' in variant_classification_sources and ("PR" in categories or "RR" in categories):
             run_clinvar_setup(ctx)
 
 
@@ -109,12 +109,12 @@ def main():
         run_variant_selection(ctx)
 
         if args.debug_dump_ctx:
-            debug_ctx_path = Path(outdir) / "ctx_backup_FE_34045_PR_RR_PGx.pkl"
+            debug_ctx_path = Path(outdir) / "ctx_backup_rr_screening_CFTR.pkl"
             with open(debug_ctx_path, 'wb') as f:
                 pickle.dump(ctx, f)
 
     else:
-        debug_ctx_path = Path(outdir) / "ctx_backup_FE_34045_PR_RR_PGx.pkl"
+        debug_ctx_path = Path(outdir) / "ctx_backup_rr_screening_CFTR.pkl"
         with open(debug_ctx_path, "rb") as f:
             ctx = pickle.load(f)
         # ----------------------------

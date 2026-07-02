@@ -69,6 +69,7 @@ def _build_versions_and_paths_table(ctx, sample):
             category_string += 'PGx (Pharmacogenetic Risk), '
 
     category_string = category_string.rstrip(", ")
+    variant_classification_sources_string = ", ".join(ctx.variant_classification_sources)
 
 
     rows = [
@@ -76,7 +77,7 @@ def _build_versions_and_paths_table(ctx, sample):
         {"Field": "SF tool general mode", "Value": ctx.mode},
         {"Field": "Categories", "Value": category_string},
         {"Field": "Reproductive Risk mode", "Value": ctx.RR_mode},
-        {"Field": "SF tool pathogenicity profile", "Value": ctx.profile},
+        {"Field": "SF tool variant classification sources", "Value": variant_classification_sources_string},
         {"Field": "Sample ID", "Value": sample.sample_id},
         {"Field": "Sample sex", "Value": sample.sex},
         {"Field": "Sample role", "Value": sample.role},
@@ -91,9 +92,9 @@ def _build_versions_and_paths_table(ctx, sample):
         {"Field": "Temporal dir", "Value": ctx.tmp_dir},
         {"Field": "Human assembly", "Value": "hg19" if ctx.assembly == "GRCh37" else "hg38" },
         {"Field": "Reference genome path", "Value": ctx.config.references.genomes["GRCh37"] if ctx.assembly == "GRCh37" else ctx.config.references.genomes["GRCh38"]},
-        {"Field": "Clinvar version", "Value": ctx.config.clinvar.version if ctx.profile == "advanced" else "Not used"},
-        {"Field": "Clinvar path", "Value": ctx.config.clinvar.db_path if ctx.profile == "advanced" else "Not used"},
-        {"Field": "Clinvar evidence level", "Value": str(ctx.clinvar_evidence) if ctx.profile == "advanced" else "Not used"},
+        {"Field": "Clinvar version", "Value": ctx.config.clinvar.version if 'clinvar' in ctx.variant_classification_sources else "Not used"},
+        {"Field": "Clinvar path", "Value": ctx.config.clinvar.db_path if 'clinvar' in ctx.variant_classification_sources else "Not used"},
+        {"Field": "Clinvar evidence level", "Value": str(ctx.clinvar_evidence) if 'clinvar' in ctx.variant_classification_sources else "Not used"},
         {"Field": "GeneBe version", "Value": "Not used" if ("PR" not in sample.categories and "rr" not in sample.categories) else re.search(r'version:\s*(.*?)\s*::', str(genebe_out)).group(1)},
         {"Field": "GeneBe path", "Value": ctx.config.paths.genebe},
         {"Field": "bcftools version", "Value": str(bcftools_out).split(" ")[1].split("\\n")[0]},

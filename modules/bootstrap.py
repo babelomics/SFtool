@@ -168,11 +168,17 @@ def validate_execution_block(exec_data: Dict[str, Any], num_samples):
     # =====================================================
     # MODE: SECONDARY FINDINGS DISCOVERY
     # =====================================================
-    # Set default profile
-    exec_data.setdefault("profile", "advanced")
+    # Set default variant_classification_sources
+    exec_data.setdefault("variant_classification_sources", ["genebe", "clinvar"])
 
-    if exec_data["profile"] not in ["basic", "advanced"]:
-        raise ValidationError("execution.profile must be 'basic' or 'advanced'")
+    allowed = [
+        ["genebe"],
+        ["genebe", "clinvar"]
+    ]
+
+
+    if exec_data["variant_classification_sources"] not in allowed:
+        raise ValidationError("execution.variant_classification_sources must be ['genebe'] or ['genebe', 'clinvar']")
 
 
     # -------- RR_mode rules --------
