@@ -11,7 +11,7 @@ def run(ctx: ExecutionContext) -> None:
     Variant collection step to gather variants of interest from different evidences (GeneBe, Clinvar, STRipy and SMAca)
     """
 
-    profile = ctx.profile
+    variant_classification_sources = ctx.variant_classification_sources
     CATEGORY_GENESETS = {
         "PR": ctx.config.catalogs.personal_risk_geneset,
         "RR": ctx.config.catalogs.reproductive_risk_geneset,
@@ -24,9 +24,9 @@ def run(ctx: ExecutionContext) -> None:
                 category_geneset_file = CATEGORY_GENESETS[category]
                 # Collect GENEBE variants (SNV/Indels)
                 genebe_file = sample.vcf_outputs["genebe_annotated"][category]
-                snv_indels_genebe = parse_genebe_output(genebe_file, profile, category, category_geneset_file)
-                # Collect CLINVAR variants (SNV/Indels) and merge with GENEBE variants (only of profile is advanced)
-                if profile == "advanced":
+                snv_indels_genebe = parse_genebe_output(genebe_file, variant_classification_sources, category, category_geneset_file)
+                # Collect CLINVAR variants (SNV/Indels) and merge with GENEBE variants (only of variant_classification_sources contains clinvar)
+                if 'clinvar' in variant_classification_sources:
                     json_category = category + '_json'
                     clinvar_file = ctx.outputs["clinvar"][json_category]
                     with clinvar_file.open("r", encoding="utf-8") as fh:

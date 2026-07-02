@@ -28,7 +28,6 @@ def run_genebe(norm_vcf, category, assembly, genebe_path, java_path, api_key, us
 
     try:
         # Path to VCF intersected and output directory
-        #genebe_output_file = f"{norm_vcf.split(category.upper() + '.vcf.gz')[0]}{category.upper()}{'.geneBe.vcf.gz'}"
 
         norm_vcf = Path(norm_vcf)
 
@@ -70,11 +69,11 @@ def run_genebe(norm_vcf, category, assembly, genebe_path, java_path, api_key, us
     except subprocess.CalledProcessError as e:
         print(f"Error when running Genebe: {e.output}")
 
-def parse_genebe_output(genebe_output_vcf_file, mode, category, category_geneset_file):
+def parse_genebe_output(genebe_output_vcf_file, variant_classification_sources, category, category_geneset_file):
     """
 
     :param genebe_output_vcf_file: VCF annotated by GeneBe
-    :param mode: basic or avdanced
+    :param variant_classification_sources: list of variant classification sources
     :param category: pr or rr
     :param category_geneset_file: Path to CSV file for the given category
     :return:
@@ -116,8 +115,8 @@ def parse_genebe_output(genebe_output_vcf_file, mode, category, category_geneset
                             genotype = variant_record.calls[0].data['GT'] # A single sample in the VCF is assumed
                             rs = variant_record.INFO.get('dbsnp_base','.')
 
-                            # Get only pathogenic and likely pathogenic variants or add them all if advanced (Clinvar) mode
-                            if classification in ["Pathogenic", "Likely_pathogenic"] or mode == 'advanced':
+                            # Get only pathogenic and likely pathogenic variants or add them all if clinvar in variant_classification_sources
+                            if classification in ["Pathogenic", "Likely_pathogenic"] or 'clinvar' in variant_classification_sources:
                                 # Create a dictionary with interesting fields
 
                                 if variant not in genebe_results:

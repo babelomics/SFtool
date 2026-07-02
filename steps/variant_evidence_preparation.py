@@ -17,7 +17,7 @@ def run(ctx: ExecutionContext) -> None:
     java_path = ctx.config.paths.java
     pharmCAT_path = ctx.config.paths.pharmCAT
     assembly = ctx.assembly
-    profile = ctx.profile
+    variant_classification_sources = ctx.variant_classification_sources
     tmp_dir = ctx.tmp_dir
 
     unique_categories = sorted(
@@ -38,7 +38,7 @@ def run(ctx: ExecutionContext) -> None:
                 sample.results["PGx"] = pharmCAT_phenotype_file
 
     # 2. Clinvar variant selection according to gene catalogs
-    if profile == 'advanced' and ('PR' in unique_categories or 'RR' in unique_categories):
+    if 'clinvar' in variant_classification_sources and ('PR' in unique_categories or 'RR' in unique_categories):
         clinvar_evidence = ctx.clinvar_evidence
         clinvar_db = ctx.outputs["clinvar"]["clinvar_db"]
         clinvar_submission = ctx.outputs["clinvar"]["clinvar_summary_db"]
