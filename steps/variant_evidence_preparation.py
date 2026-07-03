@@ -1,9 +1,9 @@
 
-from modules.context import ExecutionContext
-from modules.misc.geneBe_utils import run_genebe
-from modules.misc.clinvar_utils import run_clinvar
+from sftool.context import ExecutionContext
+from sftool.misc.geneBe_utils import run_genebe
+from sftool.misc.clinvar_utils import run_clinvar
 from pathlib import Path
-from modules.misc.pharmcat_utils import run_pharmCAT
+from sftool.misc.pharmcat_utils import run_pharmCAT
 
 
 def run(ctx: ExecutionContext) -> None:

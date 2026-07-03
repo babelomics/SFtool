@@ -115,7 +115,7 @@ RUN chmod 755 clinvar_database_GRCh38_20250307.txt
 RUN mkdir -p /release_build/
 
 WORKDIR "."
-COPY modules /release_build/modules
+COPY sftool /release_build/modules
 COPY SFtool.py /release_build/SFtool.py
 COPY docker_files/SFtool_singularity /release_build/SFtool
 ENV PATH "$PATH:/release_build/"

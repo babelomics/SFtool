@@ -1,8 +1,8 @@
 # steps/sample_preprocessing_setup.py
 
-from modules.context import ExecutionContext
-from modules.misc.vcf_utils import normalize_vcf, intersect_vcf_with_bed
-from modules.misc.pharmcat_utils import pharmCAT_vcf_preprocessor
+from sftool.context import ExecutionContext
+from sftool.misc.vcf_utils import normalize_vcf, intersect_vcf_with_bed
+from sftool.misc.pharmcat_utils import pharmCAT_vcf_preprocessor
 
 
 def run(ctx: ExecutionContext) -> None:

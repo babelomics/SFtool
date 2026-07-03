@@ -1,6 +1,6 @@
-from modules.context import ExecutionContext
-from modules.variant_selection.pr_variant_selection import pr_variant_selection
-from modules.variant_selection.rr_variant_selection import rr_variant_selection, rr_str_selection, rr_smn1_copy_selection
+from sftool.context import ExecutionContext
+from sftool.variant_selection.pr_variant_selection import pr_variant_selection
+from sftool.variant_selection.rr_variant_selection import rr_variant_selection, rr_str_selection, rr_smn1_copy_selection
 
 
 def run(ctx: ExecutionContext) -> None:

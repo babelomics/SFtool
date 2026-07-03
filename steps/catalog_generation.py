@@ -1,7 +1,7 @@
 # SFtool/steps/catalog_generation.py
 
-from modules.context import ExecutionContext
-from modules.catalogs.build_json_bed_files import build_json_bed_files
+from sftool.context import ExecutionContext
+from sftool.catalogs.build_json_bed_files import build_json_bed_files
 from pathlib import Path
 
 

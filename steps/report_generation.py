@@ -1,6 +1,6 @@
 # steps/report_generation.py
 
-from modules.report.report_manager import ReportManager
+from sftool.report.report_manager import ReportManager
 
 
 def run(ctx):

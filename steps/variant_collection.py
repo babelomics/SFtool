@@ -1,9 +1,9 @@
-from modules.context import ExecutionContext
-from modules.misc.geneBe_utils import parse_genebe_output
-from modules.misc.utils import combine_genebe_clinvar_results
-from modules.STRipy.STR_collection import STR_collection
-from modules.SMAca.SMN1_collection import SMN1_collection
-from modules.misc.pharmcat_utils import pharmCAT_collection
+from sftool.context import ExecutionContext
+from sftool.misc.geneBe_utils import parse_genebe_output
+from sftool.misc.utils import combine_genebe_clinvar_results
+from sftool.STRipy.STR_collection import STR_collection
+from sftool.SMAca.SMN1_collection import SMN1_collection
+from sftool.misc.pharmcat_utils import pharmCAT_collection
 import json
 
 def run(ctx: ExecutionContext) -> None:
