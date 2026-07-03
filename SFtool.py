@@ -21,7 +21,6 @@ Esta herramienta permite a los usuarios analizar archivos VCF para el manejo aut
 @github https://github.com/babelomics/secondaryfindings
 """
 
-import os
 import sys
 import pickle
 from pathlib import Path
@@ -31,7 +30,7 @@ from sftool.misc.errors import (
 )
 
 from sftool.misc.arguments import parse_arguments
-from sftool.bootstrap import bootstrap_execution
+from sftool.core.bootstrap import bootstrap_execution
 from steps.catalog_generation import run as run_catalog_generation
 from steps.clinvar_setup import run as run_clinvar_setup
 from steps.sample_preprocessing import run as run_sample_preprocessing

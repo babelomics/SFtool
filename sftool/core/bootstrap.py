@@ -12,9 +12,9 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
-from typing import Dict, Any, List
-from sftool.context import ExecutionContext, SampleContext
-from sftool.config import Config
+from typing import Dict, Any
+from sftool.core.context import ExecutionContext, SampleContext
+from sftool.core.config import Config
 from sftool.misc.runtime import check_runtime_dependencies
 from sftool.misc.errors import ValidationError
 from sftool.misc.vcf_utils import (

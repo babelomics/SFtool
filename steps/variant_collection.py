@@ -1,4 +1,4 @@
-from sftool.context import ExecutionContext
+from sftool.core.context import ExecutionContext
 from sftool.misc.geneBe_utils import parse_genebe_output
 from sftool.misc.utils import combine_genebe_clinvar_results
 from sftool.STRipy.STR_collection import STR_collection

@@ -1,5 +1,5 @@
 
-from sftool.context import ExecutionContext
+from sftool.core.context import ExecutionContext
 from sftool.misc.geneBe_utils import run_genebe
 from sftool.misc.clinvar_utils import run_clinvar
 from pathlib import Path

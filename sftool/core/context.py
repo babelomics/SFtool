@@ -6,7 +6,7 @@ from typing import Dict, List, Optional
 from datetime import datetime
 import uuid
 
-from sftool.config import Config
+from sftool.core.config import Config
 
 
 class SampleContext:

@@ -7,7 +7,7 @@ required external tools and resources exist before execution.
 
 import os
 from sftool.misc.errors import RuntimeDependencyError
-from sftool.config import PathsConfig
+from sftool.core.config import PathsConfig
 
 
 # =====================================================
