@@ -1,0 +1,57 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "sftool"
+version = "0.1.0-dev"
+description = "A bioinformatics tool for the discovery and reporting of secondary findings derived from opportunistic genomic screening"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { file = "LICENSE" }
+
+authors = [
+    { name = "Javier Pérez-Florido" },
+    { name = "Rosario Carmona" },
+    { name = "Edurne Urrutia Lafuente" },
+]
+
+maintainers = [
+    { name = "Javier Pérez-Florido" },
+]
+
+keywords = [
+    "genomics",
+    "bioinformatics",
+    "secondary findings",
+    "pharmacogenomics",
+    "clinical genomics",
+    "rare diseases"
+]
+
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: POSIX :: Linux",
+    "Topic :: Scientific/Engineering :: Bio-Informatics"
+]
+
+dependencies = [
+    "pandas",
+    "xlsxwriter",
+    "requests",
+    "natsort",
+    "vcfpy",
+    "pybedtools"
+]
+
+[project.scripts]
+sftool = "sftool.cli:main"
+
+
+[tool.setuptools.packages.find]
+include = ["sftool*"]
+
+[tool.setuptools.package-data]
+"sftool.data.categories" = ["*"]

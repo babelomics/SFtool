@@ -1,0 +1,145 @@
+# -*- coding: utf-8 -*-
+"""
+
+@author: jpflorido
+"""
+import subprocess
+import os
+import gzip
+import io
+import vcfpy
+from sftool.utils.catalog_utils import read_csv
+from pathlib import Path
+
+def run_genebe(norm_vcf, category, assembly, genebe_path, java_path, api_key, username, tmp_dir):
+    """
+    Run GeneBe for annotate variants
+
+    :param norm_vcf: Path to normalized file
+    :param category: Gene category for annotation
+    :param assembly: Reference genome version
+    :param genebe_path: Path to geneBe annotator
+    :param java_path: Path to Java
+    :param api_key: Api key for annotating using GeneBe
+    :param username: User name for annotating using GeneBe
+    :param tmp_dir: temporary dir where output file will be saved
+    :return: Annotated VCF file
+    """
+
+    try:
+        # Path to VCF intersected and output directory
+
+        norm_vcf = Path(norm_vcf)
+
+        category_tmp_dir = Path(tmp_dir) / category.upper()
+        category_tmp_dir.mkdir(parents=True, exist_ok=True)
+
+        basename = norm_vcf.name.replace(
+            f".{category.upper()}.vcf.gz",
+            f".{category.upper()}.geneBe.vcf.gz"
+        )
+
+        genebe_output_file = category_tmp_dir / basename
+
+
+        if assembly == 'GRCh37':
+            assembly_int = "hg19"
+        elif assembly == 'GRCh38':
+            assembly_int = 'hg38'
+
+        # Build command to run GeneBe
+        cmd = [java_path,
+               "-jar",
+               genebe_path,
+               "vcf",  "annotate",
+               "--input-vcf", norm_vcf,
+               "--output-vcf", genebe_output_file,
+               "--genome", assembly_int,
+               "--api-key", api_key,
+               "--username", username
+               ]
+
+        # Run command and get output
+        with subprocess.Popen(cmd, stderr=subprocess.STDOUT, text=True, cwd=os.path.dirname(genebe_path)) as process:
+            output, _ = process.communicate()
+
+
+        return genebe_output_file
+
+    except subprocess.CalledProcessError as e:
+        print(f"Error when running Genebe: {e.output}")
+
+def parse_genebe_output(genebe_output_vcf_file, variant_classification_sources, category, category_geneset_file):
+    """
+
+    :param genebe_output_vcf_file: VCF annotated by GeneBe
+    :param variant_classification_sources: list of variant classification sources
+    :param category: pr or rr
+    :param category_geneset_file: Path to CSV file for the given category
+    :return:
+    """
+
+    try:
+
+        # Get the list of genes for the current category
+        genes_dct, genes_lst = read_csv(category_geneset_file, category)
+
+        # Read VCF file
+        genebe_results = {}
+
+        with gzip.open(genebe_output_vcf_file, "rb") as f:
+            text_stream = io.TextIOWrapper(f, encoding="utf-8", errors="replace")  # Convert to text
+            vcf_reader = vcfpy.Reader(text_stream)
+            for variant_record in vcf_reader:
+                chrom = str(variant_record.CHROM)
+                pos = str(variant_record.POS)
+                ref = str(variant_record.REF)
+                alt = str(variant_record.ALT[0].value)
+                variant = chrom + ':' + pos + ':' + ref + ':' + alt
+
+                if 'gene_symbol_base' in variant_record.INFO: # There are entries in the VCF file whose ALT is * (avoid those entries which have no gene annotation)
+
+                    # A variant might overlap with more than a single gene. If so, get the information for the gene of interest (contained in the category list)
+                    genes_info = [item.split("|") for item in variant_record.INFO['acmg_by_gene_base']]
+
+                    for i, gene_values in enumerate(genes_info, 1):
+                        if gene_values[0] in genes_lst:
+                            ref_gene = gene_values[0]
+                            transcript = gene_values[2]
+                            variant_consequence = gene_values[3]
+                            acmg_criteria = gene_values[7]
+                            classification = gene_values[8]
+                            hgvsc = gene_values[9]
+                            hgvsp = gene_values[10]
+
+                            genotype = variant_record.calls[0].data['GT'] # A single sample in the VCF is assumed
+                            rs = variant_record.INFO.get('dbsnp_base','.')
+
+                            # Get only pathogenic and likely pathogenic variants or add them all if clinvar in variant_classification_sources
+                            if classification in ["Pathogenic", "Likely_pathogenic"] or 'clinvar' in variant_classification_sources:
+                                # Create a dictionary with interesting fields
+
+                                if variant not in genebe_results:
+                                    genebe_results[variant] = []
+
+                                # There might be variants that are annotated to more than one gene (p.e. CYP21A2 – TNXB in RR category)
+                                genebe_results[variant].append({
+                                    "Gene": ref_gene,
+                                    "rs": rs,
+                                    "GeneBeClassification": classification,
+                                    "Genotype": genotype,
+                                    "Consequence": variant_consequence,
+                                    "Transcript": transcript,
+                                    "ACMG_criteria": acmg_criteria,
+                                    "HGVSC": hgvsc,
+                                    "HGVSP": hgvsp,
+                                    "VCFSampleFormat": "; ".join(
+                                        f"{key}: {', '.join(map(str, value)) if isinstance(value, list) else value}"
+                                        for key, value in variant_record.calls[0].data.items()
+                                    )
+                                })
+
+        return genebe_results
+
+    except Exception as e:
+        raise Exception(f"Error when parsing Genebe annotated VCF file: {e}")

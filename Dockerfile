@@ -101,7 +101,7 @@ RUN samtools faidx hg38.fa
 RUN pip3 install pandas vcfpy requests natsort pybedtools openpyxl --break-system-packages
 
 RUN mkdir -p /docker_directories/categories/
-COPY categories /docker_directories/categories
+COPY sftool/data/categories /docker_directories/categories
 
 ADD https://zenodo.org/records/15068802/files/clinvar_database_GRCh37_20250307.txt?download=1 /docker_dependencies/clinvar/clinvar_database_GRCh37_20250307.txt
 WORKDIR "/docker_dependencies/clinvar/"
@@ -115,7 +115,7 @@ RUN chmod 755 clinvar_database_GRCh38_20250307.txt
 RUN mkdir -p /release_build/
 
 WORKDIR "."
-COPY modules /release_build/modules
+COPY sftool /release_build/modules
 COPY SFtool.py /release_build/SFtool.py
 COPY docker_files/SFtool_singularity /release_build/SFtool
 ENV PATH "$PATH:/release_build/"
