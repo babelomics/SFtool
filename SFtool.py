@@ -25,11 +25,11 @@ import sys
 import pickle
 from pathlib import Path
 
-from sftool.misc.errors import (
+from sftool.utils.errors import (
     BootstrapError
 )
 
-from sftool.misc.arguments import parse_arguments
+from sftool.utils.arguments import parse_arguments
 from sftool.core.bootstrap import bootstrap_execution
 from steps.catalog_generation import run as run_catalog_generation
 from steps.clinvar_setup import run as run_clinvar_setup

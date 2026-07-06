@@ -1,7 +1,7 @@
 # steps/clinvar_setup.py
 
 from sftool.core.context import ExecutionContext
-from sftool.misc.clinvar_utils import clinvar_manager
+from sftool.utils.clinvar_utils import clinvar_manager
 
 def run(ctx: ExecutionContext) -> None:
     """

@@ -12,7 +12,7 @@ import re
 import logging
 from pathlib import Path
 
-from sftool.misc.errors import ValidationError
+from sftool.utils.errors import ValidationError
 
 logger = logging.getLogger(__name__)
 

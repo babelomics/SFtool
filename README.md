@@ -34,7 +34,7 @@ prior or during pregnancy or having a child with an autosomal recessive or X-lin
 SF tool generates a report that contains secondary findings found in a VCF file for each category. The general workflow is show below:
 The tool, written in Python, processes a list of SNPs and small Indels (insertions or deletions < 50bps) in VCF format and runs the modules for the identification of personal, reproductive/offsping and/or pharmacogenetic variants.
 
-![sftool_diagram](sftool/misc/sfdiagram.png)
+![sftool_diagram](sftool/utils/sfdiagram.png)
 
 For the **Personal Risk** and the **Reproductive Risk and Risk in Offspring** and after a series of checks, a normalization of the VCF file is run. Then the program generates two JSON and BED files with the corresponding chromosomal regions for each of the 2 categories. Subsequently, 2 different VCF files are generated, each containing the identified variants only in the regions to be studied for each category. Next, each of the risk modules is executed:
 

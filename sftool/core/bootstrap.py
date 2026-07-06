@@ -15,9 +15,9 @@ from pathlib import Path
 from typing import Dict, Any
 from sftool.core.context import ExecutionContext, SampleContext
 from sftool.core.config import Config
-from sftool.misc.runtime import check_runtime_dependencies
-from sftool.misc.errors import ValidationError
-from sftool.misc.vcf_utils import (
+from sftool.utils.runtime import check_runtime_dependencies
+from sftool.utils.errors import ValidationError
+from sftool.utils.vcf_utils import (
     validate_chr_prefix,
     check_vcf_positions_present
 )
