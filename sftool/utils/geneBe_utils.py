@@ -8,7 +8,7 @@ import os
 import gzip
 import io
 import vcfpy
-from sftool.catalogs.build_json_bed_files import read_csv
+from sftool.utils.catalog_utils import read_csv
 from pathlib import Path
 
 def run_genebe(norm_vcf, category, assembly, genebe_path, java_path, api_key, username, tmp_dir):

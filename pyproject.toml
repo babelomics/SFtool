@@ -46,10 +46,12 @@ dependencies = [
     "pybedtools"
 ]
 
-
 [project.scripts]
 sftool = "sftool.cli:main"
 
 
 [tool.setuptools.packages.find]
 include = ["sftool*"]
+
+[tool.setuptools.package-data]
+"sftool.data.categories" = ["*"]

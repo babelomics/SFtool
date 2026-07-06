@@ -7,6 +7,8 @@ exactly as provided.
 """
 
 from typing import Dict
+from importlib.resources import files
+
 
 class Config:
     """
@@ -31,9 +33,23 @@ class CatalogConfig:
     Catalog definitions (PR / RR / PGx).
     """
     def __init__(self, cfg: dict):
-        self.personal_risk_geneset = cfg["personal_risk_geneset"]
-        self.reproductive_risk_geneset = cfg["reproductive_risk_geneset"]
-        self.reproductive_risk_geneset_STR = cfg["reproductive_risk_geneset_STR"]
+        categories_dir = files("sftool.data.categories")
+
+
+        self.personal_risk_geneset = cfg.get(
+            "personal_risk_geneset",
+            categories_dir / "PR" / "PR_risk_genes_ACMG_SF_v3.1.csv"
+        )
+
+        self.reproductive_risk_geneset = cfg.get(
+            "reproductive_risk_geneset",
+            categories_dir / "RR" / "RR_risk_genes_ACMG_CS_v2021.csv"
+        )
+
+        self.reproductive_risk_geneset_STR = cfg.get(
+            "reproductive_risk_geneset_STR",
+            categories_dir / "RR" / "RR_risk_genes_STR_ACMG_CS_v2021.csv"
+        )
 
 
 class ClinVarConfig:
@@ -74,9 +90,12 @@ class ReferenceDataConfig:
       - pharmcat_positions_vcf
     """
     def __init__(self, cfg: dict):
+        categories_dir = files("sftool.data.categories")
+
         self.genomes: Dict = cfg.get("genomes", {})
         self.gene_to_phenotype_file: Optional[str] = cfg.get(
-            "gene_to_phenotype_file"
+            "gene_to_phenotype_file",
+            categories_dir / "genes_to_phenotype_20260623.txt"
         )
         self.pharmCAT_positions_vcf: Optional[str] = cfg.get(
             "pharmCAT_positions_vcf"

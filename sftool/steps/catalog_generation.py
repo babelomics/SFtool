@@ -1,7 +1,7 @@
 # SFtool/steps/catalog_generation.py
 
 from sftool.core.context import ExecutionContext
-from sftool.catalogs.build_json_bed_files import build_json_bed_files
+from sftool.utils.catalog_utils import build_catalog_resources
 from pathlib import Path
 
 
@@ -33,7 +33,7 @@ def run(ctx: ExecutionContext) -> None:
         bed_file = output_dir / f"PR_risk_genes_{assembly}.bed"
         json_file = output_dir / f"PR_risk_genes.json"
         if not Path(bed_file).exists():
-            build_json_bed_files(
+            build_catalog_resources(
                 "PR",
                 assembly,
                 personal_risk_geneset_file,
@@ -54,7 +54,7 @@ def run(ctx: ExecutionContext) -> None:
         bed_file = output_dir / f"RR_risk_genes_{assembly}.bed"
         json_file = output_dir / f"RR_risk_genes.json"
         if not Path(bed_file).exists():
-            build_json_bed_files(
+            build_catalog_resources(
                 "RR",
                 assembly,
                 reproductive_risk_geneset_file,

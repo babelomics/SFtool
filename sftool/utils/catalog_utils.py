@@ -133,7 +133,7 @@ def has_chr_prefix_vcf(vcf_file):
     return False  # If no variants are found
 
 
-def build_json_bed_files(category, assembly, category_geneset_file, bed_file, json_file, vcf_file):
+def build_catalog_resources(category, assembly, category_geneset_file, bed_file, json_file, vcf_file):
     """
     Main function: from a CSV file, creates a JSON and a BED files
 

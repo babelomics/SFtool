@@ -10,10 +10,10 @@ import csv
 import urllib.request
 from datetime import datetime
 import shutil
-from sftool.catalogs.build_json_bed_files import read_csv
+from sftool.utils.catalog_utils import read_csv
 from collections import Counter
 import json
-from pathlib import Path
+
 
 def map_review_status(review_status):
     """
