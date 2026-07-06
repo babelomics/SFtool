@@ -31,13 +31,13 @@ from sftool.utils.errors import (
 
 from sftool.utils.arguments import parse_arguments
 from sftool.core.bootstrap import bootstrap_execution
-from steps.catalog_generation import run as run_catalog_generation
-from steps.clinvar_setup import run as run_clinvar_setup
-from steps.sample_preprocessing import run as run_sample_preprocessing
-from steps.variant_evidence_preparation import run as run_variant_evidence_preparation
-from steps.variant_collection import run as run_variant_collection
-from steps.variant_selection import run as run_variant_selection
-from steps.report_generation import run as run_report_generation
+from sftool.steps.catalog_generation import run as run_catalog_generation
+from sftool.steps.clinvar_setup import run as run_clinvar_setup
+from sftool.steps.sample_preprocessing import run as run_sample_preprocessing
+from sftool.steps.variant_evidence_preparation import run as run_variant_evidence_preparation
+from sftool.steps.variant_collection import run as run_variant_collection
+from sftool.steps.variant_selection import run as run_variant_selection
+from sftool.steps.report_generation import run as run_report_generation
 
 
 def main():
