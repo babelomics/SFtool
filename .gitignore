@@ -1,6 +1,20 @@
+# IDE
 .idea
+# Python
 __pycache__/
+*.egg-info
+.pytest_cache/
+.mypy_cache/
+# Virtual environments
+venv/
+.venv/
+env/
+# Build
+build/
+dist/
+# OS
+.DS_Store
+# Others
+sftool.sif
 temp
 final_output
-sftool.sif
-*.egg-info
