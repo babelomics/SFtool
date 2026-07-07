@@ -7,8 +7,6 @@ Created on Sat Aug 26 22:15:15 2023
 import os
 import subprocess
 from pybedtools import BedTool
-import vcfpy
-import re
 import logging
 from pathlib import Path
 
