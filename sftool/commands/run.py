@@ -17,25 +17,34 @@ from sftool.steps.variant_selection import run as run_variant_selection
 from sftool.steps.report_generation import run as run_report_generation
 
 
+RUN_HELP = """
+Run the complete SFtool workflow.
+
+\b
+Example:
+  sftool run \\
+    --samples samples_info.json \\
+    --config config.json \\
+    --outdir results \\
+    --force
+"""
+
 @click.command(
-    help=(
-            "Run the complete SFtool workflow using a samples_info JSON file "
-            "and a configuration JSON file."
-    )
+    help=RUN_HELP
 )
 @click.option(
     "--samples",
     "samples_path",
     required=True,
     type=click.Path(exists=True, dir_okay=False, readable=True),
-    help="Path to the samples_info JSON file."
+    help="Path to the samples_info JSON file (see template in examples/samples_info.schema.json)."
 )
 @click.option(
     "--config",
     "config_path",
     required=True,
     type=click.Path(exists=True, dir_okay=False, readable=True),
-    help="Path to the SFtool configuration JSON file."
+    help="Path to the SFtool configuration JSON file (see template in examples/config.schema.json)."
 )
 @click.option(
     "--outdir",

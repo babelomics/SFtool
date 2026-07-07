@@ -1,39 +1,34 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-"""
-Herramienta para el manejo automático de hallazgos secundarios.
-
-Esta herramienta permite a los usuarios analizar archivos VCF para el manejo automático de hallazgos secundarios relacionados con riesgo personal, riesgo reproductivo y farmacogenético.
-
-
-@Usage python3.10 -m sftool.cli
-    --samples <samples_info.json>
-    --config <config_info.json>
-     --outdir <root_output_dir>
-     --force
-
-@Author Javier Perez FLorido, Edurne Urrutia Lafuente
-@Date 2023/08/01
-@email javier.perez.florido.sspa@juntadeandalucia.es, edurlaf@gmail.com
-@github https://github.com/babelomics/SFtool
-"""
-
 import click
 
 from sftool.commands.run import run
 from sftool.commands.check import check
 
+CONTEXT_SETTINGS = {
+    "help_option_names": ["-h", "--help"]
+}
 
 @click.group(
-    context_settings={"help_option_names": ["-h", "--help"]}
+    context_settings=CONTEXT_SETTINGS,
+    invoke_without_command=True
 )
 @click.version_option()
-def main():
+@click.pass_context
+
+def main(ctx):
     """
     SFtool: manage personal, reproductive and pharmacogenomic secondary findings.
     """
-    pass
+    if ctx.invoked_subcommand is None:
+        click.secho("Error: no command specified.\n", fg="red", bold=True)
+        click.echo("Available commands:")
+        click.echo("  run     Execute the complete SFtool workflow.")
+        click.echo("  check   Validate the execution environment and configuration.")
+        click.echo()
+        click.echo("Run 'sftool --help' for more information.")
+        ctx.exit(1)
 
 
 main.add_command(run)
