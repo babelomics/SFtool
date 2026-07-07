@@ -52,22 +52,18 @@ def normalize_vcf(input_vcf_path, temp_path, bcftools_path, reference_genome_pat
         output3_vcf_path = os.path.join(temp_path, just_filename.split(".vcf.gz")[0] + ".norm.vcf.gz")
 
         # bcftools normalization command
-
-        #bcftools_command = [bcftools_path + "bcftools", "norm", "-O", "z", "-m", "-any", "--check-ref", "w",  "-f", reference_genome_path, "-o", output_vcf_path, input_vcf_path]
         bcftools_command = [bcftools_path, "norm", "-O", "z", "-m", "-any", "--check-ref", "w",  "-f", reference_genome_path, "-o", output_vcf_path, input_vcf_path]
 
         # Normalize with bcftools
         subprocess.run(bcftools_command, check=True)
 
         # Remove duplicates with bcftools
-        #rm_dup_command = [bcftools_path + "bcftools", "norm", "--rm-dup", "none", "-Oz", "-o", output2_vcf_path, output_vcf_path]
         rm_dup_command = [bcftools_path, "norm", "--rm-dup", "none", "-Oz", "-o", output2_vcf_path, output_vcf_path]
         subprocess.run(rm_dup_command, check=True)
 
         print("bcftools normalization completed.")
 
         # Remove non-variant sites (genotypes with 0/0)
-        #rm_nonvariantsites_command = [bcftools_path + "bcftools", "view", "-e", 'ALT="*" || GT="0/0"', "-Oz", "-o", output3_vcf_path, output2_vcf_path]
         rm_nonvariantsites_command = [bcftools_path, "view", "-e", 'ALT="*" || GT="0/0"', "-Oz", "-o", output3_vcf_path, output2_vcf_path]
         subprocess.run(rm_nonvariantsites_command, check=True)
 
@@ -120,101 +116,6 @@ def intersect_vcf_with_bed(vcf_norm_file, category_bed_file, temp_path, category
         print(f"Intersection completed. VCF file saved to {output_vcf_path}")
     except Exception as e:
         print(f"Error during the VCF intersection {e}")
-
-
-#####################################################################################
-# Merging results functions
-#####################################################################################
-
-def combine_results(vcf_norm, intervar_results, clinvar_results):
-    """
-    Combine results from Intervar and Clinvar into a single line per variant
-
-    Args:
-        vcf_norm (str): Path to normalized and intersected VCF file
-        intervar_results (dict): Intervar results
-        clinvar_results (dict): Clinvar results
-
-    Returns:
-        dict: A diccionary with combined results
-    """
-    combined_results = {}
-
-    # Since Intervar removes reference nucleotide in indels, the best way to combine results
-    # is to parse VCF file and search for a variant in Intervar and Clinvar results
-
-
-    try:
-        # Read VCF file
-        vcf_reader = vcfpy.Reader.from_path(vcf_norm)
-        for variant_record in vcf_reader:
-            chrom = str(variant_record.CHROM)
-            pos = str(variant_record.POS)
-            ref = str(variant_record.REF)
-            alt = str(variant_record.ALT[0].value)
-            variant_key = chrom + ':' + pos + ':' + ref + ':' + alt
-
-            if len(ref) > len(alt): # Deletion
-                if len(alt) == 1:
-                    variant_int = f"{chrom}:{str(int(pos) + 1)}:{ref[1:]}:-"
-                else:
-                    variant_int = f"{chrom}:{str(int(pos) + 1)}:{ref[1:]}:{alt[1:]}"
-            elif len(ref) < len(alt): # Insertion
-                if len(ref) == 1:
-                    variant_int = f"{chrom}:{pos}:-:{alt[1:]}"
-                else:
-                    variant_int = f"{chrom}:{pos}:{ref[1:]}:{alt[1:]}"
-            else:
-                variant_int = f"{chrom}:{pos}:{ref}:{alt}"
-
-
-            intervar_info = intervar_results.get(variant_int)
-
-            # Search variant in Clinvar dictionary
-            clinvar_info = clinvar_results.get(variant_key)
-
-
-            if clinvar_info is not None:
-
-                clinvar_clinical_significance_tmp = list(map(str.strip,re.split(';|,|/',clinvar_info["ClinicalSignificance"])))
-                clinvar_clinical_significance = list(map(str.lower,clinvar_clinical_significance_tmp))
-
-                if (intervar_info and intervar_info["IntervarClassification"] in ["Pathogenic", "Likely pathogenic"]) or \
-                        ("pathogenic" in clinvar_clinical_significance) or \
-                        ("likely pathogenic" in clinvar_clinical_significance) or \
-                        (("conflicting classifications of pathogenicity" in clinvar_clinical_significance) and (clinvar_info["ClinSigSimple"]=="1")):
-
-                    combined_results[variant_key] = {
-                        "Gene": clinvar_info["Gene"],
-                        "Genotype": intervar_info["Genotype"],
-                        "rs": intervar_info["rs"] if intervar_info["rs"] != '.' else clinvar_info["rs"],
-                        "IntervarClassification": intervar_info["IntervarClassification"],
-                        "ClinvarClinicalSignificance": clinvar_info["ClinicalSignificance"],
-                        "ReviewStatus": clinvar_info["ReviewStatus"],
-                        "ClinvarID": clinvar_info["ClinvarID"],
-                        "Orpha": intervar_info["Orpha"],
-                        "IntervarConsequence": intervar_info["IntervarConsequence"]
-                    }
-            else:
-                # If there is no info in Clinvar, get info from Intervar
-                if (intervar_info and intervar_info["IntervarClassification"] in ["Pathogenic", "Likely pathogenic"]):
-                    combined_results[variant_key] = {
-                        "Gene": intervar_info["Gene"],
-                        "Genotype": intervar_info["Genotype"],
-                        "rs": intervar_info["rs"] if intervar_info["rs"] != '.' else '-',
-                        "IntervarClassification": intervar_info["IntervarClassification"],
-                        "ClinvarClinicalSignificance": "NA",
-                        "ReviewStatus": "NA",
-                        "ClinvarID": "NA",
-                        "Orpha": intervar_info["Orpha"],
-                        "IntervarConsequence": intervar_info["IntervarConsequence"]
-                    }
-
-    except Exception as e:
-        raise Exception(f"Error al combinar resultados: {e}")
-
-    return combined_results
-
 
 # ==========================================================
 # Generic helpers
