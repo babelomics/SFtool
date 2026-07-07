@@ -63,6 +63,3 @@ def pr_variant_selection(snv_indels_pr_collection, pr_json_file, assembly, gene_
     if snv_indels_selected:
         snv_indels_selected_with_HPO = add_patient_HPOterms(snv_indels_selected, 'snv_indels', gene_to_phenotype_file, sample_hpo_terms)
     return snv_indels_selected_with_HPO
-
-
-    return snv_indels_selected

@@ -42,19 +42,6 @@ def check_executable(label, path):
 # =====================================================
 # Runtime dependency checking
 # =====================================================
-def check_runtime_dependencies(config_data):
-    """
-    Checks system-level runtime dependencies required to RUN SFtool.
-    Checks included here (adapted from the original SFtool):
-      - GeneBeClient.jar exists
-      - bcftools binary exists AND is executable
-      - Java binary exists AND is executable
-      - pharmcat.jar exists
-      - Python interpreter exists AND is executable
-
-    Any missing or invalid dependency raises RuntimeDependencyError.
-    SFtool.py is responsible for catching and reporting errors.
-    """
 
 def check_runtime_dependencies(paths_cfg: PathsConfig):
     """
