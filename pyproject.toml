@@ -43,7 +43,8 @@ dependencies = [
     "requests",
     "natsort",
     "vcfpy",
-    "pybedtools"
+    "pybedtools",
+    "click"
 ]
 
 [project.scripts]
