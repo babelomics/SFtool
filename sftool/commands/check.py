@@ -106,8 +106,13 @@ def check(config_path, samples_path):
         config = Config(config_data)
         _ok("Config object created")
 
-        check_runtime_dependencies(config.paths)
-        _ok("Runtime dependencies are available")
+        # Check versions
+        versions = check_runtime_dependencies(config.paths)
+        for tool in versions.values():
+            _ok(
+                f"{tool.name}: {tool.version} "
+                f"(minimum {tool.minimum})"
+            )
 
         if samples_info:
             check_output_dir = Path.cwd() / ".sftool_check_tmp"

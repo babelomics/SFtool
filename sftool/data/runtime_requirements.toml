@@ -1,0 +1,17 @@
+[python]
+minimum = "3.12"
+
+[java]
+minimum = "21.0.0"
+
+[bcftools]
+minimum = "1.21"
+
+[bgzip]
+minimum = "1.21"
+
+[genebe]
+minimum = "0.1.0-a.22"
+
+[pharmcat]
+minimum = "3.2.0"

@@ -44,7 +44,8 @@ dependencies = [
     "natsort",
     "vcfpy",
     "pybedtools",
-    "click"
+    "click",
+    "packaging"
 ]
 
 [project.scripts]
@@ -55,4 +56,5 @@ sftool = "sftool.cli:main"
 include = ["sftool*"]
 
 [tool.setuptools.package-data]
+"sftool.data" = ["runtime_requirements.toml"]
 "sftool.data.categories" = ["*"]
