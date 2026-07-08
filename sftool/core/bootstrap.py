@@ -41,11 +41,11 @@ def bootstrap_execution(
     output_dir = Path(output_dir)
     tmp_dir = Path(tmp_dir) if tmp_dir else None
 
-    _validate_file_exists(samples_json, "samples_info JSON")
-    _validate_file_exists(config_json, "config JSON")
+    validate_file_exists(samples_json, "samples_info JSON")
+    validate_file_exists(config_json, "config JSON")
 
-    samples_info = _load_json(samples_json)
-    config_data = _load_json(config_json)
+    samples_info = load_json(samples_json)
+    config_data = load_json(config_json)
 
     # -----------------------------------------------------------------
     # Legacy-equivalent validations (dict-level)
@@ -88,7 +88,7 @@ def bootstrap_execution(
 # JSON utilities
 # =====================================================================
 
-def _load_json(path: Path) -> Dict[str, Any]:
+def load_json(path: Path) -> Dict[str, Any]:
     try:
         with path.open() as fh:
             return json.load(fh)
@@ -96,7 +96,7 @@ def _load_json(path: Path) -> Dict[str, Any]:
         raise ValueError(f"Invalid JSON in {path}: {e}") from e
 
 
-def _validate_file_exists(path: Path, label: str):
+def validate_file_exists(path: Path, label: str):
     if not path.exists():
         raise FileNotFoundError(f"{label} not found: {path}")
     if not path.is_file():
