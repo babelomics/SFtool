@@ -286,7 +286,7 @@ def validate_sample_block(samples: Dict[str, Any], mode):
 
 
 
-def validate_config(config: Dict[str, Any], samples_info: dict):
+def validate_config(config: Dict[str, Any], samples_info: dict | None = None):
     required = [
         "paths", "references", "catalogs",
         "clinvar", "genebe_credentials", "smaca_thresholds"
@@ -332,11 +332,15 @@ def validate_config(config: Dict[str, Any], samples_info: dict):
     # ----------------------------------------------------
     # Validate pharmCAT_positions_vcf file existence when PGx category exists
     # ----------------------------------------------------
-    requested_categories = {
-        category
-        for sample in samples_info["samples"]
-        for category in sample.get("categories", [])
-    }
+
+    requested_categories = set()
+
+    if samples_info is not None:
+        requested_categories = {
+            category
+            for sample in samples_info["samples"]
+            for category in sample.get("categories", [])
+        }
 
     if "PGx" in requested_categories:
         if "pharmCAT_positions_vcf" not in references:
@@ -348,9 +352,6 @@ def validate_config(config: Dict[str, Any], samples_info: dict):
             raise ValidationError(
                 f"pharmCAT_positions_vcf does not exist: {pharmCAT_positions}"
             )
-
-
-
 
     # ----------------------------------------------------
     # Validate catalogs (PR, RR, STR, PGx) file existence
