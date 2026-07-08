@@ -41,11 +41,11 @@ def bootstrap_execution(
     output_dir = Path(output_dir)
     tmp_dir = Path(tmp_dir) if tmp_dir else None
 
-    _validate_file_exists(samples_json, "samples_info JSON")
-    _validate_file_exists(config_json, "config JSON")
+    validate_file_exists(samples_json, "samples_info JSON")
+    validate_file_exists(config_json, "config JSON")
 
-    samples_info = _load_json(samples_json)
-    config_data = _load_json(config_json)
+    samples_info = load_json(samples_json)
+    config_data = load_json(config_json)
 
     # -----------------------------------------------------------------
     # Legacy-equivalent validations (dict-level)
@@ -88,7 +88,7 @@ def bootstrap_execution(
 # JSON utilities
 # =====================================================================
 
-def _load_json(path: Path) -> Dict[str, Any]:
+def load_json(path: Path) -> Dict[str, Any]:
     try:
         with path.open() as fh:
             return json.load(fh)
@@ -96,7 +96,7 @@ def _load_json(path: Path) -> Dict[str, Any]:
         raise ValueError(f"Invalid JSON in {path}: {e}") from e
 
 
-def _validate_file_exists(path: Path, label: str):
+def validate_file_exists(path: Path, label: str):
     if not path.exists():
         raise FileNotFoundError(f"{label} not found: {path}")
     if not path.is_file():
@@ -286,7 +286,7 @@ def validate_sample_block(samples: Dict[str, Any], mode):
 
 
 
-def validate_config(config: Dict[str, Any], samples_info: dict):
+def validate_config(config: Dict[str, Any], samples_info: dict | None = None):
     required = [
         "paths", "references", "catalogs",
         "clinvar", "genebe_credentials", "smaca_thresholds"
@@ -332,11 +332,15 @@ def validate_config(config: Dict[str, Any], samples_info: dict):
     # ----------------------------------------------------
     # Validate pharmCAT_positions_vcf file existence when PGx category exists
     # ----------------------------------------------------
-    requested_categories = {
-        category
-        for sample in samples_info["samples"]
-        for category in sample.get("categories", [])
-    }
+
+    requested_categories = set()
+
+    if samples_info is not None:
+        requested_categories = {
+            category
+            for sample in samples_info["samples"]
+            for category in sample.get("categories", [])
+        }
 
     if "PGx" in requested_categories:
         if "pharmCAT_positions_vcf" not in references:
@@ -348,9 +352,6 @@ def validate_config(config: Dict[str, Any], samples_info: dict):
             raise ValidationError(
                 f"pharmCAT_positions_vcf does not exist: {pharmCAT_positions}"
             )
-
-
-
 
     # ----------------------------------------------------
     # Validate catalogs (PR, RR, STR, PGx) file existence

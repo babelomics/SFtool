@@ -1,7 +1,7 @@
-from sftool.report.models import ReportTable
 import os
-import subprocess
-import re
+
+from sftool.report.models import ReportTable
+from sftool.utils.runtime import get_runtime_versions
 
 
 def build_sample_tables(ctx, sample):
@@ -25,40 +25,6 @@ def build_sample_tables(ctx, sample):
 # Versions and paths
 def _build_versions_and_paths_table(ctx, sample):
 
-    try:
-        cmd = [ctx.config.paths.java,
-               "-jar",
-               ctx.config.paths.genebe,
-               "version"
-               ]
-
-        # Run command and get output
-        genebe_process = subprocess.Popen(cmd, stdout = subprocess.PIPE)
-        genebe_out, genebe_err = genebe_process.communicate()
-
-    except subprocess.CalledProcessError as e:
-        print(f"Error running GeneBe: {e.output}")
-
-
-    # Bcftools version
-    try:
-        cmd = [ctx.config.paths.bcftools, "--version"]
-
-        bcftools_process = subprocess.Popen(cmd, stdout= subprocess.PIPE)
-        bcftools_out, bcftools_err = bcftools_process.communicate()
-
-    except subprocess.CalledProcessError as e:
-        print(f"Error running bcftools: {e.output}")
-
-    # PharmCAT version
-    try:
-        pharmCAT_command = [ctx.config.paths.java, "-jar", ctx.config.paths.pharmCAT , "-version"]
-        pharmCAT_process = subprocess.Popen(pharmCAT_command, stdout = subprocess.PIPE)
-        pharmCAT_output, pharmCAT_err = pharmCAT_process.communicate()
-
-    except subprocess.CalledProcessError as e:
-        print(f"Error running pharmCAT: {e.output}")
-
     category_string = ''
     for category in sample.categories:
         if category == 'PR':
@@ -71,6 +37,7 @@ def _build_versions_and_paths_table(ctx, sample):
     category_string = category_string.rstrip(", ")
     variant_classification_sources_string = ", ".join(ctx.variant_classification_sources)
 
+    versions = get_runtime_versions(ctx.config.paths)
 
     rows = [
         {"Field": "SF tool version", "Value": ctx.config.version},
@@ -95,10 +62,10 @@ def _build_versions_and_paths_table(ctx, sample):
         {"Field": "Clinvar version", "Value": ctx.config.clinvar.version if 'clinvar' in ctx.variant_classification_sources else "Not used"},
         {"Field": "Clinvar path", "Value": ctx.config.clinvar.db_path if 'clinvar' in ctx.variant_classification_sources else "Not used"},
         {"Field": "Clinvar evidence level", "Value": str(ctx.clinvar_evidence) if 'clinvar' in ctx.variant_classification_sources else "Not used"},
-        {"Field": "GeneBe version", "Value": "Not used" if ("PR" not in sample.categories and "rr" not in sample.categories) else re.search(r'version:\s*(.*?)\s*::', str(genebe_out)).group(1)},
+        {"Field": "GeneBe version", "Value": "Not used" if ("PR" not in sample.categories and "rr" not in sample.categories) else versions["genebe"].version},
         {"Field": "GeneBe path", "Value": ctx.config.paths.genebe},
-        {"Field": "bcftools version", "Value": str(bcftools_out).split(" ")[1].split("\\n")[0]},
-        {"Field": "pharmCAT version", "Value": pharmCAT_output.decode().strip() if 'PGx' in sample.categories else "Not used"},
+        {"Field": "bcftools version", "Value": versions["bcftools"].version},
+        {"Field": "pharmCAT version", "Value": versions["pharmcat"].version if 'PGx' in sample.categories else "Not used"},
         {"Field": "HPO genes to phenotype version", "Value": os.path.splitext(os.path.basename(ctx.config.references.gene_to_phenotype_file))[0].split("_")[-1]},
         {"Field": "HPO genes to phenotype path", "Value": ctx.config.references.gene_to_phenotype_file}
     ]
