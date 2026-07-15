@@ -39,17 +39,26 @@ class SampleContext:
         self.smaca_path = sample_data.get("smaca_path")
         self.hpo_terms = sample_data.get("hpo_terms", [])
 
+        self.variant_confirmation_request: Optional[dict] = (
+            sample_data.get("variant_confirmation")
+        )
+
         # ------------------------------------------------------------------
         # Outputs populated during execution
         # ------------------------------------------------------------------
-        self.vcf_outputs: Dict[str, Path | Dict[str, Path]] = {
+        self.vcf_outputs: dict = {
             "normalized": None,
             "intersected": {},
             "genebe_annotated": {},
-            "PGx_preprocessed": None
+            "PGx_preprocessed": None,
+            "variant_confirmation": {
+                "raw": None,
+                "normalized": None,
+                "genebe_annotated": None,
+                "matches": None,
+            },
         }
         self.reports: dict = {}
-        self.results: dict = {}
         self.variant_collections: dict = {
             "PR": {
                 "snv_indels_genebe_clinvar": {},
@@ -76,7 +85,9 @@ class SampleContext:
                 "pharmCAT_variants": {}
             }
         }
-        self.results: Dict[str, dict] = {}
+        self.results: Dict[str, dict] = {
+            "variant_confirmation": {}
+        }
 
     @staticmethod
     def _resolve_path(
@@ -129,11 +140,10 @@ class ExecutionContext:
         # Run-level parameters
         # ------------------------------------------------------------------
         self.assembly: Optional[str] = execution_meta.get("reference_genome")
-        self.mode: Optional[str] = execution_meta.get("mode")
+        self.modes: List[str] = execution_meta.get("modes",[])
         self.clinvar_evidence: Optional[int] = execution_meta.get("clinvar_evidence")
         self.variant_classification_sources: list[str] = execution_meta.get("variant_classification_sources")
         self.RR_mode: Optional[str] = execution_meta.get("RR_mode")
-        self.variant_confirmation: Optional[str] = execution_meta.get("variant_confirmation")
 
 
 
@@ -189,6 +199,6 @@ class ExecutionContext:
         return (
             f"ExecutionContext(run_id={self.run_id}, "
             f"assembly={self.assembly}, "
-            f"mode={self.mode}, "
+            f"modes={self.modes}, "
             f"samples={len(self.samples)})"
         )
