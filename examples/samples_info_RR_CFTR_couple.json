@@ -1,18 +1,10 @@
 {
   "execution": {
-    "mode": "secondary_findings_discovery",
+    "modes": ["secondary_findings_discovery", "variant_confirmation"],
     "variant_classification_sources": ["genebe", "clinvar"],
     "reference_genome": "GRCh37",
     "clinvar_evidence": 1,
-    "RR_mode": "screening",
-
-    "variant_confirmation": {
-      "enabled": false,
-      "chrom": "",
-      "pos": "",
-      "ref": "",
-      "alt": ""
-    }
+    "RR_mode": "screening"
   },
 
   "samples": [
@@ -25,7 +17,10 @@
       "stripy_path": "/home/jpflorido/GBPA/projects/SFtool/temp/examples/AC5490.STRipy_fake.json",
       "smaca_path": "/mnt/lustre/scratch/CBRA/projects/ACCI/secondary_findings/analysis/SMAca/FE_77912_fake.csv",
       "categories": ["RR"],
-      "hpo_terms": ["HP:0005948"]
+      "hpo_terms": ["HP:0005948"],
+      "variant_confirmation": {
+        "variant": "7:117199640:TATC:T"
+      }
     },
     {
       "sample_id": "AC5491",

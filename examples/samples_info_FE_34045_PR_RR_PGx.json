@@ -1,18 +1,10 @@
 {
   "execution": {
-    "mode": "secondary_findings_discovery",
+    "modes": ["secondary_findings_discovery", "variant_confirmation"],
     "variant_classification_sources": ["genebe", "clinvar"],
     "reference_genome": "GRCh38",
     "clinvar_evidence": 1,
-    "RR_mode": "screening",
-
-    "variant_confirmation": {
-      "enabled": false,
-      "chrom": "",
-      "pos": "",
-      "ref": "",
-      "alt": ""
-    }
+    "RR_mode": "screening"
   },
 
   "samples": [
@@ -25,7 +17,10 @@
       "stripy_path": "",
       "smaca_path": "",
       "categories": ["PR","RR","PGx"],
-      "hpo_terms": ["HP:0003198"]
+      "hpo_terms": ["HP:0003198"],
+      "variant_confirmation": {
+        "variant": "chr6:32040110:G:T"
+      }
     }
   ]
 }

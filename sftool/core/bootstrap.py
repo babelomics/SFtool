@@ -22,6 +22,39 @@ from sftool.utils.vcf_utils import (
     check_vcf_positions_present
 )
 
+
+SUPPORTED_EXECUTION_MODES = {
+    "secondary_findings_discovery",
+    "variant_confirmation",
+}
+
+SUPPORTED_SAMPLE_GENDER = {
+    "male",
+    "female",
+    "unknown"
+}
+
+SUPPORTED_SAMPLE_ROLES = {
+    "proband",
+    "parent1",
+    "parent2"
+}
+
+SUPPORTED_VARIANT_CLASSIFICATION_SOURCES = [
+    ["genebe"],
+    ["genebe", "clinvar"]
+
+]
+
+SUPPORTED_REFERENCE_GENOMES = {
+    "GRCh37",
+    "GRCh38"
+}
+
+SUPPORTED_RR_MODES = {
+    "screening",
+    "advanced"
+}
 # =====================================================================
 # Public API
 # =====================================================================
@@ -111,180 +144,300 @@ def validate_samples_info(samples_info: Dict[str, Any]):
     """
     Equivalent to legacy validate_samples_info()
     """
+    if not isinstance(samples_info, dict):
+        raise ValidationError(
+            "samples_info must be a JSON object"
+        )
+
     if "execution" not in samples_info:
         raise ValueError("samples_info must contain an 'execution' block")
 
     if "samples" not in samples_info:
         raise ValueError("samples_info must contain a 'samples' block")
 
-    validate_execution_block(samples_info["execution"], num_samples=len(samples_info["samples"]))
+    execution = samples_info["execution"]
+    samples = samples_info["samples"]
 
-    if not isinstance(samples_info["samples"], list) or not samples_info["samples"]:
-        raise ValueError("'samples' must be a non-empty list")
+    if not isinstance(execution, dict):
+        raise ValidationError(
+            "'execution' must be an object"
+        )
 
+    if not isinstance(samples, list):
+        raise ValidationError(
+            "'samples' must be a list"
+        )
 
-    validate_sample_block(samples_info["samples"], samples_info["execution"]["mode"])
+    if not 1 <= len(samples) <= 2:
+        raise ValidationError(
+            "'samples' must contain 1 or 2 entries"
+        )
+
+    validate_execution_block(execution, num_samples=len(samples))
+
+    validate_sample_block(samples, modes=execution["modes"])
 
 
 def validate_execution_block(exec_data: Dict[str, Any], num_samples):
     # -------- Required fields --------
-    if "mode" not in exec_data:
-        raise ValidationError("Missing required field: execution.mode")
+    if "modes" not in exec_data:
+        raise ValidationError("Missing required field: execution.modes")
 
-    mode = exec_data["mode"]
+    modes = exec_data["modes"]
 
-    if mode not in ["secondary_findings_discovery", "variant_confirmation"]:
-        raise ValidationError(f"Invalid execution.mode: {mode}")
+    if not isinstance(modes, list):
+        raise ValidationError(
+            "execution.modes must be a list"
+        )
+
+    if not modes:
+        raise ValidationError(
+            "execution.modes must contain at least one workflow"
+        )
+
+    if any(not isinstance(mode, str) for mode in modes):
+        raise ValidationError(
+            "Every execution mode must be a string"
+        )
+
+    if len(modes) != len(set(modes)):
+        raise ValidationError(
+            "execution.modes must not contain duplicated workflows"
+        )
+
+    unsupported_modes = set(modes) - SUPPORTED_EXECUTION_MODES
+
+    if unsupported_modes:
+        raise ValidationError(
+            "Unsupported execution mode(s): "
+            + ", ".join(sorted(unsupported_modes))
+        )
+
+    # With two samples, secondary_findings_discovery is mandatory
+    if num_samples == 2 and "secondary_findings_discovery" not in modes:
+        raise ValidationError(
+            "Two-sample executions require 'secondary_findings_discovery'."
+        )
 
     # -------- Set defaults --------
     exec_data.setdefault("reference_genome", "GRCh37")
     exec_data.setdefault("clinvar_evidence", 1)
-    exec_data.setdefault("RR_mode", "screening")
 
     # -------- Validate reference genome --------
-    if exec_data["reference_genome"] not in ["GRCh37", "GRCh38"]:
+    if exec_data["reference_genome"] not in SUPPORTED_REFERENCE_GENOMES:
         raise ValidationError("execution.reference_genome must be GRCh37 or GRCh38")
 
     # -------- Validate ClinVar evidence --------
     ce = exec_data["clinvar_evidence"]
-    if not isinstance(ce, int) or not (1 <= ce <= 5):
+    if not isinstance(ce, int) or not (1 <= ce <= 5) or isinstance(ce, bool):
         raise ValidationError("execution.clinvar_evidence must be an integer between 1 and 5")
-
-    # -------- MODE: VARIANT CONFIRMATION --------
-    if mode == "variant_confirmation":
-        if num_samples != 1:
-            raise ValidationError("variant_confirmation mode requires exactly ONE sample.")
-
-        vc = exec_data.get("variant_confirmation", {})
-        if not vc.get("enabled", False):
-            raise ValidationError("variant_confirmation.enabled must be true in variant_confirmation mode.")
-
-        for field in ["chrom", "pos", "ref", "alt"]:
-            if field not in vc or vc[field] in ["", None]:
-                raise ValidationError(f"Missing field: variant_confirmation.{field}")
-
-        return  # Nothing else applies to this mode
 
     # =====================================================
     # MODE: SECONDARY FINDINGS DISCOVERY
     # =====================================================
-    # Set default variant_classification_sources
-    exec_data.setdefault("variant_classification_sources", ["genebe", "clinvar"])
 
-    allowed = [
-        ["genebe"],
-        ["genebe", "clinvar"]
-    ]
+    if "secondary_findings_discovery" in modes:
+        # Set default variant_classification_sources
+        exec_data.setdefault("variant_classification_sources", ["genebe", "clinvar"])
+        exec_data.setdefault("RR_mode", "screening")
 
+        if exec_data["variant_classification_sources"] not in SUPPORTED_VARIANT_CLASSIFICATION_SOURCES:
+            raise ValidationError("execution.variant_classification_sources must be ['genebe'] or ['genebe', 'clinvar']")
 
-    if exec_data["variant_classification_sources"] not in allowed:
-        raise ValidationError("execution.variant_classification_sources must be ['genebe'] or ['genebe', 'clinvar']")
+        # -------- RR_mode rules --------
+        rr_mode = exec_data["RR_mode"]
 
-
-    # -------- RR_mode rules --------
-    rr_mode = exec_data["RR_mode"]
-
-    if num_samples == 1:
         # One-sample → only screening allowed
-        if rr_mode != "screening":
-            raise ValidationError(
-                "RR_mode must be 'screening' when only one sample is provided."
-            )
-    elif num_samples == 2:
+        if num_samples == 1 and rr_mode != "screening":
+                raise ValidationError("RR_mode must be 'screening' when only one sample is provided.")
         # Two samples → screening OR advanced
-        if rr_mode not in ["screening", "advanced"]:
-            raise ValidationError(
-                "RR_mode for two samples must be 'screening' or 'advanced'."
-            )
+        if num_samples == 2 and rr_mode not in SUPPORTED_RR_MODES:
+                raise ValidationError("RR_mode for two samples must be 'screening' or 'advanced'.")
 
-def validate_sample_block(samples: Dict[str, Any], mode):
+def validate_sample_block(samples: Dict[str, Any], modes: list[str]):
     if not isinstance(samples, list):
         raise ValidationError("samples must be a list")
 
     if not (1 <= len(samples) <= 2):
         raise ValidationError("samples must contain 1 or 2 entries")
 
-    relations = [s["relation"] for s in samples]
+    for sample in samples:
+        validate_common_sample_fields(sample)
 
-    # =====================================================
-    # MODE: VARIANT CONFIRMATION
-    # =====================================================
-    if mode == "variant_confirmation":
-        if len(samples) != 1:
-            raise ValidationError("variant_confirmation mode requires exactly one sample.")
+    if "secondary_findings_discovery" in modes:
+        validate_secondary_findings_samples(samples)
 
-        if relations[0] != "proband":
-            raise ValidationError("In variant_confirmation mode, the only allowed relation is 'proband'.")
-
-        # Validate required fields and optional paths
-        s = samples[0]
-
-        if "vcf_path" not in s:
-            raise ValidationError("Sample missing field: vcf_path")
-
-        if not os.path.exists(s["vcf_path"]):
-            raise ValidationError(f"VCF file not found for sample {s['sample_id']}: {s['vcf_path']}")
+    validate_variant_confirmation_requests(samples, modes)
 
 
-        s.setdefault("hpo_terms", [])
-        s.setdefault("stripy_path", "")
-        s.setdefault("smaca_path", "")
+def validate_common_sample_fields(sample: Dict[str, Any]):
 
-        return  # Done after validating the single sample
+    ### Sample validation: relation, sex, vcf_path
 
-    # =====================================================
-    # MODE: SECONDARY FINDINGS
-    # =====================================================
+    if not isinstance(sample, dict):
+        raise ValidationError(
+            "Each sample must be an object"
+        )
+
+    sample_id = sample.get("sample_id")
+
+    if not isinstance(sample_id, str) or not sample_id.strip():
+        raise ValidationError(
+            "Each sample must contain "
+            "a non-empty sample_id"
+        )
+
+    relation = sample.get("relation")
+
+    if relation not in SUPPORTED_SAMPLE_ROLES:
+        raise ValidationError(
+            f"Invalid relation for sample "
+            f"{sample_id}: {relation}"
+        )
+
+    if "vcf_path" not in sample:
+        raise ValidationError(
+            f"Sample {sample_id} missing vcf_path"
+        )
+
+    vcf_path = sample["vcf_path"]
+
+    if not isinstance(vcf_path, str) or not vcf_path.strip():
+        raise ValidationError(
+            f"Sample {sample_id}: "
+            "vcf_path must be a non-empty string"
+        )
+
+    if not os.path.exists(vcf_path):
+        raise ValidationError(
+            f"VCF file not found for sample "
+            f"{sample_id}: {vcf_path}"
+        )
+
+    if "sex" not in sample:
+        raise ValidationError(
+            f"Missing required field 'sex' "
+            f"for sample {sample_id}"
+        )
+
+    sex = sample["sex"]
+
+    if not isinstance(sex, str):
+        raise ValidationError(
+            f"Invalid type for 'sex' in sample "
+            f"{sample_id}: expected string, "
+            f"got {type(sex).__name__}"
+        )
+
+    if sex not in SUPPORTED_SAMPLE_GENDER:
+        raise ValidationError(
+            f"Invalid value for 'sex' in sample "
+            f"{sample_id}: '{sex}'. "
+            "Allowed values are: "
+            "male, female, unknown"
+        )
+
+    sample.setdefault("hpo_terms", [])
+    sample.setdefault("stripy_path", "")
+    sample.setdefault("smaca_path", "")
+    sample.setdefault("pgx_vcf_path", "")
+    sample.setdefault("categories", [])
+
+
+def validate_secondary_findings_samples(samples: list[Dict[str, Any]]):
+
+    ### Validation relationship rules for secondary findings mode
+
+    relations = [
+        sample["relation"]
+        for sample in samples
+    ]
+
     if len(samples) == 1:
-        # Only allowed relation = proband
         if relations[0] != "proband":
-            raise ValidationError("For one-sample secondary findings mode, relation must be 'proband'.")
+            raise ValidationError(
+                "For one-sample secondary findings "
+                "execution, relation must be 'proband'."
+            )
 
     elif len(samples) == 2:
-        # Must be exactly parent1 + parent2
-        if sorted(relations) != ["parent1", "parent2"]:
+        if sorted(relations) != [
+            "parent1",
+            "parent2",
+        ]:
             raise ValidationError(
-                "For two-sample secondary findings mode, relations must be exactly ['parent1', 'parent2']."
+                "For two-sample secondary findings "
+                "execution, relations must be exactly "
+                "['parent1', 'parent2']."
             )
 
-    # Validate VCF paths and optional fields for all samples
-    for s in samples:
-        if "sample_id" not in s:
-            raise ValidationError("Each sample must contain sample_id")
 
-        if "relation" not in s:
-            raise ValidationError("Each sample must contain relation")
+def validate_variant_confirmation_requests(samples: list[Dict[str, Any]], modes: list[str]):
 
-        if "vcf_path" not in s:
-            raise ValidationError(f"Sample {s.get('sample_id', '?')} missing vcf_path")
+    #### Validate variant_confirmation mode. The following rules are implemented:
+    #       1. variant_confirmation is optional per sample
+    #       2. if variant_confirmation mode is present, at least one sample must contain a variant
+    #       3. variant must be a non-empty string (no spaces)
+    #       4. if variant confirmation is not present, a variant cannot be included for any sample
 
-        if not os.path.exists(s["vcf_path"]):
+    confirmation_enabled = ("variant_confirmation" in modes)
+
+    samples_with_request = [
+        sample
+        for sample in samples
+        if "variant_confirmation" in sample
+    ]
+
+    if confirmation_enabled and not samples_with_request:
+        raise ValidationError(
+            "At least one sample must define "
+            "'variant_confirmation' when "
+            "'variant_confirmation' is enabled "
+            "in execution.modes."
+        )
+
+    if not confirmation_enabled and samples_with_request:
+        sample_ids = [
+            sample.get("sample_id", "?")
+            for sample in samples_with_request
+        ]
+
+        raise ValidationError(
+            "variant_confirmation was provided "
+            "for sample(s) "
+            f"{', '.join(sample_ids)}, "
+            "but the workflow is not enabled "
+            "in execution.modes."
+        )
+
+    for sample in samples_with_request:
+        sample_id = sample["sample_id"]
+        request = sample["variant_confirmation"]
+
+        if not isinstance(request, dict):
             raise ValidationError(
-                f"VCF file not found for sample {s['sample_id']}: {s['vcf_path']}"
+                f"Sample {sample_id}: "
+                "variant_confirmation must be "
+                "an object."
             )
-        if "sex" not in s:
-            raise ValidationError("Missing required field 'sex' for sample " + s['sample_id'])
 
-        sex = s["sex"]
-
-        if not isinstance(sex, str):
+        if set(request.keys()) != {"variant"}:
             raise ValidationError(
-                f"Invalid type for 'sex' in sample {s['sample_id']}: "
-                f"expected string, got {type(sex).__name__}"
+                f"Sample {sample_id}: "
+                "variant_confirmation must contain "
+                "exactly one field: 'variant'."
             )
 
-        if sex not in {"male", "female", "unknown"}:
-            raise ValueError(
-                f"Invalid value for 'sex' in sample {s['sample_id']}: '{sex}'. "
-                "Allowed values are: male, female, unknown"
+        variant = request["variant"]
+
+        if not isinstance(variant, str) or not variant.strip():
+            raise ValidationError(
+                f"Sample {sample_id}: "
+                "variant_confirmation.variant must "
+                "be a non-empty string."
             )
 
-        # Optional fields
-        s.setdefault("hpo_terms", [])
-        s.setdefault("stripy_path", "")
-        s.setdefault("smaca_path", "")
-
-
+        request["variant"] = variant.strip()
 
 def validate_config(config: Dict[str, Any], samples_info: dict | None = None):
     required = [
