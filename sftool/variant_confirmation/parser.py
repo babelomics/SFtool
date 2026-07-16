@@ -127,7 +127,7 @@ class VariantRepresentationParser:
     def detect(self, variant: str) -> str:
         """
         Return the representation type detected for a variant string.
-        
+
         HGVS patterns are intentionally permissive. A successful classification
         does not guarantee that the representation is valid or convertible.
         """
