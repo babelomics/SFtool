@@ -28,6 +28,33 @@ SUPPORTED_EXECUTION_MODES = {
     "variant_confirmation",
 }
 
+SUPPORTED_SAMPLE_GENDER = {
+    "male",
+    "female",
+    "unknown"
+}
+
+SUPPORTED_SAMPLE_ROLES = {
+    "proband",
+    "parent1",
+    "parent2"
+}
+
+SUPPORTED_VARIANT_CLASSIFICATION_SOURCES = [
+    ["genebe"],
+    ["genebe", "clinvar"]
+
+]
+
+SUPPORTED_REFERENCE_GENOMES = {
+    "GRCh37",
+    "GRCh38"
+}
+
+SUPPORTED_RR_MODES = {
+    "screening",
+    "advanced"
+}
 # =====================================================================
 # Public API
 # =====================================================================
@@ -197,7 +224,7 @@ def validate_execution_block(exec_data: Dict[str, Any], num_samples):
     exec_data.setdefault("clinvar_evidence", 1)
 
     # -------- Validate reference genome --------
-    if exec_data["reference_genome"] not in ["GRCh37", "GRCh38"]:
+    if exec_data["reference_genome"] not in SUPPORTED_REFERENCE_GENOMES:
         raise ValidationError("execution.reference_genome must be GRCh37 or GRCh38")
 
     # -------- Validate ClinVar evidence --------
@@ -214,9 +241,7 @@ def validate_execution_block(exec_data: Dict[str, Any], num_samples):
         exec_data.setdefault("variant_classification_sources", ["genebe", "clinvar"])
         exec_data.setdefault("RR_mode", "screening")
 
-        allowed_sources = [["genebe"], ["genebe", "clinvar"]]
-
-        if exec_data["variant_classification_sources"] not in allowed_sources:
+        if exec_data["variant_classification_sources"] not in SUPPORTED_VARIANT_CLASSIFICATION_SOURCES:
             raise ValidationError("execution.variant_classification_sources must be ['genebe'] or ['genebe', 'clinvar']")
 
         # -------- RR_mode rules --------
@@ -226,7 +251,7 @@ def validate_execution_block(exec_data: Dict[str, Any], num_samples):
         if num_samples == 1 and rr_mode != "screening":
                 raise ValidationError("RR_mode must be 'screening' when only one sample is provided.")
         # Two samples → screening OR advanced
-        if num_samples == 2 and rr_mode not in ["screening", "advanced"]:
+        if num_samples == 2 and rr_mode not in SUPPORTED_RR_MODES:
                 raise ValidationError("RR_mode for two samples must be 'screening' or 'advanced'.")
 
 def validate_sample_block(samples: Dict[str, Any], modes: list[str]):
@@ -264,7 +289,7 @@ def validate_common_sample_fields(sample: Dict[str, Any]):
 
     relation = sample.get("relation")
 
-    if relation not in {"proband", "parent1", "parent2"}:
+    if relation not in SUPPORTED_SAMPLE_ROLES:
         raise ValidationError(
             f"Invalid relation for sample "
             f"{sample_id}: {relation}"
@@ -304,7 +329,7 @@ def validate_common_sample_fields(sample: Dict[str, Any]):
             f"got {type(sex).__name__}"
         )
 
-    if sex not in {"male", "female", "unknown"}:
+    if sex not in SUPPORTED_SAMPLE_GENDER:
         raise ValidationError(
             f"Invalid value for 'sex' in sample "
             f"{sample_id}: '{sex}'. "
@@ -315,6 +340,7 @@ def validate_common_sample_fields(sample: Dict[str, Any]):
     sample.setdefault("hpo_terms", [])
     sample.setdefault("stripy_path", "")
     sample.setdefault("smaca_path", "")
+    sample.setdefault("pgx_vcf_path", "")
     sample.setdefault("categories", [])
 
 
