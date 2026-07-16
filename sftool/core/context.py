@@ -7,6 +7,9 @@ from datetime import datetime
 import uuid
 
 from sftool.core.config import Config
+from sftool.variant_confirmation.models import (
+    VariantConfirmationRequest
+)
 
 
 class SampleContext:
@@ -39,10 +42,19 @@ class SampleContext:
         self.smaca_path = sample_data.get("smaca_path")
         self.hpo_terms = sample_data.get("hpo_terms", [])
 
-        self.variant_confirmation_request: Optional[dict] = (
-            sample_data.get("variant_confirmation")
+        variant_confirmation_data = sample_data.get(
+            "variant_confirmation"
         )
 
+        self.variant_confirmation_request: Optional[
+            VariantConfirmationRequest
+        ] = (
+            VariantConfirmationRequest.from_dict(
+                variant_confirmation_data
+            )
+            if variant_confirmation_data
+            else None
+        )
         # ------------------------------------------------------------------
         # Outputs populated during execution
         # ------------------------------------------------------------------
@@ -85,8 +97,8 @@ class SampleContext:
                 "pharmCAT_variants": {}
             }
         }
-        self.results: Dict[str, dict] = {
-            "variant_confirmation": {}
+        self.results: Dict[str, object] = {
+            "variant_confirmation": None
         }
 
     @staticmethod
