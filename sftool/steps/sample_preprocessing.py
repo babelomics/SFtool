@@ -14,7 +14,7 @@ def run(ctx: ExecutionContext) -> None:
         categories = sample.categories
         # 1. VCF normalization
 
-        if 'PR' in categories or 'RR' in categories:
+        if 'PR' in categories or 'RR' in categories or sample.variant_confirmation_request is not None:
             norm_vcf_file = normalize_vcf(
                 str(sample.vcf.resolve()),
                 ctx.tmp_dir,

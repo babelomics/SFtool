@@ -12,41 +12,79 @@ from sftool.utils.catalog_utils import read_csv
 from pathlib import Path
 import re
 
-def run_genebe(norm_vcf, category, assembly, genebe_path, java_path, api_key, username, tmp_dir):
-    """
-    Run GeneBe for annotate variants
+def run_genebe(norm_vcf, category, assembly, genebe_path, java_path, api_key, username, tmp_dir, output_file=None):
 
-    :param norm_vcf: Path to normalized file
-    :param category: Gene category for annotation
-    :param assembly: Reference genome version
-    :param genebe_path: Path to geneBe annotator
-    :param java_path: Path to Java
-    :param api_key: Api key for annotating using GeneBe
-    :param username: User name for annotating using GeneBe
-    :param tmp_dir: temporary dir where output file will be saved
-    :return: Annotated VCF file
     """
+    Run GeneBe to annotate a normalized VCF.
 
+    Parameters
+    ----------
+    norm_vcf
+        Input normalized VCF.
+    category
+        PR/RR category used by the existing Secondary Findings workflow.
+        It may be None when ``output_file`` is explicitly provided.
+    assembly
+        Reference genome version: GRCh37 or GRCh38.
+    genebe_path
+        Path to the GeneBe JAR file.
+    java_path
+        Path to the Java executable.
+    api_key
+        GeneBe API key.
+    username
+        GeneBe username.
+    tmp_dir
+        Temporary output directory used by the existing PR/RR workflow.
+    output_file
+        Optional explicit output path. When omitted, the original
+        category-based filename generation is preserved.
+
+    Returns
+    -------
+    pathlib.Path
+        Path to the GeneBe-annotated VCF.
+    """
     try:
         # Path to VCF intersected and output directory
 
         norm_vcf = Path(norm_vcf)
 
-        category_tmp_dir = Path(tmp_dir) / category.upper()
-        category_tmp_dir.mkdir(parents=True, exist_ok=True)
 
-        basename = norm_vcf.name.replace(
-            f".{category.upper()}.vcf.gz",
-            f".{category.upper()}.geneBe.vcf.gz"
-        )
+        # Use the explicit output path when provided.
+        if output_file is not None:
+            genebe_output_file = Path(output_file)
+            genebe_output_file.parent.mkdir(
+                parents=True,
+                exist_ok=True,
+            )
 
-        genebe_output_file = category_tmp_dir / basename
+        # Preserve the existing category-based output path for PR/RR.
+        else:
+            if category is None:
+                raise ValueError(
+                    "category is required when output_file is not provided"
+                )
+
+            category_tmp_dir = Path(tmp_dir) / category.upper()
+            category_tmp_dir.mkdir(parents=True, exist_ok=True)
+
+            basename = norm_vcf.name.replace(
+                f".{category.upper()}.vcf.gz",
+                f".{category.upper()}.geneBe.vcf.gz"
+            )
+
+            genebe_output_file = category_tmp_dir / basename
 
 
         if assembly == 'GRCh37':
             assembly_int = "hg19"
         elif assembly == 'GRCh38':
             assembly_int = 'hg38'
+        else:
+            raise ValueError(
+                f"Unsupported reference genome: {assembly}"
+            )
 
         # Build command to run GeneBe
         cmd = [java_path,
@@ -64,6 +102,18 @@ def run_genebe(norm_vcf, category, assembly, genebe_path, java_path, api_key, us
         with subprocess.Popen(cmd, stderr=subprocess.STDOUT, text=True, cwd=os.path.dirname(genebe_path)) as process:
             output, _ = process.communicate()
 
+        if process.returncode != 0:
+            raise subprocess.CalledProcessError(
+                returncode=process.returncode,
+                cmd=cmd,
+                output=output,
+            )
+
+        if not genebe_output_file.is_file():
+            raise RuntimeError(
+                "GeneBe completed without generating the expected "
+                f"output file: {genebe_output_file}"
+            )
 
         return genebe_output_file
 

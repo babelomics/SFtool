@@ -15,6 +15,7 @@ from sftool.steps.variant_evidence_preparation import run as run_variant_evidenc
 from sftool.steps.variant_collection import run as run_variant_collection
 from sftool.steps.variant_selection import run as run_variant_selection
 from sftool.steps.report_generation import run as run_report_generation
+from sftool.steps.variant_confirmation import run as run_variant_confirmation
 
 
 RUN_HELP = """
@@ -112,9 +113,16 @@ def run(samples_path, config_path, outdir, force, debug_dump_ctx, debug_load_ctx
         # ----------------------------
         run_sample_preprocessing(ctx)
 
+        # ----------------------------
+        # STEP 5: VARIANT CONFIRMATION
+        #
+        # ----------------------------
+        if "variant_confirmation" in ctx.modes:
+            run_variant_confirmation(ctx)
+
 
         # ----------------------------
-        # STEP 5: VARIANT EVIDENCE PREPARATION (GENEBE AND/OR CLINVAR)
+        # STEP 6: VARIANT EVIDENCE PREPARATION (GENEBE AND/OR CLINVAR)
         #
         # ----------------------------
         run_variant_evidence_preparation(ctx)
@@ -122,14 +130,14 @@ def run(samples_path, config_path, outdir, force, debug_dump_ctx, debug_load_ctx
 
 
         # ----------------------------
-        # STEP 6: VARIANT COLLECTION (GENEBE AND/OR CLINVAR, STRs and SMN1-copy, pharmCAT)
+        # STEP 7: VARIANT COLLECTION (GENEBE AND/OR CLINVAR, STRs and SMN1-copy, pharmCAT)
         #
         # ----------------------------
         run_variant_collection(ctx)
 
 
         # ----------------------------
-        # STEP 7: VARIANT SELECTION from the set of VARIANT COLLECTION
+        # STEP 8: VARIANT SELECTION from the set of VARIANT COLLECTION
         #
         # ----------------------------
         run_variant_selection(ctx)
@@ -144,7 +152,7 @@ def run(samples_path, config_path, outdir, force, debug_dump_ctx, debug_load_ctx
         with open(debug_ctx_path, "rb") as f:
             ctx = pickle.load(f)
         # ----------------------------
-        # STEP 6: REPORT GENERATION
+        # STEP 9: REPORT GENERATION
         #
         # ----------------------------
         run_report_generation(ctx)
