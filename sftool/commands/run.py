@@ -103,7 +103,10 @@ def run(samples_path, config_path, outdir, force, debug_dump_ctx, debug_load_ctx
             c for s in ctx.samples for c in s.categories
         })
 
-        if 'clinvar' in variant_classification_sources and ("PR" in categories or "RR" in categories):
+        if ('clinvar' in variant_classification_sources and ("PR" in categories or "RR" in categories)) \
+                or \
+                "variant_confirmation" in ctx.modes:
+
             run_clinvar_setup(ctx)
 
 

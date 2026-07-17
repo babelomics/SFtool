@@ -17,6 +17,9 @@ from sftool.variant_confirmation.utils import (
     store_variant_confirmation_outputs,
     write_conversion_json,
 )
+from sftool.variant_confirmation.clinvar_lookup import (
+    VariantConfirmationClinVarLookup,
+)
 
 
 def run(ctx: ExecutionContext) -> None:
@@ -41,6 +44,8 @@ def run(ctx: ExecutionContext) -> None:
     )
 
     result_builder = VariantConfirmationResultBuilder()
+
+    clinvar_lookup = VariantConfirmationClinVarLookup()
 
     for sample in ctx.samples:
         request = sample.variant_confirmation_request
@@ -106,7 +111,23 @@ def run(ctx: ExecutionContext) -> None:
                 output_dir=output_dir,
             )
 
-        # 6. Build and serialize the structured result.
+        # 6. Retrieve variant-level ClinVar evidence.
+        clinvar_by_candidate = clinvar_lookup.lookup(
+            matches=matching_output.matches,
+            clinvar_db=ctx.outputs["clinvar"]["clinvar_db"],
+            clinvar_submission_db=(
+                ctx.outputs["clinvar"]["clinvar_summary_db"]
+            ),
+        )
+
+        for variant_match in matching_output.matches:
+            variant_match.set_clinvar(
+                clinvar_by_candidate.get(
+                    variant_match.candidate_id
+                )
+            )
+
+        # 7. Build and serialize the structured result.
         structured_output = result_builder.build_to_directory(
             request=parsed_request,
             candidates=candidates,
@@ -115,7 +136,7 @@ def run(ctx: ExecutionContext) -> None:
             output_directory=output_dir,
         )
 
-        # 7. Store paths and in-memory result in SampleContext.
+        # 8. Store paths and in-memory result in SampleContext.
         store_variant_confirmation_outputs(
             sample=sample,
             conversion_json=conversion_json,
