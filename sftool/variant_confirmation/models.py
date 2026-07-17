@@ -384,6 +384,10 @@ class VariantMatch:
         # A variant may have annotations for multiple genes/transcripts.
         self.annotations: List[dict] = []
 
+        # ClinVar is variant-level evidence and is stored separately from
+        # GeneBe gene/transcript annotations.
+        self.clinvar: Optional[dict] = None
+
         self.warnings: List[str] = []
 
     def set_match_data(
@@ -411,6 +415,19 @@ class VariantMatch:
             raise TypeError("annotation must be a dictionary")
 
         self.annotations.append(dict(annotation))
+
+    def set_clinvar(self, clinvar: Optional[dict]):
+        """
+        Store variant-level ClinVar information for this patient VCF match.
+        """
+        if clinvar is not None and not isinstance(clinvar, dict):
+            raise TypeError("clinvar must be a dictionary or None")
+
+        self.clinvar = (
+            deepcopy(clinvar)
+            if clinvar
+            else None
+        )
 
     def add_warning(self, warning: str):
         warning = VariantCandidate._validate_non_empty_string(
@@ -455,6 +472,7 @@ class VariantMatch:
             "annotations": deepcopy(
                 self.annotations
             ),
+            "clinvar": deepcopy(self.clinvar),
             "warnings": self.warnings.copy(),
         }
 

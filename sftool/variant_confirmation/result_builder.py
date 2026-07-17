@@ -557,9 +557,6 @@ class VariantConfirmationResultBuilder:
             "acmg_criteria": self._split_acmg_criteria(
                 values[7]
             ),
-            "clinvar": self._build_clinvar_annotation(
-                record.INFO
-            ),
         }
 
     def _build_minimal_annotation(
@@ -581,53 +578,8 @@ class VariantConfirmationResultBuilder:
             ),
             "acmg_classification": None,
             "acmg_criteria": [],
-            "clinvar": self._build_clinvar_annotation(
-                record.INFO
-            ),
         }
 
-    def _build_clinvar_annotation(
-            self,
-            info: Dict[str, Any],
-    ) -> dict:
-        clinical_significance = self._get_first_available_info_value(
-            info,
-            (
-                "clinvar_clinical_significance",
-                "clinvar_significance",
-                "clinical_significance",
-                "clinvar_classification",
-            ),
-        )
-
-        review_status = self._get_first_available_info_value(
-            info,
-            (
-                "clinvar_review_status",
-                "review_status",
-            ),
-        )
-
-        variation_id = self._get_first_available_info_value(
-            info,
-            (
-                "clinvar_variation_id",
-                "clinvar_id",
-                "variation_id",
-            ),
-        )
-
-        clinvar = {
-            "clinical_significance": clinical_significance,
-            "review_status": review_status,
-            "variation_id": variation_id,
-        }
-
-        return {
-            key: value
-            for key, value in clinvar.items()
-            if value is not None
-        }
 
     def _attach_annotations(
             self,

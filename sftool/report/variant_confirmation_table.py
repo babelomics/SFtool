@@ -82,7 +82,7 @@ def _build_report_row(
         sample_hpos: Set[str],
 ) -> Dict[str, Any]:
     annotation = annotation or {}
-    clinvar = annotation.get("clinvar") or {}
+    clinvar = variant_match.clinvar or {}
     gene = annotation.get("gene") or ""
 
     return {
@@ -98,7 +98,11 @@ def _build_report_row(
         "Zygosity": _classify_zygosity(
             variant_match.genotype
         ),
-        "rs": annotation.get("dbsnp") or "",
+        "rs": (
+                annotation.get("dbsnp")
+                or clinvar.get("rs")
+                or ""
+        ),
         "Transcript": annotation.get("transcript") or "",
         "HGVSC": annotation.get("hgvsc") or "",
         "HGVSP": annotation.get("hgvsp") or "",
@@ -110,10 +114,23 @@ def _build_report_row(
             annotation.get("acmg_criteria")
         ),
         "ClinvarClinicalSignificance": (
-                clinvar.get("clinical_significance") or ""
+                clinvar.get("clinical_significance") or NOT_AVAILABLE
         ),
-        "ReviewStatus": clinvar.get("review_status") or "",
-        "ClinvarID": clinvar.get("variation_id") or "",
+        "ClinvarSummary": (
+                clinvar.get("clinical_significance_summary") or NOT_AVAILABLE
+        ),
+        "ReviewStatus": (
+                clinvar.get("review_status") or NOT_AVAILABLE
+        ),
+        "ClinvarID": (
+                clinvar.get("clinvar_id") or NOT_AVAILABLE
+        ),
+        "Orpha": (
+                clinvar.get("orpha") or NOT_AVAILABLE
+        ),
+        "OMIM_clinvar": (
+                clinvar.get("omim") or NOT_AVAILABLE
+        ),
         "Quality": (
             "" if variant_match.quality is None else variant_match.quality
         ),
