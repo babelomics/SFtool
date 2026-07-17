@@ -2,6 +2,7 @@ import os
 
 from sftool.report.models import ReportTable
 from sftool.utils.runtime import get_runtime_versions
+from sftool.report.variant_confirmation_table import build_variant_confirmation_table
 
 
 def build_sample_tables(ctx, sample):
@@ -9,6 +10,7 @@ def build_sample_tables(ctx, sample):
 
     tables = [
         _build_versions_and_paths_table(ctx, sample),
+        build_variant_confirmation_table(ctx, sample),
         _build_pr_rr_snv_indels_table(selected_variants, "PR"),
         _build_pr_rr_snv_indels_table(selected_variants, "RR"),
         _build_rr_str_table(selected_variants),
