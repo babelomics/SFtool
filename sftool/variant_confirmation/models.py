@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
+from copy import deepcopy
 
 class VariantConfirmationRequest:
     """
@@ -451,10 +452,9 @@ class VariantMatch:
             "filters": self.filters.copy(),
             "passed_filter": self.passed_filter(),
             "sample_format": dict(self.sample_format),
-            "annotations": [
-                dict(annotation)
-                for annotation in self.annotations
-            ],
+            "annotations": deepcopy(
+                self.annotations
+            ),
             "warnings": self.warnings.copy(),
         }
 
