@@ -43,7 +43,7 @@ def _build_versions_and_paths_table(ctx, sample):
 
     rows = [
         {"Field": "SF tool version", "Value": ctx.config.version},
-        {"Field": "SF tool general mode", "Value": ctx.mode},
+        {"Field": "SF tool general mode", "Value": ", ".join(ctx.modes)},
         {"Field": "Categories", "Value": category_string},
         {"Field": "Reproductive Risk mode", "Value": ctx.RR_mode},
         {"Field": "SF tool variant classification sources", "Value": variant_classification_sources_string},
