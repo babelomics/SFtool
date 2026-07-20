@@ -184,7 +184,7 @@ class CandidateVcfWriter:
     def _validate_candidates(
             self,
             candidates: Sequence[VariantCandidate],
-    ) -> List[VariantCandidate]:
+        ) -> List[VariantCandidate]:
         """
         Validate the candidate collection before writing any data.
         """
@@ -208,7 +208,7 @@ class CandidateVcfWriter:
         for index, candidate in enumerate(
                 candidates,
                 start=1,
-        ):
+            ):
             if not isinstance(candidate, VariantCandidate):
                 raise InvalidCandidateCollectionError(
                     "Candidate "
@@ -819,40 +819,21 @@ class CandidateVcfNormalizer:
             filename: str = DEFAULT_FILENAME,
     ) -> Path:
         """
-        Normalize candidates using the standard SFtool output filename.
+        Normalize a candidate VCF using the requested output filename.
         """
-        if not isinstance(output_directory, (str, Path)):
-            raise TypeError(
-                "output_directory must be a string or pathlib.Path"
-            )
+        output_directory = self._validate_output_directory(
+            output_directory
+        )
 
-        if not isinstance(filename, str):
-            raise TypeError(
-                "filename must be a string"
-            )
-
-        filename = filename.strip()
-
-        if not filename:
-            raise ValueError(
-                "filename must be a non-empty string"
-            )
-
-        if Path(filename).name != filename:
-            raise ValueError(
-                "filename must not contain directory components"
-            )
-
-        if not filename.endswith(".vcf.gz"):
-            raise ValueError(
-                "Normalized candidate VCF must use the .vcf.gz extension"
-            )
+        filename = self._validate_filename(
+            filename
+        )
 
         return self.normalize(
             raw_vcf_path=raw_vcf_path,
             candidates=candidates,
             reference_fasta_path=reference_fasta_path,
-            output_path=Path(output_directory) / filename,
+            output_path=output_directory / filename,
         )
 
     @staticmethod
@@ -1436,3 +1417,52 @@ class CandidateVcfNormalizer:
                 reference=record["reference"],
                 alternate=record["alternate"],
             )
+
+
+    @staticmethod
+    def _validate_filename(
+            filename: str,
+    ) -> str:
+        """
+        Validate the normalized candidate VCF filename.
+        """
+        if not isinstance(filename, str):
+            raise TypeError(
+                "filename must be a string"
+            )
+
+        filename = filename.strip()
+
+        if not filename:
+            raise ValueError(
+                "filename must be a non-empty string"
+            )
+
+        if Path(filename).name != filename:
+            raise ValueError(
+                "filename must not contain directory components"
+            )
+
+        if not filename.endswith(".vcf.gz"):
+            raise ValueError(
+                "Normalized candidate VCF filename must use "
+                "the .vcf.gz extension"
+            )
+
+        return filename
+
+    @staticmethod
+    def _validate_output_directory(
+            output_directory: str | Path,
+    ) -> Path:
+        """
+        Validate the workflow output directory.
+        """
+        if not isinstance(output_directory, (str, Path)):
+            raise TypeError(
+                "output_directory must be a string or pathlib.Path"
+            )
+
+        return Path(
+            output_directory
+        )

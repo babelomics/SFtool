@@ -16,6 +16,7 @@ from sftool.variant_confirmation.utils import (
     run_variant_confirmation_genebe,
     store_variant_confirmation_outputs,
     write_conversion_json,
+    get_sample_output_filename
 )
 from sftool.variant_confirmation.clinvar_lookup import (
     VariantConfirmationClinVarLookup,
@@ -47,15 +48,34 @@ def run(ctx: ExecutionContext) -> None:
 
     clinvar_lookup = VariantConfirmationClinVarLookup()
 
+    output_dir = get_variant_confirmation_output_dir(
+        ctx=ctx,
+    )
+
     for sample in ctx.samples:
         request = sample.variant_confirmation_request
 
         if request is None:
             continue
 
-        output_dir = get_variant_confirmation_output_dir(
-            ctx=ctx,
-            sample=sample,
+        raw_candidate_filename = get_sample_output_filename(
+            sample_id=sample.sample_id,
+            filename=writer.DEFAULT_FILENAME,
+        )
+
+        normalized_candidate_filename = get_sample_output_filename(
+            sample_id=sample.sample_id,
+            filename=normalizer.DEFAULT_FILENAME,
+        )
+
+        matching_filename = get_sample_output_filename(
+            sample_id=sample.sample_id,
+            filename=matcher.DEFAULT_FILENAME,
+        )
+
+        result_filename = get_sample_output_filename(
+            sample_id=sample.sample_id,
+            filename=result_builder.DEFAULT_FILENAME,
         )
 
         normalized_patient_vcf = require_normalized_patient_vcf(
@@ -77,12 +97,14 @@ def run(ctx: ExecutionContext) -> None:
             request=parsed_request,
             candidates=candidates,
             output_dir=output_dir,
+            sample_id=sample.sample_id,
         )
 
         # 3. Generate and normalize the candidate VCF.
         raw_candidate_vcf = writer.write_to_directory(
             candidates=candidates,
             output_directory=output_dir,
+            filename=raw_candidate_filename,
         )
 
         normalized_candidate_vcf = normalizer.normalize_to_directory(
@@ -92,6 +114,7 @@ def run(ctx: ExecutionContext) -> None:
                 ctx.config.references.genomes[ctx.assembly]
             ),
             output_directory=output_dir,
+            filename=normalized_candidate_filename,
         )
 
         # 4. Match normalized candidates against the normalized patient VCF.
@@ -99,6 +122,7 @@ def run(ctx: ExecutionContext) -> None:
             candidates=candidates,
             patient_vcf_path=normalized_patient_vcf,
             output_directory=output_dir,
+            filename=matching_filename,
         )
 
         # 5. Annotate only when at least one candidate was detected.
@@ -109,6 +133,7 @@ def run(ctx: ExecutionContext) -> None:
                 ctx=ctx,
                 input_vcf=matching_output.vcf_path,
                 output_dir=output_dir,
+                sample_id=sample.sample_id,
             )
 
         # 6. Retrieve variant-level ClinVar evidence.
@@ -134,6 +159,7 @@ def run(ctx: ExecutionContext) -> None:
             matching_output=matching_output,
             annotated_vcf_path=genebe_annotated_vcf,
             output_directory=output_dir,
+            filename=result_filename,
         )
 
         # 8. Store paths and in-memory result in SampleContext.
