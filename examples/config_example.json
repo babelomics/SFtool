@@ -27,7 +27,7 @@
   },
 
   "clinvar": {
-    "version": "20260621",
+    "version": "20260615",
     "db_path": "/home/jpflorido/software/clinvar/"
   },
 
