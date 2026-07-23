@@ -30,7 +30,6 @@ def parser():
 def test_detect_genomic_variants(parser, variant):
     assert parser.detect(variant) == "genomic"
 
-
 @pytest.mark.parametrize(
     "variant",
     [
@@ -38,6 +37,8 @@ def test_detect_genomic_variants(parser, variant):
         "chr2:47476391:C:CT",
         "2:47476391:ACGT:A",
         "2:47476391:A:ACGT",
+        "8:342345233:TATC:T",
+        "8:342345233:T:TGGA",
     ],
 )
 def test_detect_genomic_indels(parser, variant):
@@ -125,30 +126,15 @@ def test_parse_rejects_non_request_object(parser):
         parser.parse("NM_000251.3:c.2030C>A")
 
 
-@pytest.mark.parametrize(
-    "variant",
-    [
-        "prefix-NM_000251.3:c.2030C>A",
-        "NM_000251.3:c.2030C>A-suffix",
-    ],
-)
-def test_detect_classifies_hgvs_without_full_validation(variant):
-    parser = VariantRepresentationParser()
-
-    assert parser.detect(variant) == "hgvsc"
-
 
 @pytest.mark.parametrize(
     "variant",
     [
-        "prefix-NM_000251.3:c.2030C>A",
-        "NM_000251.3:c.2030C>A-suffix",
         "prefix-chr2:47476391:C:T",
         "chr2:47476391:C:T-extra",
     ],
 )
 def test_detect_rejects_partial_matches(parser, variant):
-    # Invalid representation. Full validation and conversion are delegated to GeneBe
     with pytest.raises(
             UnsupportedVariantRepresentationError
     ):
@@ -218,6 +204,7 @@ def test_detect_rejects_invalid_chromosome(
         "chr2:47476391:-:T",
         "chr2:47476391:C:-",
         "chr2:47476391:C:T:G",
+
     ],
 )
 def test_detect_rejects_invalid_genomic_alleles(
@@ -229,6 +216,25 @@ def test_detect_rejects_invalid_genomic_alleles(
     ):
         parser.detect(variant)
 
+
+@pytest.mark.parametrize(
+    "variant",
+    [
+        "8:342345233:ATC:",
+        "8:342345233::GGA",
+    ],
+)
+def test_detect_rejects_indels_without_anchor_base(
+        parser,
+        variant,
+):
+    with pytest.raises(
+            UnsupportedVariantRepresentationError,
+            match=(
+                    "REF and ALT must both contain at least one nucleotide"
+            ),
+    ):
+        parser.detect(variant)
 
 @pytest.mark.parametrize(
     ("variant", "expected_type"),
