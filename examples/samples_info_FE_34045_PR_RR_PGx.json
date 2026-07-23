@@ -17,9 +17,9 @@
       "stripy_path": "",
       "smaca_path": "",
       "categories": ["PR","RR","PGx"],
-      "hpo_terms": ["HP:0003198"],
+      "hpo_terms": ["HP:0008221"],
       "variant_confirmation": {
-        "variant": "chr6:32040110:G:T"
+        "variant": "NM_000500.9:c.844G>T"
       }
     }
   ]

@@ -17,9 +17,9 @@
       "stripy_path": "/home/jpflorido/GBPA/projects/SFtool/temp/examples/AC5490.STRipy_fake.json",
       "smaca_path": "/mnt/lustre/scratch/CBRA/projects/ACCI/secondary_findings/analysis/SMAca/FE_77912_fake.csv",
       "categories": ["RR"],
-      "hpo_terms": ["HP:0005948"],
+      "hpo_terms": ["HP:0005948", "HP:6000725"],
       "variant_confirmation": {
-        "variant": "7:117199640:TATC:T"
+        "variant": "NM_000492.4:c.1521_1523delCTT"
       }
     },
     {
