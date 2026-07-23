@@ -21,7 +21,7 @@ from sftool.variant_confirmation.utils import (
 from sftool.variant_confirmation.clinvar_lookup import (
     VariantConfirmationClinVarLookup,
 )
-
+from sftool.variant_confirmation.liftover import GeneBeVariantLiftover
 
 def run(ctx: ExecutionContext) -> None:
     """
@@ -34,6 +34,7 @@ def run(ctx: ExecutionContext) -> None:
 
     parser = VariantRepresentationParser()
     converter = GeneBeVariantConverter()
+    liftover = GeneBeVariantLiftover()
     writer = CandidateVcfWriter()
 
     normalizer = CandidateVcfNormalizer(
@@ -93,6 +94,14 @@ def run(ctx: ExecutionContext) -> None:
             assembly=ctx.assembly,
         )
 
+        # 3. GeneBe always returns GRCh38 coordinates. If the patient VCF uses
+        # GRCh37, lift the candidates back to GRCh37 before generating the VCF.
+        if ctx.assembly == "GRCh37":
+            candidates = liftover.lift(
+                candidates=candidates,
+                target_assembly="GRCh37",
+            )
+
         conversion_json = write_conversion_json(
             request=parsed_request,
             candidates=candidates,
@@ -100,7 +109,7 @@ def run(ctx: ExecutionContext) -> None:
             sample_id=sample.sample_id,
         )
 
-        # 3. Generate and normalize the candidate VCF.
+        # 4. Generate and normalize the candidate VCF.
         raw_candidate_vcf = writer.write_to_directory(
             candidates=candidates,
             output_directory=output_dir,
@@ -117,7 +126,7 @@ def run(ctx: ExecutionContext) -> None:
             filename=normalized_candidate_filename,
         )
 
-        # 4. Match normalized candidates against the normalized patient VCF.
+        # 5. Match normalized candidates against the normalized patient VCF.
         matching_output = matcher.match_to_directory(
             candidates=candidates,
             patient_vcf_path=normalized_patient_vcf,
@@ -125,7 +134,7 @@ def run(ctx: ExecutionContext) -> None:
             filename=matching_filename,
         )
 
-        # 5. Annotate only when at least one candidate was detected.
+        # 6. Annotate only when at least one candidate was detected.
         genebe_annotated_vcf = None
 
         if has_detected_candidates(matching_output):
@@ -136,7 +145,7 @@ def run(ctx: ExecutionContext) -> None:
                 sample_id=sample.sample_id,
             )
 
-        # 6. Retrieve variant-level ClinVar evidence.
+        # 7. Retrieve variant-level ClinVar evidence.
         clinvar_by_candidate = clinvar_lookup.lookup(
             matches=matching_output.matches,
             clinvar_db=ctx.outputs["clinvar"]["clinvar_db"],
@@ -152,7 +161,7 @@ def run(ctx: ExecutionContext) -> None:
                 )
             )
 
-        # 7. Build and serialize the structured result.
+        # 8. Build and serialize the structured result.
         structured_output = result_builder.build_to_directory(
             request=parsed_request,
             candidates=candidates,
@@ -162,7 +171,7 @@ def run(ctx: ExecutionContext) -> None:
             filename=result_filename,
         )
 
-        # 8. Store paths and in-memory result in SampleContext.
+        # 9. Store paths and in-memory result in SampleContext.
         store_variant_confirmation_outputs(
             sample=sample,
             conversion_json=conversion_json,
