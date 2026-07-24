@@ -542,37 +542,35 @@ class RRCoupleRule(ReportUtilsMixin):
 
                     for entry_male in str_male:
                         for entry_female in str_female:
-                            if entry_male["zigosity"] == 'HOM' and (entry_female["zigosity"] == 'HET' or entry_female["zigosity"] == 'HOM'):
-                                if entry_male["Variant"] not in visited_variants_male:
-                                    rows.append({
-                                        "Case study": "X-linked STR variant. " + entry_male["Inheritance"] + " gene",
-                                        "Sample": male_sample.sample_id,
-                                        "Sample role": male_sample.role,
-                                        "Sample sex": male_sample.sex,
-                                        "Sample partner": female_sample.sample_id,
-                                        "Partner role": female_sample.role,
-                                        "Partner sex": female_sample.sex,
-                                        "Partner has variant in the same gene": "-",
-                                        **self._flatten_entry(item_male),
-                                        "Warning": ""
-                                    })
-                                    visited_variants_male.append(entry_male["Variant"])
+                            # An STR in male and also in female (regardless of zygosity) for the same gene
+                            if entry_male["Variant"] not in visited_variants_male:
+                                rows.append({
+                                    "Case study": "X-linked STR variant. " + entry_male["Inheritance"] + " gene",
+                                    "Sample": male_sample.sample_id,
+                                    "Sample role": male_sample.role,
+                                    "Sample sex": male_sample.sex,
+                                    "Sample partner": female_sample.sample_id,
+                                    "Partner role": female_sample.role,
+                                    "Partner sex": female_sample.sex,
+                                    "Partner has variant in the same gene": "-",
+                                    **self._flatten_entry(entry_male),
+                                    "Warning": ""
+                                })
+                                visited_variants_male.append(entry_male["Variant"])
 
-                                if entry_female["variant"] not in visited_variants_female:
-                                    rows.append({
-                                        "Case study": "X-linked STR variant. " + entry_female["Inheritance"] + " gene",
-                                        "Sample": female_sample.sample_id,
-                                        "Sample role": female_sample.role,
-                                        "Sample sex": female_sample.sex,
-                                        "Sample partner": male_sample.sample_id,
-                                        "Partner role": male_sample.role,
-                                        "Partner sex": male_sample.sex,
-                                        "Partner has variant in the same gene": "-",
-                                        **self._flatten_entry(item_female),
-                                        "Warning": ""
-                                    })
-                                    visited_variants_female.append(entry_female["Variant"])
-
-
+                            if entry_female["Variant"] not in visited_variants_female:
+                                rows.append({
+                                    "Case study": "X-linked STR variant. " + entry_female["Inheritance"] + " gene",
+                                    "Sample": female_sample.sample_id,
+                                    "Sample role": female_sample.role,
+                                    "Sample sex": female_sample.sex,
+                                    "Sample partner": male_sample.sample_id,
+                                    "Partner role": male_sample.role,
+                                    "Partner sex": male_sample.sex,
+                                    "Partner has variant in the same gene": "-",
+                                    **self._flatten_entry(entry_female),
+                                    "Warning": ""
+                                })
+                                visited_variants_female.append(entry_female["Variant"])
 
         return rows
