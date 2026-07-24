@@ -24,14 +24,12 @@ GENEBE_FILENAME = "diagnostic_candidates.genebe.vcf.gz"
 
 def get_variant_confirmation_output_dir(
         ctx: ExecutionContext,
-        sample: SampleContext,
 ) -> Path:
     """
-    Return and create the Variant Confirmation output directory for a sample.
+    Return and create the shared Variant Confirmation output directory.
     """
     output_dir = (
             Path(ctx.run_dir)
-            / sample.sample_id
             / VARIANT_CONFIRMATION_DIRECTORY
     )
 
@@ -41,7 +39,6 @@ def get_variant_confirmation_output_dir(
     )
 
     return output_dir
-
 
 def require_normalized_patient_vcf(
         sample: SampleContext,
@@ -82,6 +79,7 @@ def write_conversion_json(
         request: VariantConfirmationRequest,
         candidates: Sequence[VariantCandidate],
         output_dir: str | Path,
+        sample_id: str,
 ) -> Path:
     """
     Serialize the parsed request and converted genomic candidates.
@@ -96,9 +94,14 @@ def write_conversion_json(
         exist_ok=True,
     )
 
+    filename = get_sample_output_filename(
+        sample_id=sample_id,
+        filename=CONVERSION_FILENAME,
+    )
+
     output_path = (
             output_dir
-            / CONVERSION_FILENAME
+            / filename
     )
 
     payload = {
@@ -116,7 +119,7 @@ def write_conversion_json(
                 mode="w",
                 encoding="utf-8",
                 dir=output_dir,
-                prefix=f".{CONVERSION_FILENAME}.",
+                prefix=f".{filename}.",
                 suffix=".tmp",
                 delete=False,
         ) as temporary_file:
@@ -171,6 +174,7 @@ def run_variant_confirmation_genebe(
         ctx: ExecutionContext,
         input_vcf: str | Path,
         output_dir: str | Path,
+        sample_id: str,
 ) -> Path:
     """
     Annotate detected diagnostic candidates using GeneBe.
@@ -180,7 +184,10 @@ def run_variant_confirmation_genebe(
     """
     output_path = (
             Path(output_dir)
-            / GENEBE_FILENAME
+            / get_sample_output_filename(
+            sample_id=sample_id,
+            filename=GENEBE_FILENAME,
+            )
     )
 
     return run_genebe(
@@ -228,3 +235,47 @@ def store_variant_confirmation_outputs(
     sample.results[
         VARIANT_CONFIRMATION_DIRECTORY
     ] = result
+
+
+def get_sample_output_filename(
+        sample_id: str,
+        filename: str,
+) -> str:
+    """
+    Prefix a Variant Confirmation output filename with the sample ID.
+    """
+    if not isinstance(sample_id, str):
+        raise TypeError(
+            "sample_id must be a string"
+        )
+
+    sample_id = sample_id.strip()
+
+    if not sample_id:
+        raise ValueError(
+            "sample_id must be a non-empty string"
+        )
+
+    if Path(sample_id).name != sample_id:
+        raise ValueError(
+            "sample_id must not contain directory components"
+        )
+
+    if not isinstance(filename, str):
+        raise TypeError(
+            "filename must be a string"
+        )
+
+    filename = filename.strip()
+
+    if not filename:
+        raise ValueError(
+            "filename must be a non-empty string"
+        )
+
+    if Path(filename).name != filename:
+        raise ValueError(
+            "filename must not contain directory components"
+        )
+
+    return f"{sample_id}.{filename}"

@@ -131,10 +131,10 @@ def _build_report_row(
         "OMIM_clinvar": (
                 clinvar.get("omim") or NOT_AVAILABLE
         ),
-        "Quality": (
+        "VCF_variant_QUAL": (
             "" if variant_match.quality is None else variant_match.quality
         ),
-        "Filter": _join_values(variant_match.filters),
+        "VCF_variant_FILTER": _join_values(variant_match.filters),
         "related_HPOs_for_sample": _get_related_hpos(
             gene=gene,
             gene_hpos=gene_hpos,

@@ -136,18 +136,18 @@ class GeneBeVariantConverter:
         """
         self._validate_request(request)
 
-        genebe_genome = self._get_genebe_genome(assembly)
+        input_genome = self._get_genebe_genome(assembly)
 
         payload = self._request_conversion(
             representation=request.variant,
-            genome=genebe_genome,
+            representation_type=request.representation_type,
+            input_genome=input_genome,
         )
 
         raw_candidates = self._extract_variants(
             payload=payload,
-            expected_genome=genebe_genome,
+            expected_genome="hg38",
         )
-
         unique_candidates, duplicates_removed = (
             self._deduplicate_candidates(raw_candidates)
         )
@@ -171,7 +171,7 @@ class GeneBeVariantConverter:
                 position=raw_candidate["pos"],
                 reference=raw_candidate["ref"],
                 alternate=raw_candidate["alt"],
-                assembly=assembly,
+                assembly="GRCh38",
                 conversion_warnings=warnings,
             )
             for index, raw_candidate in enumerate(
@@ -221,15 +221,24 @@ class GeneBeVariantConverter:
     def _request_conversion(
             self,
             representation: str,
-            genome: str,
+            representation_type: str,
+            input_genome: str,
     ) -> Any:
         """
         Submit one representation to the GeneBe public conversion endpoint.
         """
+        params = {}
+
+        if (
+                representation_type == "genomic"
+                and input_genome == "hg19"
+        ):
+            params["inputGenome"] = "hg19"
+
         try:
             response = self.session.post(
                 self.API_URL,
-                params={"genome": genome},
+                params=params,
                 json=[representation],
                 headers={
                     "Accept": "application/json",

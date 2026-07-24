@@ -104,7 +104,7 @@ def test_convert_hgvsc_to_single_candidate():
 
     session.post.assert_called_once_with(
         converter.API_URL,
-        params={"genome": "hg38"},
+        params={},
         json=["NM_000251.3:c.2030C>A"],
         headers={
             "Accept": "application/json",
@@ -299,24 +299,9 @@ def test_multiple_non_protein_candidates_generate_warning():
     ]
 
 
-@pytest.mark.parametrize(
-    (
-            "assembly",
-            "genebe_genome",
-            "returned_genome",
-    ),
-    [
-        ("GRCh37", "hg19", "hg19"),
-        ("GRCh38", "hg38", "hg38"),
-    ],
-)
-def test_assembly_mapping(
-        assembly,
-        genebe_genome,
-        returned_genome,
-):
+def test_genomic_grch38_request_does_not_set_input_genome():
     request = build_request(
-        variant="1:100:A:G",
+        variant="7:117559586:TATC:T",
         representation_type="genomic",
     )
 
@@ -324,30 +309,90 @@ def test_assembly_mapping(
         {
             "variants": [
                 {
-                    "genome": returned_genome,
-                    "chr": "1",
-                    "pos": 100,
-                    "ref": "A",
-                    "alt": "G",
+                    "genome": "hg38",
+                    "chr": "7",
+                    "pos": 117559586,
+                    "ref": "TATC",
+                    "alt": "T",
                 }
             ]
         }
     ]
 
-    converter, session, _ = build_mock_converter(
-        payload
-    )
+    converter, session, _ = build_mock_converter(payload)
 
     candidates = converter.convert(
         request=request,
-        assembly=assembly,
+        assembly="GRCh38",
     )
 
-    assert candidates[0].assembly == assembly
+    assert session.post.call_args.kwargs["params"] == {}
+    assert candidates[0].assembly == "GRCh38"
+
+
+def test_genomic_grch37_request_sets_input_genome_hg19():
+    request = build_request(
+        variant="7:117199640:TATC:T",
+        representation_type="genomic",
+    )
+
+    payload = [
+        {
+            "variants": [
+                {
+                    "genome": "hg38",
+                    "chr": "7",
+                    "pos": 117559586,
+                    "ref": "TATC",
+                    "alt": "T",
+                }
+            ]
+        }
+    ]
+
+    converter, session, _ = build_mock_converter(payload)
+
+    candidates = converter.convert(
+        request=request,
+        assembly="GRCh37",
+    )
 
     assert session.post.call_args.kwargs["params"] == {
-        "genome": genebe_genome
+        "inputGenome": "hg19"
     }
+
+    assert candidates[0].assembly == "GRCh38"
+
+
+def test_hgvsc_grch37_request_does_not_set_input_genome():
+    request = build_request(
+        variant="NM_000492.4:c.1521_1523delCTT",
+        representation_type="hgvsc",
+    )
+
+    payload = [
+        {
+            "variants": [
+                {
+                    "genome": "hg38",
+                    "chr": "7",
+                    "pos": 117559590,
+                    "ref": "ATCT",
+                    "alt": "A",
+                }
+            ]
+        }
+    ]
+
+    converter, session, _ = build_mock_converter(payload)
+
+    candidates = converter.convert(
+        request=request,
+        assembly="GRCh37",
+    )
+
+    assert session.post.call_args.kwargs["params"] == {}
+    assert candidates[0].assembly == "GRCh38"
 
 
 def test_duplicate_candidates_are_removed():

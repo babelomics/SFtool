@@ -155,8 +155,20 @@ class VariantRepresentationParser:
             if pattern.fullmatch(variant):
                 return representation_type
 
+        if variant.count(":") == 3:
+            chromosome, position, reference, alternate = variant.split(":")
+
+            if not reference or not alternate:
+                raise UnsupportedVariantRepresentationError(
+                    "Invalid genomic variant representation: "
+                    "REF and ALT must both contain at least one nucleotide. "
+                    "Insertions and deletions must include a reference anchor base; "
+                    "for example, use '8:342345233:TATC:T' for a deletion or "
+                    "'8:342345233:T:TGGA' for an insertion."
+                )
+
         raise UnsupportedVariantRepresentationError(
             "Unsupported diagnostic variant representation: "
             f"{variant!r}. Supported representations are "
             "chr:pos:ref:alt, HGVSc, HGVSg and HGVSp."
-        )
+)
