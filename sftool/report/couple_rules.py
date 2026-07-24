@@ -175,7 +175,7 @@ class RRCoupleRule(ReportUtilsMixin):
 
             for gene in genes:
                 if self._is_xlinked_gene(gene):
-                    # Get variants in both samples for current gene. In advanced mode, HOM variants in male and HET/HOM in female
+                    # In advanced mode, get variants in both samples for current gene, regardless of zygosity in female (in males hemicigosis is assumed).
                     gene_variants_male = [
                         variant
                         for variant in self._get_gene_snv_indels_entries(male_sample, gene)
@@ -193,7 +193,7 @@ class RRCoupleRule(ReportUtilsMixin):
                     # Male Sample
                     for var_male in gene_variants_male:
                         for var_female in gene_variants_female:
-                            if self._is_hom(var_male) and var_male not in visited_variants_male:
+                            if var_male not in visited_variants_male:
                                 rows.append({
                                     "Case study": "X-linked variant. " + var_male["inheritance"] + " gene",
                                     "Sample": male_sample.sample_id,
@@ -208,7 +208,7 @@ class RRCoupleRule(ReportUtilsMixin):
                                 })
                                 visited_variants_male.append(var_male["Variant"])
 
-                            if var_female not in visited_variants_female: # HET or HOM variants in female
+                            if var_female not in visited_variants_female:
                                 rows.append({
                                     "Case study": "X-linked variant. " + var_female["inheritance"] + " gene",
                                     "Sample": female_sample.sample_id,
@@ -222,7 +222,6 @@ class RRCoupleRule(ReportUtilsMixin):
                                     "Warning": ""
                                 })
                                 visited_variants_female.append(var_female["Variant"])
-
 
         return rows
 
