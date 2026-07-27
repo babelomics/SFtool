@@ -11,6 +11,7 @@ from sftool.utils.catalog_utils import (
     collect_gene_coordinates,
     copy_rr_str_catalog,
     write_bed_file,
+    format_chromosome,
 )
 
 
@@ -116,3 +117,111 @@ def test_copy_rr_str_catalog_preserves_file(tmp_path, monkeypatch):
     )
 
     assert destination.read_bytes() == source.read_bytes()
+
+@pytest.mark.parametrize(
+    ("chromosome", "plain", "prefixed"),
+    [
+        ("1", "1", "chr1"),
+        ("X", "X", "chrX"),
+        ("MT", "MT", "chrM"),
+        ("chr1", "1", "chr1"),
+        ("chrM", "MT", "chrM"),
+    ],
+)
+def test_format_chromosome(chromosome, plain, prefixed):
+    assert format_chromosome(
+        chromosome,
+        chr_prefix=False,
+    ) == plain
+
+    assert format_chromosome(
+        chromosome,
+        chr_prefix=True,
+    ) == prefixed
+
+
+def test_build_catalog_resources_generates_both_bed_conventions(
+        tmp_path,
+        monkeypatch,
+):
+    source_csv = tmp_path / "PR.csv"
+    source_csv.write_text(
+        "Gene,Phenotype\nGENE1,Condition\n",
+        encoding="latin1",
+    )
+
+    coordinate_lookup = Mock(
+        return_value=[
+            GeneCoordinate("1", 10, 20, "GENE1"),
+            GeneCoordinate("MT", 30, 40, "GENE2"),
+        ]
+    )
+
+    monkeypatch.setattr(
+        catalog_utils,
+        "collect_gene_coordinates",
+        coordinate_lookup,
+    )
+
+    outputs = build_catalog_resources(
+        category="PR",
+        assembly="GRCh38",
+        source_csv=source_csv,
+        output_dir=tmp_path,
+    )
+
+    assert outputs["bed"].read_text() == (
+        "1\t10\t20\tGENE1\n"
+        "MT\t30\t40\tGENE2\n"
+    )
+
+    assert outputs["chr_bed"].read_text() == (
+        "chr1\t10\t20\tGENE1\n"
+        "chrM\t30\t40\tGENE2\n"
+    )
+
+    coordinate_lookup.assert_called_once_with(
+        ["GENE1"],
+        "GRCh38",
+    )
+
+
+def test_bed_conventions_preserve_coordinates_and_gene_order(
+        tmp_path,
+        monkeypatch,
+):
+    source_csv = tmp_path / "RR.csv"
+    source_csv.write_text(
+        "Gene\nGENE1\n",
+        encoding="latin1",
+    )
+
+    monkeypatch.setattr(
+        catalog_utils,
+        "collect_gene_coordinates",
+        Mock(
+            return_value=[
+                GeneCoordinate("2", 100, 200, "GENE1"),
+            ]
+        ),
+    )
+
+    outputs = build_catalog_resources(
+        category="RR",
+        assembly="GRCh37",
+        source_csv=source_csv,
+        output_dir=tmp_path,
+    )
+
+    plain_rows = [
+        line.split("\t")
+        for line in outputs["bed"].read_text().splitlines()
+    ]
+    prefixed_rows = [
+        line.split("\t")
+        for line in outputs["chr_bed"].read_text().splitlines()
+    ]
+
+    assert [row[1:] for row in plain_rows] == [
+        row[1:] for row in prefixed_rows
+    ]

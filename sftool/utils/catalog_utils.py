@@ -10,6 +10,7 @@ from pathlib import Path
 import shutil
 from natsort import natsorted
 import requests
+from collections.abc import Sequence
 from typing import NamedTuple
 from importlib.resources import as_file
 from sftool.utils.resource_utils import (
@@ -240,16 +241,18 @@ def format_chromosome(
         *,
         chr_prefix: bool,
 ) -> str:
-    if not chr_prefix:
-        return chromosome
+    chromosome = chromosome.strip()
 
-    if chromosome == "MT":
-        return "chrM"
+    if chromosome.startswith("chr"):
+        chromosome = chromosome[3:]
 
-    return f"chr{chromosome}"
+    if chromosome in {"M", "MT"}:
+        return "chrM" if chr_prefix else "MT"
+
+    return f"chr{chromosome}" if chr_prefix else chromosome
 
 def write_bed_file(
-        coordinates: list[GeneCoordinate],
+        coordinates: Sequence[GeneCoordinate],
         destination: Path,
         *,
         chr_prefix: bool,
@@ -260,6 +263,7 @@ def write_bed_file(
         with destination.open(
                 "w",
                 encoding="utf-8",
+                newline="",
         ) as handle:
             for coordinate in coordinates:
                 chromosome = format_chromosome(
@@ -326,6 +330,37 @@ def copy_rr_str_catalog(
 
     return destination
 
+def write_bed_variants(
+        coordinates: list[GeneCoordinate],
+        output_dir: Path,
+        category: str,
+) -> dict[str, Path]:
+    """
+    Write both BED chromosome conventions for one catalog.
+
+    Returns paths for:
+    - standard chromosome names: 1, 2, X, Y, MT
+    - chr-prefixed names: chr1, chr2, chrX, chrY, chrM
+    """
+    bed_path = output_dir / f"{category}.bed"
+    chr_bed_path = output_dir / f"{category}.chr.bed"
+
+    write_bed_file(
+        coordinates=coordinates,
+        destination=bed_path,
+        chr_prefix=False,
+    )
+
+    write_bed_file(
+        coordinates=coordinates,
+        destination=chr_bed_path,
+        chr_prefix=True,
+    )
+
+    return {
+        "bed": bed_path,
+        "chr_bed": chr_bed_path,
+    }
 def build_catalog_resources(
         category: str,
         assembly: str,
@@ -354,21 +389,13 @@ def build_catalog_resources(
         assembly,
     )
 
-    bed_path = output_dir / f"{category}.bed"
-    chr_bed_path = output_dir / f"{category}.chr.bed"
+    bed_outputs = write_bed_variants(
+        coordinates=coordinates,
+        output_dir=output_dir,
+        category=category,
+    )
+
     json_path = output_dir / f"{category}.json"
-
-    write_bed_file(
-        coordinates,
-        bed_path,
-        chr_prefix=False,
-    )
-
-    write_bed_file(
-        coordinates,
-        chr_bed_path,
-        chr_prefix=True,
-    )
 
     write_json(
         catalog_data,
@@ -376,8 +403,7 @@ def build_catalog_resources(
     )
 
     return {
-        "bed": bed_path,
-        "chr_bed": chr_bed_path,
+        **bed_outputs,
         "json": json_path,
     }
 
