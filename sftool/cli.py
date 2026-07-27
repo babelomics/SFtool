@@ -5,6 +5,7 @@ import click
 
 from sftool.commands.run import run
 from sftool.commands.check import check
+from sftool.commands.resources import resources
 
 CONTEXT_SETTINGS = {
     "help_option_names": ["-h", "--help"]
@@ -26,6 +27,7 @@ def main(ctx):
         click.echo("Available commands:")
         click.echo("  run     Execute the complete SFtool workflow.")
         click.echo("  check   Validate the execution environment and configuration.")
+        click.echo("  resources   Manage SFtool datasets and shared resources.")
         click.echo()
         click.echo("Run 'sftool --help' for more information.")
         ctx.exit(1)
@@ -33,6 +35,7 @@ def main(ctx):
 
 main.add_command(run)
 main.add_command(check)
+main.add_command(resources)
 
 if __name__ == "__main__":
     main()
