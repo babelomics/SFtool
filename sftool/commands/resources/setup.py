@@ -3,7 +3,14 @@ Implementation of ``sftool resources setup``.
 """
 
 from pathlib import Path
-from sftool.utils.resource_utils import load_bundled_resources
+from sftool.utils.resource_utils import (
+    load_bundled_resources,
+    ResourceOperationError,
+)
+from sftool.utils.catalog_utils import (
+    CatalogGenerationError,
+    prepare_catalog_resources,
+)
 
 import click
 
@@ -84,8 +91,12 @@ def setup(
 
     resource_version = resource_version.lower()
 
-    if resource_version == "bundled":
-        bundled_resources = load_bundled_resources()
+    if resource_version != "bundled":
+        raise click.ClickException(
+            f"Unsupported resource version: {resource_version}"
+        )
+
+    bundled_resources = load_bundled_resources()
 
     click.echo(
         "Bundled resource specification loaded "
@@ -103,7 +114,34 @@ def setup(
     )
 
     click.echo()
+    click.echo("Preparing catalog resources...")
+
+    try:
+        catalog_resources = prepare_catalog_resources(
+            output_root=output_dir,
+        )
+    except (
+            CatalogGenerationError,
+            ResourceOperationError,
+    ) as error:
+        raise click.ClickException(str(error)) from error
+
+    for assembly, catalogs in (
+            catalog_resources["assemblies"].items()
+    ):
+        click.echo(f"  {assembly}")
+
+    for category, resources in catalogs.items():
+        click.echo(
+            f"    {category}: "
+            f"{resources['bed']}, "
+            f"{resources['chr_bed']}, "
+            f"{resources['json']}"
+        )
+
     click.echo(
-        "Resource preparation is not implemented yet.",
-        err=True,
+        "  RR_STR: "
+        f"{catalog_resources['RR_STR']['csv']}"
     )
+
+    click.echo("Catalog resources prepared successfully.")

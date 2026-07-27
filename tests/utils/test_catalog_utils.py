@@ -1,0 +1,431 @@
+from pathlib import Path
+from unittest.mock import Mock
+
+import pytest
+
+from sftool.utils import catalog_utils
+from sftool.utils.catalog_utils import (
+    CatalogGenerationError,
+    GeneCoordinate,
+    build_catalog_resources,
+    collect_gene_coordinates,
+    copy_rr_str_catalog,
+    write_bed_file,
+    format_chromosome,
+    prepare_catalog_resources,
+)
+
+
+def test_collect_gene_coordinates_uses_grch37_alias(monkeypatch):
+    lookup = Mock(
+        return_value={
+            "Chromosome": "6",
+            "Start": 100,
+            "End": 200,
+        }
+    )
+    monkeypatch.setattr(
+        catalog_utils,
+        "get_gene_location_ensembl",
+        lookup,
+    )
+
+    coordinates = collect_gene_coordinates(
+        ["MMUT"],
+        "GRCh37",
+    )
+
+    lookup.assert_called_once_with("MUT", "GRCh37")
+    assert coordinates[0].gene_symbol == "MMUT"
+
+
+def test_write_bed_file_generates_both_chromosome_styles(tmp_path):
+    coordinates = [
+        GeneCoordinate("1", 10, 20, "GENE1"),
+        GeneCoordinate("MT", 30, 40, "GENE2"),
+    ]
+
+    plain = tmp_path / "PR.bed"
+    prefixed = tmp_path / "PR.chr.bed"
+
+    write_bed_file(coordinates, plain, chr_prefix=False)
+    write_bed_file(coordinates, prefixed, chr_prefix=True)
+
+    assert plain.read_text() == (
+        "1\t10\t20\tGENE1\n"
+        "MT\t30\t40\tGENE2\n"
+    )
+    assert prefixed.read_text() == (
+        "chr1\t10\t20\tGENE1\n"
+        "chrM\t30\t40\tGENE2\n"
+    )
+
+def test_write_bed_file_removes_temporary_file_on_error(
+        tmp_path,
+        monkeypatch,
+):
+    coordinates = [
+        GeneCoordinate(
+            "1",
+            10,
+            20,
+            "GENE1",
+        )
+    ]
+
+    destination = tmp_path / "PR.bed"
+    temporary_path = tmp_path / "PR.bed.tmp"
+
+    original_replace = Path.replace
+
+    def failing_replace(self, target):
+        if self == temporary_path:
+            raise OSError("Simulated replace failure")
+
+        return original_replace(self, target)
+
+    monkeypatch.setattr(
+        Path,
+        "replace",
+        failing_replace,
+    )
+
+    with pytest.raises(
+            CatalogGenerationError,
+            match="Could not write BED file",
+    ):
+        write_bed_file(
+            coordinates,
+            destination,
+            chr_prefix=False,
+        )
+
+    assert not temporary_path.exists()
+    assert not destination.exists()
+
+def test_build_catalog_resources_creates_expected_files(
+        tmp_path,
+        monkeypatch,
+):
+    source_csv = tmp_path / "PR.csv"
+    source_csv.write_text(
+        "Gene,Phenotype\nGENE1,Condition\n",
+        encoding="latin1",
+    )
+
+    monkeypatch.setattr(
+        catalog_utils,
+        "collect_gene_coordinates",
+        Mock(
+            return_value=[
+                GeneCoordinate("1", 10, 20, "GENE1")
+            ]
+        ),
+    )
+
+    outputs = build_catalog_resources(
+        category="PR",
+        assembly="GRCh38",
+        source_csv=source_csv,
+        output_dir=tmp_path / "catalogs",
+    )
+
+    assert outputs["bed"].exists()
+    assert outputs["chr_bed"].exists()
+    assert outputs["json"].exists()
+
+
+def test_build_catalog_resources_rejects_rr_str(tmp_path):
+    with pytest.raises(CatalogGenerationError):
+        build_catalog_resources(
+            category="RR_STR",
+            assembly="GRCh38",
+            source_csv=tmp_path / "RR_STR.csv",
+            output_dir=tmp_path / "catalogs",
+        )
+
+
+def test_copy_rr_str_catalog_preserves_file(tmp_path, monkeypatch):
+    source = (
+            tmp_path
+            / "RR_risk_genes_STR_ACMG_CS_v2021.csv"
+    )
+    source.write_text("Gene\nFMR1\n", encoding="latin1")
+
+    monkeypatch.setattr(
+        catalog_utils,
+        "get_bundled_catalog_resource",
+        lambda category: source,
+    )
+
+    destination = copy_rr_str_catalog(
+        tmp_path / "resources"
+    )
+
+    assert destination.read_bytes() == source.read_bytes()
+
+    assert destination.name == (
+        "RR_risk_genes_STR_ACMG_CS_v2021.csv"
+    )
+    assert destination.parent.name == "RR_STR"
+    assert destination.parent.parent.name == "catalogs"
+
+
+def test_copy_rr_str_catalog_only_creates_csv(
+        tmp_path,
+        monkeypatch,
+):
+    source = tmp_path / "RR_risk_genes_STR_ACMG_CS_v2021.csv"
+    source.write_text(
+        "Gene\nFMR1\n",
+        encoding="latin1",
+    )
+
+    monkeypatch.setattr(
+        catalog_utils,
+        "get_bundled_catalog_resource",
+        lambda category: source,
+    )
+
+    output_root = tmp_path / "resources"
+
+    destination = copy_rr_str_catalog(output_root)
+
+    rr_str_directory = output_root / "catalogs" / "RR_STR"
+
+    assert destination == (
+            rr_str_directory
+            / "RR_risk_genes_STR_ACMG_CS_v2021.csv"
+    )
+    assert destination.exists()
+
+    assert list(rr_str_directory.glob("*.bed")) == []
+    assert list(rr_str_directory.glob("*.json")) == []
+
+@pytest.mark.parametrize(
+    ("chromosome", "plain", "prefixed"),
+    [
+        ("1", "1", "chr1"),
+        ("X", "X", "chrX"),
+        ("MT", "MT", "chrM"),
+        ("chr1", "1", "chr1"),
+        ("chrM", "MT", "chrM"),
+    ],
+)
+def test_format_chromosome(chromosome, plain, prefixed):
+    assert format_chromosome(
+        chromosome,
+        chr_prefix=False,
+    ) == plain
+
+    assert format_chromosome(
+        chromosome,
+        chr_prefix=True,
+    ) == prefixed
+
+
+def test_build_catalog_resources_generates_both_bed_conventions(
+        tmp_path,
+        monkeypatch,
+):
+    source_csv = tmp_path / "PR.csv"
+    source_csv.write_text(
+        "Gene,Phenotype\nGENE1,Condition\n",
+        encoding="latin1",
+    )
+
+    coordinate_lookup = Mock(
+        return_value=[
+            GeneCoordinate("1", 10, 20, "GENE1"),
+            GeneCoordinate("MT", 30, 40, "GENE2"),
+        ]
+    )
+
+    monkeypatch.setattr(
+        catalog_utils,
+        "collect_gene_coordinates",
+        coordinate_lookup,
+    )
+
+    outputs = build_catalog_resources(
+        category="PR",
+        assembly="GRCh38",
+        source_csv=source_csv,
+        output_dir=tmp_path,
+    )
+
+    assert outputs["bed"].read_text() == (
+        "1\t10\t20\tGENE1\n"
+        "MT\t30\t40\tGENE2\n"
+    )
+
+    assert outputs["chr_bed"].read_text() == (
+        "chr1\t10\t20\tGENE1\n"
+        "chrM\t30\t40\tGENE2\n"
+    )
+
+    coordinate_lookup.assert_called_once_with(
+        ["GENE1"],
+        "GRCh38",
+    )
+
+
+def test_bed_conventions_preserve_coordinates_and_gene_order(
+        tmp_path,
+        monkeypatch,
+):
+    source_csv = tmp_path / "RR.csv"
+    source_csv.write_text(
+        "Gene\nGENE1\n",
+        encoding="latin1",
+    )
+
+    monkeypatch.setattr(
+        catalog_utils,
+        "collect_gene_coordinates",
+        Mock(
+            return_value=[
+                GeneCoordinate("2", 100, 200, "GENE1"),
+            ]
+        ),
+    )
+
+    outputs = build_catalog_resources(
+        category="RR",
+        assembly="GRCh37",
+        source_csv=source_csv,
+        output_dir=tmp_path,
+    )
+
+    plain_rows = [
+        line.split("\t")
+        for line in outputs["bed"].read_text().splitlines()
+    ]
+    prefixed_rows = [
+        line.split("\t")
+        for line in outputs["chr_bed"].read_text().splitlines()
+    ]
+
+    assert [row[1:] for row in plain_rows] == [
+        row[1:] for row in prefixed_rows
+    ]
+
+def test_prepare_catalog_resources_creates_expected_structure(
+        tmp_path,
+        monkeypatch,
+):
+    pr_source = tmp_path / "PR.csv"
+    pr_source.write_text(
+        "Gene,Phenotype\nGENE1,Condition 1\n",
+        encoding="latin1",
+    )
+
+    rr_source = tmp_path / "RR.csv"
+    rr_source.write_text(
+        "Gene,Phenotype\nGENE2,Condition 2\n",
+        encoding="latin1",
+    )
+
+    rr_str_source = (
+            tmp_path
+            / "RR_risk_genes_STR_ACMG_CS_v2021.csv"
+    )
+    rr_str_source.write_text(
+        "Gene\nFMR1\n",
+        encoding="latin1",
+    )
+
+    sources = {
+        "PR": pr_source,
+        "RR": rr_source,
+        "RR_STR": rr_str_source,
+    }
+
+    monkeypatch.setattr(
+        catalog_utils,
+        "get_bundled_catalog_resource",
+        lambda category: sources[category],
+    )
+
+    def fake_collect_gene_coordinates(
+            genes,
+            assembly,
+    ):
+        chromosome = "1" if assembly == "GRCh37" else "2"
+
+        return [
+            GeneCoordinate(
+                chromosome,
+                10,
+                20,
+                gene,
+            )
+            for gene in genes
+        ]
+
+    monkeypatch.setattr(
+        catalog_utils,
+        "collect_gene_coordinates",
+        fake_collect_gene_coordinates,
+    )
+
+    output_root = tmp_path / "resources"
+
+    resources = prepare_catalog_resources(
+        output_root=output_root,
+    )
+
+    expected_generated_files = [
+        output_root / "catalogs/GRCh37/PR.bed",
+        output_root / "catalogs/GRCh37/PR.chr.bed",
+        output_root / "catalogs/GRCh37/PR.json",
+        output_root / "catalogs/GRCh37/RR.bed",
+        output_root / "catalogs/GRCh37/RR.chr.bed",
+        output_root / "catalogs/GRCh37/RR.json",
+        output_root / "catalogs/GRCh38/PR.bed",
+        output_root / "catalogs/GRCh38/PR.chr.bed",
+        output_root / "catalogs/GRCh38/PR.json",
+        output_root / "catalogs/GRCh38/RR.bed",
+        output_root / "catalogs/GRCh38/RR.chr.bed",
+        output_root / "catalogs/GRCh38/RR.json",
+        ]
+
+    for expected_file in expected_generated_files:
+        assert expected_file.exists()
+
+    expected_rr_str = (
+            output_root
+            / "catalogs"
+            / "RR_STR"
+            / "RR_risk_genes_STR_ACMG_CS_v2021.csv"
+    )
+
+    assert expected_rr_str.exists()
+
+    assert not (
+            output_root / "catalogs/GRCh37/RR_STR.bed"
+    ).exists()
+    assert not (
+            output_root / "catalogs/GRCh37/RR_STR.json"
+    ).exists()
+    assert not (
+            output_root / "catalogs/GRCh38/RR_STR.bed"
+    ).exists()
+    assert not (
+            output_root / "catalogs/GRCh38/RR_STR.json"
+    ).exists()
+
+    assert set(resources["assemblies"]) == {
+        "GRCh37",
+        "GRCh38",
+    }
+
+    assert set(
+        resources["assemblies"]["GRCh37"]
+    ) == {"PR", "RR"}
+
+    assert set(
+        resources["assemblies"]["GRCh38"]
+    ) == {"PR", "RR"}
+
+    assert "csv" in resources["RR_STR"]
