@@ -3,6 +3,7 @@ Implementation of ``sftool resources setup``.
 """
 
 from pathlib import Path
+from sftool.utils.resource_utils import load_bundled_resources
 
 import click
 
@@ -82,6 +83,15 @@ def setup(
     """
 
     resource_version = resource_version.lower()
+
+    if resource_version == "bundled":
+        bundled_resources = load_bundled_resources()
+
+    click.echo(
+        "Bundled resource specification loaded "
+        f"(schema version "
+        f"{bundled_resources['schema_version']})."
+    )
 
     click.echo("SFtool resource setup")
     click.echo(f"Output directory: {output_dir}")
