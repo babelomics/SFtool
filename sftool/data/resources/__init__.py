@@ -1,0 +1,3 @@
+"""
+Bundled SFtool resource specifications.
+"""
