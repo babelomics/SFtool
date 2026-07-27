@@ -12,7 +12,7 @@ from natsort import natsorted
 import requests
 from collections.abc import Sequence
 from typing import NamedTuple
-from importlib.resources import as_file
+from importlib.resources import as_file, files
 from sftool.utils.resource_utils import (
     ensure_directory,
     write_json,
@@ -252,15 +252,17 @@ def format_chromosome(
     return f"chr{chromosome}" if chr_prefix else chromosome
 
 def write_bed_file(
-        coordinates: Sequence[GeneCoordinate],
+        coordinates: list[GeneCoordinate],
         destination: Path,
         *,
         chr_prefix: bool,
 ) -> Path:
-    ensure_directory(destination.parent)
+    temporary_path = destination.with_name(
+        f"{destination.name}.tmp"
+    )
 
     try:
-        with destination.open(
+        with temporary_path.open(
                 "w",
                 encoding="utf-8",
                 newline="",
@@ -277,7 +279,12 @@ def write_bed_file(
                     f"{coordinate.end}\t"
                     f"{coordinate.gene_symbol}\n"
                 )
+
+        temporary_path.replace(destination)
+
     except OSError as error:
+        temporary_path.unlink(missing_ok=True)
+
         raise CatalogGenerationError(
             f"Could not write BED file: {destination}"
         ) from error
@@ -422,7 +429,7 @@ def prepare_catalog_resources(
             output_root / "catalogs" / assembly
         )
 
-        generated_catalogs["assemblies"][assembly] = {}
+        assembly_catalogs: dict[str, dict[str, str]] = {}
 
         for category in GENERATED_CATALOGS:
             source_resource = get_bundled_catalog_resource(
@@ -437,14 +444,18 @@ def prepare_catalog_resources(
                     output_dir=assembly_output_dir,
                 )
 
-            generated_catalogs["assemblies"][assembly][
-                category
-            ] = {
+            assembly_catalogs[category] = {
                 name: str(path)
                 for name, path in outputs.items()
             }
 
-    rr_str_path = copy_rr_str_catalog(output_root)
+        generated_catalogs["assemblies"][assembly] = (
+            assembly_catalogs
+        )
+
+    rr_str_path = copy_rr_str_catalog(
+        output_root
+    )
 
     generated_catalogs["RR_STR"] = {
         "csv": str(rr_str_path),

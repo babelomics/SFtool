@@ -3,7 +3,10 @@ Implementation of ``sftool resources setup``.
 """
 
 from pathlib import Path
-from sftool.utils.resource_utils import load_bundled_resources
+from sftool.utils.resource_utils import (
+    load_bundled_resources,
+    ResourceOperationError,
+)
 from sftool.utils.catalog_utils import (
     CatalogGenerationError,
     prepare_catalog_resources,
@@ -117,7 +120,28 @@ def setup(
         catalog_resources = prepare_catalog_resources(
             output_root=output_dir,
         )
-    except CatalogGenerationError as error:
+    except (
+            CatalogGenerationError,
+            ResourceOperationError,
+    ) as error:
         raise click.ClickException(str(error)) from error
+
+    for assembly, catalogs in (
+            catalog_resources["assemblies"].items()
+    ):
+        click.echo(f"  {assembly}")
+
+    for category, resources in catalogs.items():
+        click.echo(
+            f"    {category}: "
+            f"{resources['bed']}, "
+            f"{resources['chr_bed']}, "
+            f"{resources['json']}"
+        )
+
+    click.echo(
+        "  RR_STR: "
+        f"{catalog_resources['RR_STR']['csv']}"
+    )
 
     click.echo("Catalog resources prepared successfully.")
