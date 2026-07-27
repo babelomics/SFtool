@@ -4,6 +4,10 @@ Implementation of ``sftool resources setup``.
 
 from pathlib import Path
 from sftool.utils.resource_utils import load_bundled_resources
+from sftool.utils.catalog_utils import (
+    CatalogGenerationError,
+    prepare_catalog_resources,
+)
 
 import click
 
@@ -84,8 +88,12 @@ def setup(
 
     resource_version = resource_version.lower()
 
-    if resource_version == "bundled":
-        bundled_resources = load_bundled_resources()
+    if resource_version != "bundled":
+        raise click.ClickException(
+            f"Unsupported resource version: {resource_version}"
+        )
+
+    bundled_resources = load_bundled_resources()
 
     click.echo(
         "Bundled resource specification loaded "
@@ -103,7 +111,13 @@ def setup(
     )
 
     click.echo()
-    click.echo(
-        "Resource preparation is not implemented yet.",
-        err=True,
-    )
+    click.echo("Preparing catalog resources...")
+
+    try:
+        catalog_resources = prepare_catalog_resources(
+            output_root=output_dir,
+        )
+    except CatalogGenerationError as error:
+        raise click.ClickException(str(error)) from error
+
+    click.echo("Catalog resources prepared successfully.")
