@@ -26,6 +26,11 @@ from sftool.utils.resource_utils import (
     validate_vcf_resource
 )
 
+from sftool.utils.manifest_utils import (
+    build_installed_manifest,
+    write_installed_manifest
+)
+
 import click
 
 
@@ -312,3 +317,28 @@ def setup(
     click.echo(f"  Version: {pharmcat_resource['version']}")
     click.echo(f"  File: {pharmcat_resource['path']}")
     click.echo("PharmCAT positions resource downloaded successfully.")
+
+    click.echo()
+    click.echo("Writing installed resource manifest...")
+
+    try:
+        manifest = build_installed_manifest(
+            output_root=output_dir,
+            resource_version=resource_version,
+            bundled_resources=bundled_resources,
+            catalog_resources=catalog_resources,
+            clinvar_resources=clinvar_resources,
+            hpo_resource=hpo_resource,
+            pharmcat_resource=pharmcat_resource,
+            reference_resources=reference_resources,
+        )
+
+        manifest_path = write_installed_manifest(
+            output_root=output_dir,
+            manifest=manifest,
+        )
+    except ResourceOperationError as error:
+        raise click.ClickException(str(error)) from error
+
+    click.echo(f"Installed resource manifest: {manifest_path}")
+    click.echo("SFtool resource setup completed successfully.")
