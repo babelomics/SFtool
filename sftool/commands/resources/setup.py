@@ -83,7 +83,12 @@ Example:
     "--download-reference-genomes",
     is_flag=True,
     default=False,
-    help="Download the GRCh37 and GRCh38 reference genomes.",
+    help=(
+            "Download the GRCh37 and GRCh38 reference genomes."
+            "Reserved for future reference genome download support. "
+            "Currently, users must provide their own reference genome "
+            "through the SFtool configuration."
+    ),
 )
 def setup(
         output_dir: Path,
@@ -98,11 +103,21 @@ def setup(
     resource-management tasks.
     """
 
+    if download_reference_genomes:
+        click.echo(
+            "Reference genome download is not implemented yet. "
+            "Users must currently provide their own reference genome "
+            "through the SFtool configuration. "
+            "This option is reserved for a future release.",
+            err=True,
+        )
+
+
     resource_version = resource_version.lower()
 
     if resource_version != "bundled":
         raise click.ClickException(
-            f"Unsupported resource version: {resource_version}"
+            f"Only bundled versions are implemented at the moment"
         )
 
     bundled_resources = load_bundled_resources()
