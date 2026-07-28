@@ -3,11 +3,6 @@ Implementation of ``sftool resources setup``.
 """
 
 from pathlib import Path
-from sftool.utils.resource_utils import (
-    load_bundled_resources,
-    ResourceOperationError,
-    ResourceSpecificationError,
-)
 from sftool.utils.catalog_utils import (
     CatalogGenerationError,
     prepare_catalog_resources,
@@ -23,6 +18,7 @@ from sftool.utils.resource_utils import (
     load_bundled_resources,
     ResourceOperationError,
     ResourceSpecificationError,
+    download_versioned_resource
 )
 
 import click
@@ -212,3 +208,43 @@ def setup(
     )
 
     click.echo("Catalog resources prepared successfully.")
+
+    click.echo()
+    click.echo("Downloading HPO resource...")
+
+    try:
+        hpo_resource = download_versioned_resource(
+            output_root=output_dir,
+            resource_name="hpo",
+            specification=bundled_resources["hpo"],
+            validator=validate_hpo_gene_to_phenotype,
+        )
+    except (
+            ResourceOperationError,
+            ResourceSpecificationError,
+    ) as error:
+        raise click.ClickException(str(error)) from error
+
+    click.echo(f"  Version: {hpo_resource['version']}")
+    click.echo(f"  File: {hpo_resource['path']}")
+    click.echo("HPO resource downloaded successfully.")
+
+    click.echo()
+    click.echo("Downloading PharmCAT positions resource...")
+
+    try:
+        pharmcat_resource = download_versioned_resource(
+            output_root=output_dir,
+            resource_name="pharmcat",
+            specification=bundled_resources["pharmcat"],
+            validator=validate_vcf_resource,
+        )
+    except (
+            ResourceOperationError,
+            ResourceSpecificationError,
+    ) as error:
+        raise click.ClickException(str(error)) from error
+
+    click.echo(f"  Version: {pharmcat_resource['version']}")
+    click.echo(f"  File: {pharmcat_resource['path']}")
+    click.echo("PharmCAT positions resource downloaded successfully.")

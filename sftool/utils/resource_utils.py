@@ -11,7 +11,7 @@ from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 import hashlib
-from collections.abc import Mapping
+from collections.abc import Mapping, Callable
 import shutil
 
 
@@ -19,6 +19,15 @@ BUNDLED_RESOURCE_PACKAGE = "sftool.data.resources"
 BUNDLED_RESOURCE_FILENAME = "bundled_resources.json"
 SUPPORTED_BUNDLED_SCHEMA_VERSIONS = {1}
 
+
+EXPECTED_HPO_COLUMNS = [
+    "ncbi_gene_id",
+    "gene_symbol",
+    "hpo_id",
+    "hpo_name",
+    "frequency",
+    "disease_id",
+]
 
 class ResourceSpecificationError(ValueError):
     """
@@ -189,8 +198,13 @@ def _validate_download_specification(
         required_fields={
             "version",
             "url",
-            "filename",
+            "installed_filename",
         },
+    )
+
+    render_resource_filename(
+        specification["installed_filename"],
+        version=specification["version"],
     )
 
 
@@ -667,3 +681,77 @@ def read_json(path: Path) -> dict[str, Any]:
         )
 
     return data
+
+def download_versioned_resource(
+        *,
+        output_root: Path,
+        resource_name: str,
+        specification: Mapping[str, Any],
+        validator: Callable[[Path], None] | None = None,
+) -> dict[str, str]:
+    version = specification["version"]
+
+    filename = render_resource_filename(
+        specification["installed_filename"],
+        version=version,
+    )
+
+    destination = (
+            Path(output_root)
+            / resource_name
+            / filename
+    )
+
+    path = download_file(
+        url=specification["url"],
+        destination=destination,
+    )
+
+    if validator is not None:
+        validator(path)
+
+    return {
+        "version": version,
+        "source_url": specification["url"],
+        "path": path.relative_to(output_root).as_posix(),
+        "sha256": calculate_sha256(path),
+    }
+
+def validate_hpo_gene_to_phenotype(path: Path) -> None:
+    path = Path(path)
+
+    try:
+        with path.open("r", encoding="utf-8") as handle:
+            header = handle.readline().rstrip("\r\n")
+    except OSError as error:
+        raise ResourceOperationError(
+            f"Could not read HPO resource: {path}"
+        ) from error
+
+    if not header:
+        raise ResourceOperationError(
+            f"HPO resource is empty: {path}"
+        )
+
+    actual_columns = header.split("\t")
+
+    if actual_columns != EXPECTED_HPO_COLUMNS:
+        raise ResourceOperationError(
+            "HPO resource has an unexpected header. "
+            f"Expected {EXPECTED_HPO_COLUMNS}, "
+            f"found {actual_columns}: {path}"
+        )
+
+def validate_vcf_resource(path: Path) -> None:
+    try:
+        with path.open("r", encoding="utf-8") as handle:
+            first_line = handle.readline().strip()
+    except OSError as error:
+        raise ResourceOperationError(
+            f"Could not read downloaded VCF resource: {path}"
+        ) from error
+
+    if not first_line.startswith("##fileformat=VCF"):
+        raise ResourceOperationError(
+            f"Downloaded file is not a valid VCF resource: {path}"
+        )

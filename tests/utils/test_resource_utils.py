@@ -18,7 +18,20 @@ from sftool.utils.resource_utils import (
     write_json,
     load_bundled_resources,
     validate_bundled_resources,
+    download_versioned_resource,
+    validate_hpo_gene_to_phenotype,
+    validate_vcf_resource,
 )
+
+HPO_HEADER = (
+    "ncbi_gene_id\t"
+    "gene_symbol\t"
+    "hpo_id\t"
+    "hpo_name\t"
+    "frequency\t"
+    "disease_id"
+)
+
 
 
 def test_load_bundled_resources() -> None:
@@ -71,12 +84,12 @@ def valid_resource_specification() -> dict:
         "hpo": {
             "version": "test-version",
             "url": "https://example.org/genes_to_phenotype.txt",
-            "filename": "genes_to_phenotype.txt",
+            "installed_filename": "genes_to_phenotype.txt",
         },
         "pharmcat": {
             "version": "test-version",
             "url": "https://example.org/pharmcat_positions.vcf",
-            "filename": "pharmcat_positions.vcf",
+            "installed_filename": "pharmcat_positions.vcf",
         },
         "reference_genomes": {
             "GRCh37": {
@@ -236,3 +249,106 @@ def test_download_file_cleans_up_after_failure(tmp_path: Path) -> None:
 
     assert not destination.exists()
     assert not partial_path.exists()
+
+def test_download_versioned_resource_creates_expected_path(
+        tmp_path,
+        monkeypatch,
+):
+    specification = {
+        "version": "v2026-06-23",
+        "url": "https://example.org/genes_to_phenotype.txt",
+        "installed_filename": "genes_to_phenotype_{version}.txt",
+    }
+
+    def fake_download_file(url, destination, **kwargs):
+        assert url == specification["url"]
+
+        destination.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+        destination.write_text(
+            f"{HPO_HEADER}\n"
+            "1\tA1BG\tHP:0000001\tAll\t-\tOMIM:123456\n",
+            encoding="utf-8",
+        )
+
+        return destination
+
+    monkeypatch.setattr(
+        "sftool.utils.resource_utils.download_file",
+        fake_download_file,
+    )
+
+    result = download_versioned_resource(
+        output_root=tmp_path,
+        resource_name="hpo",
+        specification=specification,
+        validator=validate_hpo_gene_to_phenotype,
+    )
+
+    expected_path = (
+            tmp_path
+            / "hpo"
+            / "genes_to_phenotype_v2026-06-23.txt"
+    )
+
+    assert expected_path.is_file()
+    assert result["version"] == "v2026-06-23"
+    assert result["source_url"] == specification["url"]
+    assert result["path"] == (
+        "hpo/genes_to_phenotype_v2026-06-23.txt"
+    )
+    assert result["sha256"]
+
+
+def test_validate_hpo_gene_to_phenotype_accepts_valid_file(
+        tmp_path,
+):
+    hpo_path = tmp_path / "genes_to_phenotype.txt"
+
+    hpo_path.write_text(
+        "ncbi_gene_id\t"
+        "gene_symbol\t"
+        "hpo_id\t"
+        "hpo_name\t"
+        "frequency\t"
+        "disease_id\n"
+        "1\tA1BG\tHP:0000001\tAll\t-\tOMIM:123456\n",
+        encoding="utf-8",
+    )
+
+    validate_hpo_gene_to_phenotype(hpo_path)
+
+
+def test_validate_hpo_gene_to_phenotype_rejects_invalid_header(
+        tmp_path,
+):
+    hpo_path = tmp_path / "genes_to_phenotype.txt"
+
+    hpo_path.write_text(
+        "ncbi_gene_id\tgene_symbol\thpo_id\n"
+        "1\tA1BG\tHP:0000001\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(
+            ResourceOperationError,
+            match="unexpected header",
+    ):
+        validate_hpo_gene_to_phenotype(hpo_path)
+
+
+def test_validate_vcf_resource_accepts_valid_vcf(
+        tmp_path,
+):
+    vcf_path = tmp_path / "pharmcat_positions.vcf"
+
+    vcf_path.write_text(
+        "##fileformat=VCFv4.2\n"
+        "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n"
+        "1\t100\t.\tA\tG\t.\tPASS\t.\n",
+        encoding="utf-8",
+    )
+
+    validate_vcf_resource(vcf_path)
