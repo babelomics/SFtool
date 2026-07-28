@@ -12,6 +12,16 @@ from sftool.utils.catalog_utils import (
     prepare_catalog_resources,
 )
 
+from sftool.utils.clinvar_utils import (
+    download_bundled_clinvar_snapshot,
+)
+
+from sftool.utils.resource_utils import (
+    load_bundled_resources,
+    ResourceOperationError,
+    ResourceSpecificationError,
+)
+
 import click
 
 
@@ -114,6 +124,36 @@ def setup(
     )
 
     click.echo()
+    click.echo("Downloading bundled ClinVar snapshot...")
+
+    try:
+        clinvar_resources = download_bundled_clinvar_snapshot(
+            output_root=output_dir,
+            clinvar_specification=bundled_resources["clinvar"],
+        )
+    except (
+            ResourceOperationError,
+            ResourceSpecificationError,
+    ) as error:
+        raise click.ClickException(str(error)) from error
+
+    click.echo(
+        "  Version: "
+        f"{clinvar_resources['version']}"
+    )
+    click.echo(
+        "  Variant summary: "
+        f"{clinvar_resources['variant_summary']}"
+    )
+    click.echo(
+        "  Submission summary: "
+        f"{clinvar_resources['submission_summary']}"
+    )
+    click.echo(
+        "ClinVar source snapshot downloaded successfully."
+    )
+
+    click.echo()
     click.echo("Preparing catalog resources...")
 
     try:
@@ -131,13 +171,13 @@ def setup(
     ):
         click.echo(f"  {assembly}")
 
-    for category, resources in catalogs.items():
-        click.echo(
-            f"    {category}: "
-            f"{resources['bed']}, "
-            f"{resources['chr_bed']}, "
-            f"{resources['json']}"
-        )
+        for category, resources in catalogs.items():
+            click.echo(
+                f"    {category}: "
+                f"{resources['bed']}, "
+                f"{resources['chr_bed']}, "
+                f"{resources['json']}"
+            )
 
     click.echo(
         "  RR_STR: "

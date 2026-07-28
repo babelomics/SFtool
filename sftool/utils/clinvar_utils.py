@@ -10,10 +10,20 @@ import csv
 import urllib.request
 from datetime import datetime
 import shutil
-from sftool.utils.catalog_utils import read_csv
+from sftool.utils.catalog_utils import read_catalog_csv
 from collections import Counter
+from pathlib import Path
+from typing import Any
 import json
 
+from sftool.utils.resource_utils import (
+    ResourceOperationError,
+    ResourceSpecificationError,
+    download_file,
+    ensure_directory,
+    render_resource_filename,
+    resolve_resource_url,
+)
 
 def map_review_status(review_status):
     """
@@ -61,7 +71,7 @@ def run_clinvar(evidence_level, clinvar_db, clinvar_submission, category, catego
     try:
         # Select genes for current category
         # Read CSV and store it in a dictionary
-        genes_dct, genes_lst = read_csv(category_geneset_file, category)
+        genes_dct, genes_lst = read_catalog_csv(Path(category_geneset_file), category)
 
         # Read Clinvar database
         clinvar_dct = {}  #  dictionary to store information from CLINVAR
@@ -154,6 +164,99 @@ def run_clinvar(evidence_level, clinvar_db, clinvar_submission, category, catego
     except Exception as e:
         print(f"Error when filtering variants: {e}")
 
+
+def download_bundled_clinvar_snapshot(
+        *,
+        output_root: Path,
+        clinvar_specification: dict[str, Any],
+        overwrite: bool = False,
+) -> dict[str, str]:
+    """
+    Download the ClinVar files pinned by the bundled resource specification.
+
+    The source files are stored under::
+
+        <output_root>/clinvar/source/
+
+    Parameters
+    ----------
+    output_root
+        Root directory of the installed SFtool resources.
+    clinvar_specification
+        ``clinvar`` section loaded from ``bundled_resources.json``.
+    overwrite
+        Replace previously downloaded files when true.
+
+    Returns
+    -------
+    dict[str, str]
+        ClinVar version, source URLs, and downloaded paths.
+
+    Raises
+    ------
+    ResourceSpecificationError
+        If the bundled ClinVar definition is incomplete or invalid.
+    ResourceOperationError
+        If a source file cannot be downloaded.
+    """
+    output_root = Path(output_root)
+    source_directory = ensure_directory(
+        output_root / "clinvar" / "source"
+    )
+
+    try:
+        version = clinvar_specification["version"]
+        archive_base_url = clinvar_specification[
+            "archive_base_url"
+        ]
+        variant_summary_template = clinvar_specification[
+            "variant_summary_filename"
+        ]
+        submission_summary_template = clinvar_specification[
+            "submission_summary_filename"
+        ]
+    except KeyError as error:
+        raise ResourceSpecificationError(
+            "The bundled ClinVar specification is missing "
+            f"the required field: {error.args[0]}"
+        ) from error
+
+    variant_summary_filename = render_resource_filename(
+        variant_summary_template,
+        version=version,
+    )
+    submission_summary_filename = render_resource_filename(
+        submission_summary_template,
+        version=version,
+    )
+
+    variant_summary_url = resolve_resource_url(
+        archive_base_url,
+        variant_summary_filename,
+    )
+    submission_summary_url = resolve_resource_url(
+        archive_base_url,
+        submission_summary_filename,
+    )
+
+    variant_summary_path = download_file(
+        variant_summary_url,
+        source_directory / variant_summary_filename,
+        overwrite=overwrite,
+        )
+    submission_summary_path = download_file(
+        submission_summary_url,
+        source_directory / submission_summary_filename,
+        overwrite=overwrite,
+        )
+
+    return {
+        "version": version,
+        "variant_summary": str(variant_summary_path),
+        "submission_summary": str(submission_summary_path),
+        "variant_summary_url": variant_summary_url,
+        "submission_summary_url": submission_summary_url,
+    }
 
 def process_clinvar_data(assembly, release_date, clinvar_path):
     """
