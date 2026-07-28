@@ -4,6 +4,9 @@ Created on Sun Aug 13 15:12:18 2023
 
 @author: Javier Perez Florido, Edurne Urrutia
 """
+
+from __future__ import annotations
+
 import os
 import gzip
 import csv
@@ -15,6 +18,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 import json
+from collections.abc import Mapping
 
 from sftool.utils.resource_utils import (
     ResourceOperationError,
@@ -24,6 +28,206 @@ from sftool.utils.resource_utils import (
     render_resource_filename,
     resolve_resource_url,
 )
+
+SUPPORTED_CLINVAR_ASSEMBLIES = (
+    "GRCh37",
+    "GRCh38",
+)
+
+CLINVAR_DATABASE_COLUMNS = (
+    "Type",
+    "Name",
+    "GeneSymbol",
+    "ClinicalSignificance",
+    "ClinSigSimple",
+    "RS# (dbSNP)",
+    "VariationID",
+    "PhenotypeIDS",
+    "PhenotypeList",
+    "Assembly",
+    "Chromosome",
+    "Start",
+    "Stop",
+    "ReviewStatus",
+    "SubmitterCategories",
+    "PositionVCF",
+    "ReferenceAlleleVCF",
+    "AlternateAlleleVCF",
+)
+
+class ClinVarProcessingError(RuntimeError):
+    """Raised when a ClinVar source file cannot be processed."""
+
+def build_clinvar_assembly_database(
+        *,
+        variant_summary_path: Path,
+        output_root: Path,
+        assembly: str,
+        version: str,
+        overwrite: bool = False,
+) -> Path:
+    """
+    Generate the processed ClinVar database for one genome assembly.
+
+    Parameters
+    ----------
+    variant_summary_path
+        Path to the downloaded ClinVar ``variant_summary`` gzip file.
+    output_root
+        Root directory of the installed SFtool resources.
+    assembly
+        Genome assembly to retain: ``GRCh37`` or ``GRCh38``.
+    version
+        ClinVar version recorded in the bundled resource specification.
+    overwrite
+        Replace an existing generated database when true.
+
+    Returns
+    -------
+    Path
+        Generated assembly-specific ClinVar database.
+    """
+    variant_summary_path = Path(variant_summary_path)
+    output_root = Path(output_root)
+
+    if assembly not in SUPPORTED_CLINVAR_ASSEMBLIES:
+        raise ClinVarProcessingError(
+            f"Unsupported ClinVar assembly: {assembly}"
+        )
+
+    if not variant_summary_path.is_file():
+        raise ClinVarProcessingError(
+            "ClinVar variant summary does not exist or is not a file: "
+            f"{variant_summary_path}"
+        )
+
+    output_directory = ensure_directory(
+        output_root / "clinvar" / assembly
+    )
+
+    output_path = (
+            output_directory
+            / f"clinvar_database_{assembly}_{version}.txt"
+    )
+
+    if output_path.exists() and not overwrite:
+        return output_path
+
+    temporary_path = output_path.with_name(
+        f"{output_path.name}.tmp"
+    )
+
+    try:
+        with gzip.open(
+                variant_summary_path,
+                mode="rt",
+                encoding="utf-8",
+                newline="",
+        ) as source_handle:
+            reader = csv.reader(
+                source_handle,
+                delimiter="\t",
+            )
+
+            try:
+                header = next(reader)
+            except StopIteration as error:
+                raise ClinVarProcessingError(
+                    "ClinVar variant summary is empty: "
+                    f"{variant_summary_path}"
+                ) from error
+
+            missing_columns = [
+                column
+                for column in CLINVAR_DATABASE_COLUMNS
+                if column not in header
+            ]
+
+            if missing_columns:
+                raise ClinVarProcessingError(
+                    "ClinVar variant summary is missing required "
+                    f"columns: {', '.join(missing_columns)}"
+                )
+
+            column_positions = [
+                header.index(column)
+                for column in CLINVAR_DATABASE_COLUMNS
+            ]
+            assembly_position = header.index("Assembly")
+
+            with temporary_path.open(
+                    mode="w",
+                    encoding="utf-8",
+                    newline="",
+            ) as output_handle:
+                writer = csv.writer(
+                    output_handle,
+                    delimiter="\t",
+                    lineterminator="\n",
+                )
+
+                writer.writerow(CLINVAR_DATABASE_COLUMNS)
+
+                for line_number, row in enumerate(
+                        reader,
+                        start=2,
+                ):
+                    if len(row) != len(header):
+                        raise ClinVarProcessingError(
+                            "Malformed ClinVar row at line "
+                            f"{line_number}: expected {len(header)} "
+                            f"columns, found {len(row)}"
+                        )
+
+                    if row[assembly_position] != assembly:
+                        continue
+
+                    writer.writerow(
+                        row[position]
+                        for position in column_positions
+                    )
+
+        temporary_path.replace(output_path)
+
+    except ClinVarProcessingError:
+        temporary_path.unlink(missing_ok=True)
+        raise
+
+    except (OSError, EOFError, gzip.BadGzipFile) as error:
+        temporary_path.unlink(missing_ok=True)
+
+        raise ClinVarProcessingError(
+            "Could not generate ClinVar database for "
+            f"{assembly} from {variant_summary_path}"
+        ) from error
+
+    return output_path
+
+def build_clinvar_databases(
+        *,
+        variant_summary_path: Path,
+        output_root: Path,
+        version: str,
+        assemblies: Sequence[str] = SUPPORTED_CLINVAR_ASSEMBLIES,
+        overwrite: bool = False,
+) -> dict[str, str]:
+    """
+    Generate the processed ClinVar databases for the requested assemblies.
+    """
+    databases: dict[str, str] = {}
+
+    for assembly in assemblies:
+        database_path = build_clinvar_assembly_database(
+            variant_summary_path=variant_summary_path,
+            output_root=output_root,
+            assembly=assembly,
+            version=version,
+            overwrite=overwrite,
+        )
+
+        databases[assembly] = str(database_path)
+
+    return databases
 
 def map_review_status(review_status):
     """

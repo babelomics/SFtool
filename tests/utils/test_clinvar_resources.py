@@ -1,11 +1,16 @@
 from pathlib import Path
 
 import pytest
+import csv
+import gzip
 from click.testing import CliRunner
 
 from sftool.utils import clinvar_utils
 from sftool.utils.clinvar_utils import (
     download_bundled_clinvar_snapshot,
+    build_clinvar_databases,
+    CLINVAR_DATABASE_COLUMNS,
+    build_clinvar_assembly_database
 )
 from sftool.utils.resource_utils import (
     ResourceSpecificationError,
@@ -174,3 +179,141 @@ def test_download_bundled_clinvar_snapshot_rejects_missing_field(
             clinvar_specification=specification,
         )
 
+
+def test_build_clinvar_assembly_database_filters_assembly(
+        tmp_path,
+):
+    source_path = tmp_path / "variant_summary.txt.gz"
+
+    header = list(CLINVAR_DATABASE_COLUMNS)
+
+    grch37_row = [
+        "single nucleotide variant",
+        "variant 37",
+        "GENE1",
+        "Pathogenic",
+        "1",
+        "123",
+        "1001",
+        "MONDO:1",
+        "Disease 1",
+        "GRCh37",
+        "1",
+        "100",
+        "100",
+        "criteria provided, single submitter",
+        "1",
+        "100",
+        "A",
+        "G",
+    ]
+
+    grch38_row = [
+        "single nucleotide variant",
+        "variant 38",
+        "GENE2",
+        "Pathogenic",
+        "1",
+        "456",
+        "1002",
+        "MONDO:2",
+        "Disease 2",
+        "GRCh38",
+        "2",
+        "200",
+        "200",
+        "reviewed by expert panel",
+        "1",
+        "200",
+        "C",
+        "T",
+    ]
+
+    with gzip.open(
+            source_path,
+            "wt",
+            encoding="utf-8",
+            newline="",
+    ) as handle:
+        writer = csv.writer(
+            handle,
+            delimiter="\t",
+            lineterminator="\n",
+        )
+        writer.writerow(header)
+        writer.writerow(grch37_row)
+        writer.writerow(grch38_row)
+
+    output_path = build_clinvar_assembly_database(
+        variant_summary_path=source_path,
+        output_root=tmp_path / "resources",
+        assembly="GRCh37",
+        version="2026-06",
+    )
+
+    rows = list(
+        csv.reader(
+            output_path.open(encoding="utf-8"),
+            delimiter="\t",
+        )
+    )
+
+    assert rows == [
+        header,
+        grch37_row,
+    ]
+
+def test_build_clinvar_databases_generates_both_assemblies(
+        tmp_path,
+        monkeypatch,
+):
+    calls = []
+
+    def fake_build_clinvar_assembly_database(
+            *,
+            variant_summary_path,
+            output_root,
+            assembly,
+            version,
+            overwrite,
+    ):
+        calls.append(assembly)
+
+        output_path = (
+                output_root
+                / "clinvar"
+                / assembly
+                / f"clinvar_database_{assembly}_{version}.txt"
+        )
+        output_path.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+        output_path.write_text(
+            "header\n",
+            encoding="utf-8",
+        )
+
+        return output_path
+
+    monkeypatch.setattr(
+        clinvar_utils,
+        "build_clinvar_assembly_database",
+        fake_build_clinvar_assembly_database,
+    )
+
+    resources = build_clinvar_databases(
+        variant_summary_path=tmp_path / "variant_summary.txt.gz",
+        output_root=tmp_path / "resources",
+        version="2026-06",
+    )
+
+    assert calls == [
+        "GRCh37",
+        "GRCh38",
+    ]
+
+    assert set(resources) == {
+        "GRCh37",
+        "GRCh38",
+    }

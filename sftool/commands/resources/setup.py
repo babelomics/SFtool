@@ -6,6 +6,7 @@ from pathlib import Path
 from sftool.utils.resource_utils import (
     load_bundled_resources,
     ResourceOperationError,
+    ResourceSpecificationError,
 )
 from sftool.utils.catalog_utils import (
     CatalogGenerationError,
@@ -13,6 +14,8 @@ from sftool.utils.catalog_utils import (
 )
 
 from sftool.utils.clinvar_utils import (
+    ClinVarProcessingError,
+    build_clinvar_databases,
     download_bundled_clinvar_snapshot,
 )
 
@@ -59,7 +62,7 @@ Example:
 )
 @click.option(
     "--clinvar-evidence",
-    type=click.IntRange(min=1, max=5),
+    type=click.IntRange(min=1, max=4),
     default=1,
     show_default=True,
     help=(
@@ -152,6 +155,30 @@ def setup(
     click.echo(
         "ClinVar source snapshot downloaded successfully."
     )
+
+    click.echo()
+    click.echo("Generating ClinVar assembly databases...")
+
+    try:
+        clinvar_databases = build_clinvar_databases(
+            variant_summary_path=Path(
+                clinvar_resources["variant_summary"]
+            ),
+            output_root=output_dir,
+            version=clinvar_resources["version"],
+        )
+    except ClinVarProcessingError as error:
+        raise click.ClickException(str(error)) from error
+
+    for assembly, database_path in clinvar_databases.items():
+        click.echo(
+            f"  {assembly}: {database_path}"
+        )
+
+    click.echo(
+        "ClinVar assembly databases generated successfully."
+    )
+
 
     click.echo()
     click.echo("Preparing catalog resources...")
