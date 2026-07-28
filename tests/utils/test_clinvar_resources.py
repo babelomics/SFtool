@@ -3,6 +3,7 @@ from pathlib import Path
 import pytest
 import csv
 import gzip
+import json
 from click.testing import CliRunner
 
 from sftool.utils import clinvar_utils
@@ -10,7 +11,8 @@ from sftool.utils.clinvar_utils import (
     download_bundled_clinvar_snapshot,
     build_clinvar_databases,
     CLINVAR_DATABASE_COLUMNS,
-    build_clinvar_assembly_database
+    build_clinvar_assembly_database,
+    build_catalog_clinvar_databases
 )
 from sftool.utils.resource_utils import (
     ResourceSpecificationError,
@@ -317,3 +319,86 @@ def test_build_clinvar_databases_generates_both_assemblies(
         "GRCh37",
         "GRCh38",
     }
+
+
+def test_build_catalog_clinvar_databases_creates_all_combinations(
+        tmp_path,
+):
+    # ------------------------------------------------------------------
+    # Create the input files required by build_catalog_clinvar_databases
+    # ------------------------------------------------------------------
+
+    grch37_database = tmp_path / "clinvar_database_GRCh37.txt"
+    grch38_database = tmp_path / "clinvar_database_GRCh38.txt"
+
+    submission_summary = tmp_path / "submission_summary.txt.gz"
+
+    pr_catalog = tmp_path / "PR.csv"
+    rr_catalog = tmp_path / "RR.csv"
+
+    output_root = tmp_path / "resources"
+
+    # The assembly-specific ClinVar databases are tab-separated files.
+    # For this test, only the header is required because we are testing
+    # generation of all output combinations, not variant filtering.
+    clinvar_header = "\t".join(CLINVAR_DATABASE_COLUMNS) + "\n"
+
+    grch37_database.write_text(
+        clinvar_header,
+        encoding="utf-8",
+    )
+
+    grch38_database.write_text(
+        clinvar_header,
+        encoding="utf-8",
+    )
+
+    # The submission summary must be gzip-compressed and contain a valid
+    # header. No data rows are required for this test.
+    with gzip.open(
+            submission_summary,
+            mode="wt",
+            encoding="utf-8",
+    ) as handle:
+        handle.write(
+            "#VariationID\t"
+            "ClinicalSignificance\t"
+            "ContributesToAggregateClassification\n"
+        )
+
+    # read_catalog_csv requires a column named exactly "Gene".
+    pr_catalog.write_text(
+        "Gene\nGENE_PR\n",
+        encoding="latin1",
+    )
+
+    rr_catalog.write_text(
+        "Gene\nGENE_RR\n",
+        encoding="latin1",
+    )
+
+    # ------------------------------------------------------------------
+    # Run
+    # ------------------------------------------------------------------
+
+    build_catalog_clinvar_databases(
+        assembly_databases={
+            "GRCh37": grch37_database,
+            "GRCh38": grch38_database,
+        },
+        submission_summary_path=submission_summary,
+        catalog_files={
+            "PR": pr_catalog,
+            "RR": rr_catalog,
+        },
+        output_root=output_root,
+    )
+
+    # ------------------------------------------------------------------
+    # Assert
+    # ------------------------------------------------------------------
+
+    generated_paths = list(output_root.rglob("*.json"))
+
+    assert len(generated_paths) == 16
+    assert all(path.is_file() for path in generated_paths)

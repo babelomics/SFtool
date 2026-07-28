@@ -5,11 +5,14 @@ Implementation of ``sftool resources setup``.
 from pathlib import Path
 from sftool.utils.catalog_utils import (
     CatalogGenerationError,
+    get_bundled_catalog_resource,
     prepare_catalog_resources,
 )
 
 from sftool.utils.clinvar_utils import (
     ClinVarProcessingError,
+    SUPPORTED_CLINVAR_EVIDENCE_LEVELS,
+    build_catalog_clinvar_databases,
     build_clinvar_databases,
     download_bundled_clinvar_snapshot,
 )
@@ -18,7 +21,9 @@ from sftool.utils.resource_utils import (
     load_bundled_resources,
     ResourceOperationError,
     ResourceSpecificationError,
-    download_versioned_resource
+    download_versioned_resource,
+    validate_hpo_gene_to_phenotype,
+    validate_vcf_resource
 )
 
 import click
@@ -57,16 +62,6 @@ Example:
     help="Directory where SFtool resources will be installed.",
 )
 @click.option(
-    "--clinvar-evidence",
-    type=click.IntRange(min=1, max=4),
-    default=1,
-    show_default=True,
-    help=(
-            "Minimum ClinVar evidence level used to generate the "
-            "processed ClinVar databases."
-    ),
-)
-@click.option(
     "--resource-version",
     type=click.Choice(
         ["bundled", "latest"],
@@ -92,7 +87,6 @@ Example:
 )
 def setup(
         output_dir: Path,
-        clinvar_evidence: int,
         resource_version: str,
         download_reference_genomes: bool,
 ) -> None:
@@ -130,7 +124,6 @@ def setup(
 
     click.echo("SFtool resource setup")
     click.echo(f"Output directory: {output_dir}")
-    click.echo(f"ClinVar evidence: {clinvar_evidence}")
     click.echo(f"Resource version: {resource_version}")
     click.echo(
         "Download reference genomes: "
@@ -223,6 +216,62 @@ def setup(
     )
 
     click.echo("Catalog resources prepared successfully.")
+
+    click.echo()
+    click.echo(
+        "Generating ClinVar databases by assembly, "
+        "catalog, and evidence level..."
+    )
+
+    try:
+        catalog_files = {
+            "PR": get_bundled_catalog_resource("PR"),
+            "RR": get_bundled_catalog_resource("RR"),
+        }
+
+        filtered_clinvar_databases = (
+            build_catalog_clinvar_databases(
+                assembly_databases=clinvar_databases,
+                submission_summary_path=Path(
+                    clinvar_resources["submission_summary"]
+                ),
+                catalog_files=catalog_files,
+                output_root=output_dir,
+                evidence_levels=(
+                    SUPPORTED_CLINVAR_EVIDENCE_LEVELS
+                ),
+            )
+        )
+
+        for assembly, assembly_resources in (
+                filtered_clinvar_databases.items()
+        ):
+            click.echo(f"  {assembly}")
+
+            for category, evidence_resources in (
+                    assembly_resources.items()
+            ):
+                click.echo(f"    {category}")
+
+                for evidence_level, database_path in (
+                        evidence_resources.items()
+                ):
+                    click.echo(
+                        f"      evidence {evidence_level}: "
+                        f"{database_path}"
+                    )
+
+        click.echo(
+            "ClinVar catalog/evidence databases "
+            "generated successfully."
+        )
+
+    except (
+            ClinVarProcessingError,
+            ResourceOperationError,
+    ) as error:
+        raise click.ClickException(str(error)) from error
+
 
     click.echo()
     click.echo("Downloading HPO resource...")
