@@ -322,7 +322,7 @@ def setup(
     click.echo("Writing installed resource manifest...")
 
     try:
-        manifest = build_installed_manifest(
+        manifest_path = write_installed_manifest(
             output_root=output_dir,
             resource_version=resource_version,
             catalog_resources=catalog_resources,
@@ -334,10 +334,6 @@ def setup(
             reference_resources=reference_resources,
         )
 
-        manifest_path = write_installed_manifest(
-            output_root=output_dir,
-            manifest=manifest,
-        )
     except ResourceOperationError as error:
         raise click.ClickException(str(error)) from error
 
