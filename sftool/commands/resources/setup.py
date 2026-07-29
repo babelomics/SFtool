@@ -101,6 +101,7 @@ def setup(
     resource-management tasks.
     """
 
+    reference_resources = {}
     if download_reference_genomes:
         click.echo(
             "Reference genome download is not implemented yet. "
@@ -324,9 +325,10 @@ def setup(
         manifest = build_installed_manifest(
             output_root=output_dir,
             resource_version=resource_version,
-            bundled_resources=bundled_resources,
             catalog_resources=catalog_resources,
             clinvar_resources=clinvar_resources,
+            clinvar_databases=clinvar_databases,
+            filtered_clinvar_databases=filtered_clinvar_databases,
             hpo_resource=hpo_resource,
             pharmcat_resource=pharmcat_resource,
             reference_resources=reference_resources,

@@ -6,6 +6,7 @@ Created on Tue Aug  8 19:07:52 2023
 @author: Javier Perez Florido, Edurne Urrutia
 """
 import csv
+import time
 from pathlib import Path
 import shutil
 from natsort import natsorted

@@ -51,14 +51,18 @@ def relative_resource_path(
 
     return relative_path.as_posix()
 
-
 def describe_installed_file(
         path: Path | str,
         *,
         output_root: Path,
 ) -> dict[str, str]:
-    absolute_path = Path(path).resolve()
     root = output_root.resolve()
+    resource_path = Path(path)
+
+    if resource_path.is_absolute():
+        absolute_path = resource_path.resolve()
+    else:
+        absolute_path = (root / resource_path).resolve()
 
     try:
         relative_path = absolute_path.relative_to(root)
@@ -78,21 +82,28 @@ def describe_installed_file(
         "sha256": calculate_sha256(absolute_path),
     }
 
-
 def build_catalog_manifest(
         catalog_resources: dict[str, Any],
         *,
         output_root: Path,
 ) -> dict[str, Any]:
-    manifest: dict[str, Any] = {}
+    manifest: dict[str, Any] = {
+        "assemblies": {},
+    }
 
-    for catalog_name, assemblies in catalog_resources.items():
-        manifest[catalog_name] = {}
+    assemblies = catalog_resources.get("assemblies", {})
 
-        for assembly, files in assemblies.items():
-            manifest[catalog_name][assembly] = {
+    for assembly, catalogs in assemblies.items():
+        manifest["assemblies"][assembly] = {}
+
+        for catalog_name, files in catalogs.items():
+            manifest["assemblies"][assembly][catalog_name] = {
                 "bed": describe_installed_file(
                     files["bed"],
+                    output_root=output_root,
+                ),
+                "chr_bed": describe_installed_file(
+                    files["chr_bed"],
                     output_root=output_root,
                 ),
                 "json": describe_installed_file(
@@ -101,33 +112,55 @@ def build_catalog_manifest(
                 ),
             }
 
+    if "RR_STR" in catalog_resources:
+        manifest["RR_STR"] = {
+            "csv": describe_installed_file(
+                catalog_resources["RR_STR"]["csv"],
+                output_root=output_root,
+            ),
+        }
+
+    return manifest
+
+def describe_file_tree(
+        resources: dict[str, Any],
+        *,
+        output_root: Path,
+) -> dict[str, Any]:
+    manifest: dict[str, Any] = {}
+
+    for key, value in resources.items():
+        if isinstance(value, dict):
+            manifest[key] = describe_file_tree(
+                value,
+                output_root=output_root,
+            )
+        else:
+            manifest[key] = describe_installed_file(
+                value,
+                output_root=output_root,
+            )
+
     return manifest
 
 def build_clinvar_manifest(
         clinvar_resources: dict[str, Any],
+        clinvar_databases: dict[str, Any],
+        filtered_clinvar_databases: dict[str, Any],
         *,
         output_root: Path,
 ) -> dict[str, Any]:
-    manifest: dict[str, Any] = {
+    return {
         "version": clinvar_resources["version"],
-        "files": {},
+        "databases": describe_file_tree(
+            clinvar_databases,
+            output_root=output_root,
+        ),
+        "filtered_databases": describe_file_tree(
+            filtered_clinvar_databases,
+            output_root=output_root,
+        ),
     }
-
-    for catalog_name, assemblies in clinvar_resources["files"].items():
-        manifest["files"][catalog_name] = {}
-
-        for assembly, evidence_files in assemblies.items():
-            manifest["files"][catalog_name][assembly] = {}
-
-            for evidence_level, path in evidence_files.items():
-                manifest["files"][catalog_name][assembly][evidence_level] = (
-                    describe_installed_file(
-                        path,
-                        output_root=output_root,
-                    )
-                )
-
-    return manifest
 
 def build_reference_manifest(
         reference_resources: dict[str, Any],
@@ -153,11 +186,14 @@ def build_installed_manifest(
         resource_version: str,
         catalog_resources: dict[str, Any],
         clinvar_resources: dict[str, Any],
+        clinvar_databases: dict[str, Any],
+        filtered_clinvar_databases: dict[str, Any],
         hpo_resource: dict[str, Any],
         pharmcat_resource: dict[str, Any],
         reference_resources: dict[str, Any] | None = None,
         existing_manifest: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+
     now = utc_timestamp()
 
     created_at = (
@@ -173,6 +209,8 @@ def build_installed_manifest(
         ),
         "clinvar": build_clinvar_manifest(
             clinvar_resources,
+            clinvar_databases,
+            filtered_clinvar_databases,
             output_root=output_root,
         ),
         "hpo": {
@@ -185,7 +223,7 @@ def build_installed_manifest(
         "pharmcat": {
             "version": pharmcat_resource["version"],
             "positions_vcf": describe_installed_file(
-                pharmcat_resource["positions_vcf"],
+                pharmcat_resource["path"],
                 output_root=output_root,
             ),
         },
@@ -236,9 +274,10 @@ def write_installed_manifest(
         *,
         output_root: Path,
         resource_version: str,
-        bundled_resources: dict[str, Any],
         catalog_resources: dict[str, Any],
         clinvar_resources: dict[str, Any],
+        clinvar_databases: dict[str, Any],
+        filtered_clinvar_databases: dict[str, Any],
         hpo_resource: dict[str, Any],
         pharmcat_resource: dict[str, Any],
         reference_resources: dict[str, Any] | None = None,
@@ -258,9 +297,10 @@ def write_installed_manifest(
     manifest = build_installed_manifest(
         output_root=output_root,
         resource_version=resource_version,
-        bundled_resources=bundled_resources,
         catalog_resources=catalog_resources,
         clinvar_resources=clinvar_resources,
+        clinvar_databases=clinvar_databases,
+        filtered_clinvar_databases=filtered_clinvar_databases,
         hpo_resource=hpo_resource,
         pharmcat_resource=pharmcat_resource,
         reference_resources=reference_resources,
