@@ -52,6 +52,14 @@ CATALOG_SOURCE_FILES = {
     ),
 }
 
+RETRYABLE_STATUS_CODES = {
+    429,
+    500,
+    502,
+    503,
+    504,
+}
+
 class CatalogGenerationError(RuntimeError):
     """Raised when an SFtool catalog cannot be generated."""
 class GeneCoordinate(NamedTuple):
@@ -145,17 +153,116 @@ def read_catalog_csv(
     return catalog, genes
 
 
+def _get_ensembl_response(
+        url: str,
+        *,
+        timeout: float,
+        max_attempts: int = 5,
+) -> requests.Response:
+    """
+    Send a GET request to Ensembl, retrying transient network and HTTP errors.
+
+    Retries are performed for:
+
+    - Connection errors
+    - Timeouts
+    - HTTP 429
+    - HTTP 500
+    - HTTP 502
+    - HTTP 503
+    - HTTP 504
+
+    Non-transient HTTP errors, such as 400 or 404, are raised immediately.
+    """
+    if max_attempts < 1:
+        raise ValueError("max_attempts must be greater than or equal to 1")
+
+    last_error: requests.RequestException | None = None
+
+    for attempt in range(1, max_attempts + 1):
+        response: requests.Response | None = None
+
+        try:
+            response = requests.get(
+                url,
+                timeout=timeout,
+            )
+
+            if response.status_code not in RETRYABLE_STATUS_CODES:
+                response.raise_for_status()
+                return response
+
+            response_body = response.text.strip()[:500]
+
+            last_error = requests.HTTPError(
+                (
+                        f"Ensembl returned HTTP {response.status_code}"
+                        + (
+                            f": {response_body}"
+                            if response_body
+                            else ""
+                        )
+                ),
+                response=response,
+            )
+
+        except (
+                requests.Timeout,
+                requests.ConnectionError,
+        ) as error:
+            last_error = error
+
+        except requests.RequestException:
+            # Do not retry non-transient errors such as HTTP 400 or 404.
+            raise
+
+        if attempt == max_attempts:
+            break
+
+        retry_after = None
+
+        if response is not None:
+            retry_after_header = response.headers.get("Retry-After")
+
+            if retry_after_header:
+                try:
+                    retry_after = float(retry_after_header)
+                except ValueError:
+                    retry_after = None
+
+        wait_seconds = (
+            retry_after
+            if retry_after is not None
+            else 2 ** (attempt - 1)
+        )
+
+        time.sleep(wait_seconds)
+
+    if last_error is None:
+        raise requests.RequestException(
+            f"Ensembl request failed for an unknown reason. URL: {url}"
+        )
+
+    raise last_error
+
+
 def get_gene_location_ensembl(
         gene_symbol: str,
         assembly: str,
         *,
         timeout: float = 30.0,
+        max_attempts: int = 5,
 ) -> dict[str, object]:
+    """
+    Retrieve genomic coordinates for a gene symbol from Ensembl.
+
+    Transient network and server errors are retried automatically.
+    """
     try:
         server = ENSEMBL_SERVERS[assembly]
     except KeyError as error:
         raise CatalogGenerationError(
-            f"Unsupported genome assembly: {assembly}"
+            f"Unsupported genome assembly: {assembly!r}"
         ) from error
 
     url = (
@@ -164,19 +271,107 @@ def get_gene_location_ensembl(
     )
 
     try:
-        response = requests.get(url, timeout=timeout)
-        response.raise_for_status()
-        data = response.json()
+        response = _get_ensembl_response(
+            url,
+            timeout=timeout,
+            max_attempts=max_attempts,
+        )
+
+    except requests.Timeout as error:
+        raise CatalogGenerationError(
+            f"Ensembl request timed out while retrieving coordinates "
+            f"for gene {gene_symbol!r} using {assembly}. "
+            f"Attempts: {max_attempts}. "
+            f"Timeout per attempt: {timeout} seconds. "
+            f"URL: {url}. "
+            f"Underlying error: {error}"
+        ) from error
+
+    except requests.ConnectionError as error:
+        raise CatalogGenerationError(
+            f"Could not connect to Ensembl while retrieving coordinates "
+            f"for gene {gene_symbol!r} using {assembly}. "
+            f"Attempts: {max_attempts}. "
+            f"Check the network connection and Ensembl server availability. "
+            f"URL: {url}. "
+            f"Underlying error: {error}"
+        ) from error
+
+    except requests.HTTPError as error:
+        error_response = error.response
+
+        status_code = (
+            error_response.status_code
+            if error_response is not None
+            else None
+        )
+
+        response_body = (
+            error_response.text.strip()[:500]
+            if error_response is not None
+            else ""
+        )
+
+        if status_code == 400:
+            reason = "Ensembl rejected the request"
+        elif status_code == 404:
+            reason = (
+                f"Gene {gene_symbol!r} was not found by Ensembl "
+                f"for {assembly}"
+            )
+        elif status_code == 429:
+            reason = (
+                "Ensembl rate limit exceeded after all retry attempts"
+            )
+        elif status_code in {500, 502, 503, 504}:
+            reason = (
+                "Ensembl returned a temporary server or gateway error "
+                "after all retry attempts"
+            )
+        else:
+            reason = "Ensembl returned an HTTP error"
+
+        message = (
+            f"{reason} while retrieving coordinates for gene "
+            f"{gene_symbol!r} using {assembly}. "
+            f"Attempts: {max_attempts}. "
+            f"URL: {url}"
+        )
+
+        if status_code is not None:
+            message += f". HTTP status: {status_code}"
+
+        if response_body:
+            message += f". Response: {response_body!r}"
+
+        raise CatalogGenerationError(message) from error
+
     except requests.RequestException as error:
         raise CatalogGenerationError(
-            f"Could not retrieve coordinates for gene "
-            f"{gene_symbol!r} using {assembly}"
+            f"Unexpected network error while retrieving coordinates "
+            f"for gene {gene_symbol!r} using {assembly}. "
+            f"Attempts: {max_attempts}. "
+            f"URL: {url}. "
+            f"Error type: {type(error).__name__}. "
+            f"Underlying error: {error}"
         ) from error
+
+    try:
+        data = response.json()
     except ValueError as error:
-        raise CatalogGenerationError(
+        response_body = response.text.strip()[:500]
+
+        message = (
             f"Invalid JSON returned by Ensembl for gene "
-            f"{gene_symbol!r} using {assembly}"
-        ) from error
+            f"{gene_symbol!r} using {assembly}. "
+            f"HTTP status: {response.status_code}. "
+            f"URL: {url}"
+        )
+
+        if response_body:
+            message += f". Response: {response_body!r}"
+
+        raise CatalogGenerationError(message) from error
 
     required_fields = {
         "seq_region_name",
@@ -184,10 +379,27 @@ def get_gene_location_ensembl(
         "end",
     }
 
-    if not isinstance(data, dict) or not required_fields.issubset(data):
+    if not isinstance(data, dict):
+        raise CatalogGenerationError(
+            f"Unexpected Ensembl response type for gene "
+            f"{gene_symbol!r} using {assembly}: expected a JSON object, "
+            f"received {type(data).__name__}. "
+            f"URL: {url}"
+        )
+
+    missing_fields = required_fields.difference(data)
+
+    if missing_fields:
+        available_fields = ", ".join(
+            sorted(map(str, data.keys()))
+        )
+
         raise CatalogGenerationError(
             f"Incomplete Ensembl response for gene "
-            f"{gene_symbol!r} using {assembly}"
+            f"{gene_symbol!r} using {assembly}. "
+            f"Missing fields: {', '.join(sorted(missing_fields))}. "
+            f"Available fields: {available_fields or 'none'}. "
+            f"URL: {url}"
         )
 
     return {

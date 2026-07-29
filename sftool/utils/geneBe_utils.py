@@ -8,7 +8,7 @@ import os
 import gzip
 import io
 import vcfpy
-from sftool.utils.catalog_utils import read_csv
+from sftool.utils.catalog_utils import read_catalog_csv
 from pathlib import Path
 import re
 
@@ -133,7 +133,7 @@ def parse_genebe_output(genebe_output_vcf_file, variant_classification_sources, 
     try:
 
         # Get the list of genes for the current category
-        genes_dct, genes_lst = read_csv(category_geneset_file, category)
+        genes_dct, genes_lst = read_catalog_csv(category_geneset_file, category)
 
         # Read VCF file
         genebe_results = {}

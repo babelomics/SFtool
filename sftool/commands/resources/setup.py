@@ -45,7 +45,6 @@ reference genomes.
 Example:
   sftool resources setup \\
     --output-dir /data/sftool_resources \\
-    --clinvar-evidence 1 \\
     --resource-version bundled \\
     --download-reference-genomes
 """
