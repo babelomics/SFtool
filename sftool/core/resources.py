@@ -414,46 +414,43 @@ def _validate_clinvar_manifest(clinvar: Any) -> None:
             label=f"datasets.clinvar.source_files.{source_name}",
         )
 
-    assemblies = clinvar.get("assemblies")
+    databases = clinvar.get("databases")
 
-    if not isinstance(assemblies, dict):
+    if not isinstance(databases, dict):
         raise ResourceManifestError(
-            "datasets.clinvar.assemblies must be an object"
+            "datasets.clinvar.databases must be an object"
+        )
+
+    filtered_databases = clinvar.get("filtered_databases")
+
+    if not isinstance(filtered_databases, dict):
+        raise ResourceManifestError(
+            "datasets.clinvar.filtered_databases must be an object"
         )
 
     for assembly in SUPPORTED_ASSEMBLIES:
-        assembly_data = assemblies.get(assembly)
-
-        if not isinstance(assembly_data, dict):
-            raise ResourceManifestError(
-                f"datasets.clinvar.assemblies.{assembly} "
-                "must be an object"
-            )
-
         _validate_file_descriptor(
-            assembly_data.get("database"),
-            label=(
-                f"datasets.clinvar.assemblies."
-                f"{assembly}.database"
-            ),
+            databases.get(assembly),
+            label=f"datasets.clinvar.databases.{assembly}",
         )
 
-        catalogs = assembly_data.get("catalogs")
+        assembly_filtered_databases = filtered_databases.get(assembly)
 
-        if not isinstance(catalogs, dict):
+        if not isinstance(assembly_filtered_databases, dict):
             raise ResourceManifestError(
-                f"datasets.clinvar.assemblies."
-                f"{assembly}.catalogs must be an object"
+                f"datasets.clinvar.filtered_databases."
+                f"{assembly} must be an object"
             )
 
         for catalog_name in SUPPORTED_CATALOGS:
-            evidence_files = catalogs.get(catalog_name)
+            evidence_files = assembly_filtered_databases.get(
+                catalog_name
+            )
 
             if not isinstance(evidence_files, dict):
                 raise ResourceManifestError(
-                    f"datasets.clinvar.assemblies."
-                    f"{assembly}.catalogs.{catalog_name} "
-                    "must be an object"
+                    f"datasets.clinvar.filtered_databases."
+                    f"{assembly}.{catalog_name} must be an object"
                 )
 
             actual_levels = set()
@@ -464,7 +461,8 @@ def _validate_clinvar_manifest(clinvar: Any) -> None:
                 except (TypeError, ValueError) as exc:
                     raise ResourceManifestError(
                         f"Invalid ClinVar evidence key "
-                        f"{level_key!r} for {assembly}/{catalog_name}"
+                        f"{level_key!r} for "
+                        f"{assembly}/{catalog_name}"
                     ) from exc
 
                 actual_levels.add(level)
@@ -472,9 +470,8 @@ def _validate_clinvar_manifest(clinvar: Any) -> None:
                 _validate_file_descriptor(
                     descriptor,
                     label=(
-                        f"datasets.clinvar.assemblies."
-                        f"{assembly}.catalogs."
-                        f"{catalog_name}.{level_key}"
+                        f"datasets.clinvar.filtered_databases."
+                        f"{assembly}.{catalog_name}.{level_key}"
                     ),
                 )
 
@@ -487,6 +484,7 @@ def _validate_clinvar_manifest(clinvar: Any) -> None:
                     f"found {sorted(actual_levels)}"
                 )
 
+
 def _resolve_clinvar(
         clinvar: dict[str, Any],
         *,
@@ -495,7 +493,8 @@ def _resolve_clinvar(
     resolved: dict[str, Any] = {
         "version": clinvar["version"],
         "source_files": {},
-        "assemblies": {},
+        "databases": {},
+        "filtered_databases": {},
     }
 
     for source_name, descriptor in clinvar["source_files"].items():
@@ -505,36 +504,32 @@ def _resolve_clinvar(
             label=f"datasets.clinvar.source_files.{source_name}",
         )
 
-    for assembly, assembly_data in clinvar["assemblies"].items():
-        resolved_assembly = {
-            "database": _resolve_descriptor(
-                assembly_data["database"],
-                root=root,
-                label=(
-                    f"datasets.clinvar.assemblies."
-                    f"{assembly}.database"
-                ),
-            ),
-            "catalogs": {},
-        }
+    for assembly, descriptor in clinvar["databases"].items():
+        resolved["databases"][assembly] = _resolve_descriptor(
+            descriptor,
+            root=root,
+            label=f"datasets.clinvar.databases.{assembly}",
+        )
+
+    for assembly, assembly_databases in (
+            clinvar["filtered_databases"].items()
+    ):
+        resolved["filtered_databases"][assembly] = {}
 
         for catalog_name, evidence_files in (
-                assembly_data["catalogs"].items()
+                assembly_databases.items()
         ):
-            resolved_assembly["catalogs"][catalog_name] = {
+            resolved["filtered_databases"][assembly][catalog_name] = {
                 int(level): _resolve_descriptor(
                     descriptor,
                     root=root,
                     label=(
-                        f"datasets.clinvar.assemblies."
-                        f"{assembly}.catalogs."
-                        f"{catalog_name}.{level}"
+                        f"datasets.clinvar.filtered_databases."
+                        f"{assembly}.{catalog_name}.{level}"
                     ),
                 )
                 for level, descriptor in evidence_files.items()
             }
-
-        resolved["assemblies"][assembly] = resolved_assembly
 
     return resolved
 
@@ -810,15 +805,27 @@ def resolve_execution_resources(
             f"No installed catalogs are available for {assembly}"
         )
 
-    clinvar_assembly = (
+    clinvar_database = (
         installed["clinvar"]
-        ["assemblies"]
+        ["databases"]
         .get(assembly)
     )
 
-    if clinvar_assembly is None:
+    if clinvar_database is None:
         raise ResourceManifestError(
-            f"No installed ClinVar resources are "
+            f"No installed ClinVar database is "
+            f"available for {assembly}"
+        )
+
+    clinvar_filtered_databases = (
+        installed["clinvar"]
+        ["filtered_databases"]
+        .get(assembly)
+    )
+
+    if clinvar_filtered_databases is None:
+        raise ResourceManifestError(
+            f"No installed filtered ClinVar resources are "
             f"available for {assembly}"
         )
 
@@ -839,9 +846,9 @@ def resolve_execution_resources(
 
         selected_catalogs[category] = catalog
 
-        evidence_files = (
-            clinvar_assembly["catalogs"]
-            .get(category, {})
+        evidence_files = clinvar_filtered_databases.get(
+            category,
+            {},
         )
 
         clinvar_file = evidence_files.get(clinvar_evidence)
@@ -864,7 +871,7 @@ def resolve_execution_resources(
         ),
         "catalogs": selected_catalogs,
         "clinvar": selected_clinvar,
-        "clinvar_database": clinvar_assembly["database"],
+        "clinvar_database": clinvar_database,
         "rr_str": installed["catalogs"]["RR_STR"],
         "hpo": installed["hpo"],
         "pharmcat": installed["pharmcat"],
