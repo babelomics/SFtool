@@ -182,8 +182,8 @@ def _validate_manifest_structure(
 
     _validate_catalog_manifest(datasets["catalogs"])
     _validate_clinvar_manifest(datasets["clinvar"])
-    _validate_single_file_dataset("hpo", datasets["hpo"])
-    _validate_single_file_dataset("pharmcat", datasets["pharmcat"])
+    _validate_single_file_dataset("hpo", datasets.get("hpo"), descriptor_key="file")
+    _validate_single_file_dataset("pharmcat", datasets.get("pharmcat"), descriptor_key="positions_vcf")
     _validate_reference_manifest(
         datasets.get("reference_genomes")
     )
@@ -536,6 +536,8 @@ def _resolve_clinvar(
 def _validate_single_file_dataset(
         dataset_name: str,
         dataset: Any,
+        *,
+        descriptor_key: str,
 ) -> None:
     if not isinstance(dataset, dict):
         raise ResourceManifestError(
@@ -545,11 +547,6 @@ def _validate_single_file_dataset(
     _validate_version(
         dataset.get("version"),
         label=f"datasets.{dataset_name}.version",
-    )
-
-    descriptor_key = _find_single_descriptor_key(
-        dataset_name,
-        dataset,
     )
 
     _validate_file_descriptor(
@@ -564,13 +561,12 @@ def _resolve_hpo(
 ) -> dict[str, Any]:
     return {
         "version": hpo["version"],
-        "gene_to_phenotype": _resolve_descriptor(
-            hpo["gene_to_phenotype"],
+        "file": _resolve_descriptor(
+            hpo["file"],
             root=root,
-            label="datasets.hpo.gene_to_phenotype",
+            label="datasets.hpo.file",
         ),
     }
-
 
 def _resolve_pharmcat(
         pharmcat: dict[str, Any],
@@ -579,10 +575,10 @@ def _resolve_pharmcat(
 ) -> dict[str, Any]:
     return {
         "version": pharmcat["version"],
-        "positions": _resolve_descriptor(
-            pharmcat["positions"],
+        "positions_vcf": _resolve_descriptor(
+            pharmcat["positions_vcf"],
             root=root,
-            label="datasets.pharmcat.positions",
+            label="datasets.pharmcat.positions_vcf",
         ),
     }
 
