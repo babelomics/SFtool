@@ -21,6 +21,8 @@ from sftool.utils.resource_utils import (
 
 GENERATED_CATALOGS = ("PR", "RR")
 
+CATALOG_VERSIONS = { "PR": "ACMG_SF_3.1", "RR": "ACMG_CS_2021", "RR_STR": "ACMG_CS_STR_2021", }
+
 CATALOG_DESCRIPTIONS = {
     "PR": "Secondary findings of personal risk",
     "RR": "Secondary findings of reproductive risk",
@@ -634,7 +636,9 @@ def prepare_catalog_resources(
 
     generated_catalogs: dict[str, object] = {
         "assemblies": {},
-        "RR_STR": {},
+        "RR_STR": {
+            "version": CATALOG_VERSIONS["RR_STR"],
+        },
     }
 
     for assembly in ("GRCh37", "GRCh38"):
@@ -642,7 +646,7 @@ def prepare_catalog_resources(
             output_root / "catalogs" / assembly
         )
 
-        assembly_catalogs: dict[str, dict[str, str]] = {}
+        assembly_catalogs: dict[str, dict[str, object]] = {}
 
         for category in GENERATED_CATALOGS:
             source_resource = get_bundled_catalog_resource(
@@ -658,8 +662,11 @@ def prepare_catalog_resources(
                 )
 
             assembly_catalogs[category] = {
-                name: str(path)
-                for name, path in outputs.items()
+                "version": CATALOG_VERSIONS[category],
+                **{
+                    name: str(path)
+                    for name, path in outputs.items()
+                },
             }
 
         generated_catalogs["assemblies"][assembly] = (
@@ -670,8 +677,6 @@ def prepare_catalog_resources(
         output_root
     )
 
-    generated_catalogs["RR_STR"] = {
-        "csv": str(rr_str_path),
-    }
+    generated_catalogs["RR_STR"]["csv"] = str(rr_str_path)
 
     return generated_catalogs

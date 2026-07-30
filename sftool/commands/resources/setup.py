@@ -33,7 +33,6 @@ from sftool.utils.manifest_utils import (
 
 import click
 
-
 SETUP_HELP = """
 Prepare the datasets and generated resources required by SFtool.
 
@@ -45,9 +44,10 @@ reference genomes.
 Example:
   sftool resources setup \\
     --output-dir /data/sftool_resources \\
-    --resource-version bundled \\
+    --resource-version-policy bundled \\
     --download-reference-genomes
 """
+
 
 
 @click.command(
@@ -66,7 +66,7 @@ Example:
     help="Directory where SFtool resources will be installed.",
 )
 @click.option(
-    "--resource-version",
+    "--resource-version-policy",
     type=click.Choice(
         ["bundled", "latest"],
         case_sensitive=False,
@@ -74,8 +74,8 @@ Example:
     default="bundled",
     show_default=True,
     help=(
-            "Resource version policy: use versions bundled with SFtool "
-            "or resolve the latest available versions."
+            "Resource selection policy: use versions bundled with "
+            "SFtool or resolve the latest available versions."
     ),
 )
 @click.option(
@@ -91,7 +91,7 @@ Example:
 )
 def setup(
         output_dir: Path,
-        resource_version: str,
+        resource_version_policy: str,
         download_reference_genomes: bool,
 ) -> None:
     """
@@ -111,13 +111,14 @@ def setup(
             err=True,
         )
 
+    resource_version_policy = resource_version_policy.lower()
 
-    resource_version = resource_version.lower()
-
-    if resource_version != "bundled":
+    if resource_version_policy != "bundled":
         raise click.ClickException(
-            f"Only bundled versions are implemented at the moment"
+            "Only the bundled resource version policy is implemented "
+            "at the moment"
         )
+
 
     bundled_resources = load_bundled_resources()
 
@@ -129,7 +130,7 @@ def setup(
 
     click.echo("SFtool resource setup")
     click.echo(f"Output directory: {output_dir}")
-    click.echo(f"Resource version: {resource_version}")
+    click.echo(f"Resource version policy: {resource_version_policy}")
     click.echo(
         "Download reference genomes: "
         f"{'yes' if download_reference_genomes else 'no'}"
@@ -324,7 +325,7 @@ def setup(
     try:
         manifest_path = write_installed_manifest(
             output_root=output_dir,
-            resource_version=resource_version,
+            resource_version_policy=resource_version_policy,
             catalog_resources=catalog_resources,
             clinvar_resources=clinvar_resources,
             clinvar_databases=clinvar_databases,

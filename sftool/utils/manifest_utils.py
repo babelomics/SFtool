@@ -13,7 +13,7 @@ from sftool.utils.resource_utils import (
 )
 
 
-INSTALLED_MANIFEST_SCHEMA_VERSION = 1
+INSTALLED_MANIFEST_SCHEMA_VERSION = 2
 INSTALLED_MANIFEST_FILENAME = "resources.json"
 
 
@@ -55,6 +55,7 @@ def describe_installed_file(
         path: Path | str,
         *,
         output_root: Path,
+        source_url: str | None = None,
 ) -> dict[str, str]:
     root = output_root.resolve()
     resource_path = Path(path)
@@ -77,10 +78,15 @@ def describe_installed_file(
             f"Installed resource file does not exist: {absolute_path}"
         )
 
-    return {
+    descriptor = {
         "path": relative_path.as_posix(),
         "sha256": calculate_sha256(absolute_path),
     }
+
+    if source_url is not None:
+        descriptor["source_url"] = source_url
+
+    return descriptor
 
 def build_catalog_manifest(
         catalog_resources: dict[str, Any],
@@ -96,24 +102,26 @@ def build_catalog_manifest(
     for assembly, catalogs in assemblies.items():
         manifest["assemblies"][assembly] = {}
 
-        for catalog_name, files in catalogs.items():
+        for catalog_name, resources in catalogs.items():
             manifest["assemblies"][assembly][catalog_name] = {
+                "version": resources["version"],
                 "bed": describe_installed_file(
-                    files["bed"],
+                    resources["bed"],
                     output_root=output_root,
                 ),
                 "chr_bed": describe_installed_file(
-                    files["chr_bed"],
+                    resources["chr_bed"],
                     output_root=output_root,
                 ),
                 "json": describe_installed_file(
-                    files["json"],
+                    resources["json"],
                     output_root=output_root,
                 ),
             }
 
     if "RR_STR" in catalog_resources:
         manifest["RR_STR"] = {
+            "version": catalog_resources["RR_STR"]["version"],
             "csv": describe_installed_file(
                 catalog_resources["RR_STR"]["csv"],
                 output_root=output_root,
@@ -152,6 +160,22 @@ def build_clinvar_manifest(
 ) -> dict[str, Any]:
     return {
         "version": clinvar_resources["version"],
+        "source_files": {
+            "variant_summary": describe_installed_file(
+                clinvar_resources["variant_summary"],
+                output_root=output_root,
+                source_url=clinvar_resources[
+                    "variant_summary_url"
+                ],
+            ),
+            "submission_summary": describe_installed_file(
+                clinvar_resources["submission_summary"],
+                output_root=output_root,
+                source_url=clinvar_resources[
+                    "submission_summary_url"
+                ],
+            ),
+        },
         "databases": describe_file_tree(
             clinvar_databases,
             output_root=output_root,
@@ -183,7 +207,7 @@ def build_reference_manifest(
 def build_installed_manifest(
         *,
         output_root: Path,
-        resource_version: str,
+        resource_version_policy: str,
         catalog_resources: dict[str, Any],
         clinvar_resources: dict[str, Any],
         clinvar_databases: dict[str, Any],
@@ -218,6 +242,7 @@ def build_installed_manifest(
             "file": describe_installed_file(
                 hpo_resource["path"],
                 output_root=output_root,
+                source_url=hpo_resource["source_url"],
             ),
         },
         "pharmcat": {
@@ -225,6 +250,7 @@ def build_installed_manifest(
             "positions_vcf": describe_installed_file(
                 pharmcat_resource["path"],
                 output_root=output_root,
+                source_url=pharmcat_resource["source_url"],
             ),
         },
     }
@@ -237,7 +263,7 @@ def build_installed_manifest(
 
     return {
         "schema_version": INSTALLED_MANIFEST_SCHEMA_VERSION,
-        "resource_version": resource_version,
+        "resource_version_policy": resource_version_policy,
         "sftool_version": get_sftool_version(),
         "created_at": created_at,
         "updated_at": now,
@@ -247,7 +273,7 @@ def build_installed_manifest(
 def validate_existing_manifest_compatibility(
         existing_manifest: dict[str, Any],
         *,
-        resource_version: str,
+        resource_version_policy: str,
 ) -> None:
     existing_schema_version = existing_manifest.get(
         "schema_version"
@@ -259,21 +285,25 @@ def validate_existing_manifest_compatibility(
             f"schema version: {existing_schema_version!r}"
         )
 
-    existing_resource_version = existing_manifest.get(
-        "resource_version"
+    existing_resource_version_policy = existing_manifest.get(
+        "resource_version_policy"
     )
 
-    if existing_resource_version != resource_version:
+    if (
+            existing_resource_version_policy
+            != resource_version_policy
+    ):
         raise ResourceOperationError(
             "The resource directory was installed using resource "
-            f"version {existing_resource_version!r}, but the requested "
-            f"version is {resource_version!r}."
+            f"version policy "
+            f"{existing_resource_version_policy!r}, but the requested "
+            f"policy is {resource_version_policy!r}."
         )
 
 def write_installed_manifest(
         *,
         output_root: Path,
-        resource_version: str,
+        resource_version_policy: str,
         catalog_resources: dict[str, Any],
         clinvar_resources: dict[str, Any],
         clinvar_databases: dict[str, Any],
@@ -282,7 +312,7 @@ def write_installed_manifest(
         pharmcat_resource: dict[str, Any],
         reference_resources: dict[str, Any] | None = None,
 ) -> Path:
-    manifest_path = output_root / "resources.json"
+    manifest_path = output_root / INSTALLED_MANIFEST_FILENAME
 
     existing_manifest: dict[str, Any] | None = None
 
@@ -291,12 +321,12 @@ def write_installed_manifest(
 
         validate_existing_manifest_compatibility(
             existing_manifest,
-            resource_version=resource_version,
+            resource_version_policy=resource_version_policy,
         )
 
     manifest = build_installed_manifest(
         output_root=output_root,
-        resource_version=resource_version,
+        resource_version_policy=resource_version_policy,
         catalog_resources=catalog_resources,
         clinvar_resources=clinvar_resources,
         clinvar_databases=clinvar_databases,
