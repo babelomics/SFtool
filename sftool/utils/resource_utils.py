@@ -10,9 +10,12 @@ from typing import Any
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
-import hashlib
 from collections.abc import Mapping, Callable
 import shutil
+from sftool.utils.checksums import (
+    ChecksumError,
+    calculate_sha256,
+)
 
 
 BUNDLED_RESOURCE_PACKAGE = "sftool.data.resources"
@@ -533,55 +536,6 @@ def download_file(
 
     return destination
 
-def calculate_sha256(
-        path: Path,
-        *,
-        chunk_size: int = 1024 * 1024,
-) -> str:
-    """
-    Calculate the SHA-256 digest of a file.
-
-    Parameters
-    ----------
-    path
-        File to hash.
-    chunk_size
-        Number of bytes read per iteration.
-
-    Returns
-    -------
-    str
-        Lowercase hexadecimal SHA-256 digest.
-
-    Raises
-    ------
-    ResourceOperationError
-        If the path does not exist, is not a file, or cannot be read.
-    """
-
-    file_path = Path(path)
-
-    if not file_path.is_file():
-        raise ResourceOperationError(
-            f"Cannot calculate checksum because the resource file "
-            f"does not exist: {file_path}"
-        )
-
-    if chunk_size <= 0:
-        raise ValueError("chunk_size must be greater than zero.")
-
-    digest = hashlib.sha256()
-
-    try:
-        with file_path.open("rb") as handle:
-            while chunk := handle.read(chunk_size):
-                digest.update(chunk)
-    except OSError as error:
-        raise ResourceOperationError(
-            f"Could not read resource file: {file_path}"
-        ) from error
-
-    return digest.hexdigest()
 
 def write_json(
         data: Mapping[str, Any],
@@ -710,11 +664,19 @@ def download_versioned_resource(
     if validator is not None:
         validator(path)
 
+    try:
+        checksum = calculate_sha256(path)
+    except ChecksumError as exc:
+        raise ResourceOperationError(
+            f"Could not calculate checksum for downloaded "
+            f"{resource_name} resource: {path}"
+        ) from exc
+
     return {
         "version": version,
         "source_url": specification["url"],
         "path": path.relative_to(output_root).as_posix(),
-        "sha256": calculate_sha256(path),
+        "sha256": checksum,
     }
 
 def validate_hpo_gene_to_phenotype(path: Path) -> None:

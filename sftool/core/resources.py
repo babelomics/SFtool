@@ -7,6 +7,10 @@ from typing import Any
 
 from sftool.utils.errors import ResourceManifestError
 
+from sftool.utils.checksums import (
+    ChecksumError,
+    calculate_sha256,
+)
 
 SUPPORTED_MANIFEST_SCHEMA_VERSIONS = {2}
 SUPPORTED_ASSEMBLIES = {"GRCh37", "GRCh38"}
@@ -100,6 +104,194 @@ def load_resource_manifest(
         manifest=manifest,
         root=root,
     )
+
+    return manifest, installed
+
+def _validate_resource_checksum(
+        descriptor: dict[str, Any],
+        *,
+        label: str,
+) -> None:
+    """
+    Verify one resolved manifest file descriptor.
+    """
+    path = descriptor["path"]
+    expected_checksum = descriptor["sha256"]
+
+    try:
+        actual_checksum = calculate_sha256(path)
+    except ChecksumError as exc:
+        raise ResourceManifestError(
+            f"Could not verify installed resource "
+            f"{label}: {path}. "
+            "Ensure the file is readable or reinstall the "
+            "resource bundle with 'sftool resources setup'."
+        ) from exc
+
+    if actual_checksum != expected_checksum:
+        raise ResourceManifestError(
+            f"Checksum mismatch for installed resource "
+            f"{label}: {path}. "
+            f"Expected SHA-256 {expected_checksum}, "
+            f"found {actual_checksum}. "
+            "The resource file may be corrupted or modified. "
+            "Run 'sftool resources setup' again using the "
+            "same resource directory."
+        )
+
+def _validate_required_resource_checksums(
+        installed: dict[str, Any],
+) -> None:
+    catalogs = installed["catalogs"]
+
+    _validate_resource_checksum(
+        catalogs["RR_STR"]["csv"],
+        label="datasets.catalogs.RR_STR.csv",
+    )
+
+    for assembly in sorted(SUPPORTED_ASSEMBLIES):
+        assembly_catalogs = (
+            catalogs["assemblies"][assembly]
+        )
+
+        for catalog_name in sorted(SUPPORTED_CATALOGS):
+            catalog = assembly_catalogs[catalog_name]
+
+            for file_type in ("bed", "chr_bed", "json"):
+                _validate_resource_checksum(
+                    catalog[file_type],
+                    label=(
+                        "datasets.catalogs.assemblies."
+                        f"{assembly}.{catalog_name}."
+                        f"{file_type}"
+                    ),
+                )
+
+    clinvar = installed["clinvar"]
+
+    for source_name in (
+            "variant_summary",
+            "submission_summary",
+    ):
+        _validate_resource_checksum(
+            clinvar["source_files"][source_name],
+            label=(
+                "datasets.clinvar.source_files."
+                f"{source_name}"
+            ),
+        )
+
+    for assembly in sorted(SUPPORTED_ASSEMBLIES):
+        _validate_resource_checksum(
+            clinvar["databases"][assembly],
+            label=(
+                f"datasets.clinvar.databases.{assembly}"
+            ),
+        )
+
+        for catalog_name in sorted(SUPPORTED_CATALOGS):
+            evidence_resources = (
+                clinvar["filtered_databases"]
+                [assembly][catalog_name]
+            )
+
+            for evidence in sorted(
+                    SUPPORTED_CLINVAR_EVIDENCE_LEVELS
+            ):
+                _validate_resource_checksum(
+                    evidence_resources[evidence],
+                    label=(
+                        "datasets.clinvar."
+                        "filtered_databases."
+                        f"{assembly}.{catalog_name}."
+                        f"{evidence}"
+                    ),
+                )
+
+    _validate_resource_checksum(
+        installed["hpo"]["file"],
+        label="datasets.hpo.file",
+    )
+
+    _validate_resource_checksum(
+        installed["pharmcat"]["positions_vcf"],
+        label="datasets.pharmcat.positions_vcf",
+    )
+
+def _validate_optional_reference_checksums(
+        installed: dict[str, Any],
+) -> None:
+    references = installed["reference_genomes"]
+
+    for assembly in sorted(SUPPORTED_ASSEMBLIES):
+        reference = references[assembly]
+
+        if reference is None:
+            continue
+
+        _validate_resource_checksum(
+            reference["fasta"],
+            label=(
+                "datasets.reference_genomes."
+                f"{assembly}.fasta"
+            ),
+        )
+
+        _validate_resource_checksum(
+            reference["fai"],
+            label=(
+                "datasets.reference_genomes."
+                f"{assembly}.fai"
+            ),
+        )
+
+def _validate_installed_resource_checksums(
+        installed: dict[str, Any],
+) -> None:
+    """
+    Verify all files registered in an installed bundle.
+    """
+    _validate_required_resource_checksums(
+        installed
+    )
+    _validate_optional_reference_checksums(
+        installed
+    )
+
+def validate_resource_bundle(
+        manifest_path: str | Path,
+        *,
+        verify_checksums: bool = True,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """
+    Load and validate an installed SFtool resource bundle.
+
+    Validation includes:
+
+    - manifest JSON and schema compatibility;
+    - required manifest structure;
+    - installation-root resolution;
+    - relative-path containment;
+    - presence of every manifest-referenced file;
+    - SHA-256 integrity verification when enabled.
+
+    Returns:
+        A tuple containing the raw manifest and the
+        runtime-normalized installed-resource structure.
+
+    Raises:
+        ResourceManifestError:
+            If the resource bundle is incompatible,
+            incomplete or corrupted.
+    """
+    manifest, installed = load_resource_manifest(
+        manifest_path
+    )
+
+    if verify_checksums:
+        _validate_installed_resource_checksums(
+            installed
+        )
 
     return manifest, installed
 

@@ -23,7 +23,7 @@ from sftool.utils.vcf_utils import (
 )
 from sftool.core.resources import (
     RuntimeResources,
-    load_resource_manifest,
+    validate_resource_bundle,
     resolve_execution_resources,
     get_required_resource_categories
 )
@@ -98,10 +98,10 @@ def bootstrap_execution(
     config = Config(config_data)
 
     # -----------------------------------------------------------------
-    # Load manifest file and resources
+    # Validate (and load) manifest file and resources
     # -----------------------------------------------------------------
     raw_manifest, installed_resources = (
-        load_resource_manifest(
+        validate_resource_bundle(
             config.resources.manifest
         )
     )
