@@ -25,6 +25,7 @@ from sftool.core.resources import (
     RuntimeResources,
     load_resource_manifest,
     resolve_execution_resources,
+    get_required_resource_categories
 )
 
 
@@ -756,6 +757,6 @@ def _validate_pgx_inputs(ctx: ExecutionContext):
 
             check_vcf_positions_present(
                 input_vcf=pgx_vcf,
-                required_vcf=ctx.config.references.pharmCAT_positions_vcf,
+                required_vcf=ctx.resources.execution["pharmcat"]["positions_vcf"]["path"],
                 output_file=ctx.tmp_dir / "PGx" / f"{sample.sample_id}.missing_pharmcat_positions.tsv"
             )
