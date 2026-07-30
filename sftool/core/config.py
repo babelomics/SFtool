@@ -5,28 +5,53 @@ Each class maps 1:1 to an existing top-level block
 in config_example.json. Internal structures are preserved
 exactly as provided.
 """
+from __future__ import annotations
 
-from typing import Dict
+from typing import Dict, Any
 from importlib.resources import files
+from pathlib import Path
 
 
 class Config:
     """
     Run-level configuration facade.
-
-    Aggregates all config block wrappers.
     """
 
-    def __init__(self, cfg: dict):
-        self.version = cfg.get("version",{})
+    def __init__(self, cfg: dict[str, Any]):
+        self.version = cfg.get("version", {})
         self.paths = PathsConfig(cfg.get("paths", {}))
-        self.references = ReferenceDataConfig(cfg.get("references", {}))
-        self.catalogs = CatalogConfig(cfg.get("catalogs", {}))
-        self.clinvar = ClinVarConfig(cfg.get("clinvar", {}))
-        self.smaca_thresholds = SMAcaConfig(cfg.get("smaca_thresholds", {}))
-        self.genebe_credentials = GeneBeConfig(cfg.get("genebe_credentials", {}))
+        self.resources = ResourceConfig(cfg.get("resources", {}))
+        self.references = ReferenceDataConfig(
+            cfg.get("references", {})
+        )
+        self.smaca_thresholds = SMAcaConfig(
+            cfg.get("smaca_thresholds", {})
+        )
+        self.genebe_credentials = GeneBeConfig(
+            cfg.get("genebe_credentials", {})
+        )
 
+class ResourceConfig:
+    """
+    Installed SFtool resource manifest configuration.
+    """
 
+    def __init__(self, cfg: dict[str, Any]):
+        manifest = cfg.get("manifest")
+
+        if not isinstance(manifest, str) or not manifest.strip():
+            raise ValueError(
+                "resources.manifest must be a non-empty path"
+            )
+
+        self.manifest: Path = (
+            Path(manifest)
+            .expanduser()
+            .resolve()
+        )
+
+        self.raw_manifest: dict[str, Any] | None = None
+        self.installed: dict[str, Any] | None = None
 
 class CatalogConfig:
     """
@@ -84,22 +109,43 @@ class SMAcaConfig:
 
 class ReferenceDataConfig:
     """
-    Reference-related resources, including:
-      - reference genomes
-      - gene-to-phenotype mappings
-      - pharmcat_positions_vcf
-    """
-    def __init__(self, cfg: dict):
-        categories_dir = files("sftool.data.categories")
+    User-provided reference genome overrides.
 
-        self.genomes: Dict = cfg.get("genomes", {})
-        self.gene_to_phenotype_file: Optional[str] = cfg.get(
-            "gene_to_phenotype_file",
-            categories_dir / "genes_to_phenotype_20260623.txt"
-        )
-        self.pharmCAT_positions_vcf: Optional[str] = cfg.get(
-            "pharmCAT_positions_vcf"
-        )
+    Missing and null entries mean that SFtool should try the installed
+    resource manifest.
+    """
+
+    def __init__(self, cfg: dict[str, Any]):
+        genomes = cfg.get("genomes", {})
+
+        if genomes is None:
+            genomes = {}
+
+        if not isinstance(genomes, dict):
+            raise ValueError(
+                "references.genomes must be an object"
+            )
+
+        self.genomes: dict[str, Path | None] = {}
+
+        for assembly in ("GRCh37", "GRCh38"):
+            value = genomes.get(assembly)
+
+            if value is None:
+                self.genomes[assembly] = None
+                continue
+
+            if not isinstance(value, str) or not value.strip():
+                raise ValueError(
+                    f"references.genomes.{assembly} must be "
+                    "a non-empty path or null"
+                )
+
+            self.genomes[assembly] = (
+                Path(value)
+                .expanduser()
+                .resolve()
+            )
 
 class PathsConfig:
     """
@@ -108,7 +154,6 @@ class PathsConfig:
     This maps to the top-level 'paths' block in config.json.
     """
     def __init__(self, cfg: dict):
-        self.categories = cfg["categories"]
         self.bcftools = cfg["bcftools"]
         self.java = cfg["java"]
         self.genebe = cfg["genebe"]

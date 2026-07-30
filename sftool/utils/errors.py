@@ -50,3 +50,9 @@ class ModuleExecutionError(Exception):
     - logic errors occur inside the module
     """
     pass
+
+class ResourceManifestError(Exception):
+    """
+    Raised when installed resources cannot be loaded or resolved.
+    """
+    pass

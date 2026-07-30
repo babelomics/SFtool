@@ -21,6 +21,11 @@ from sftool.utils.vcf_utils import (
     validate_chr_prefix,
     check_vcf_positions_present
 )
+from sftool.core.resources import (
+    RuntimeResources,
+    load_resource_manifest,
+    resolve_execution_resources,
+)
 
 
 SUPPORTED_EXECUTION_MODES = {
@@ -84,20 +89,58 @@ def bootstrap_execution(
     # Legacy-equivalent validations (dict-level)
     # -----------------------------------------------------------------
     validate_samples_info(samples_info)
-    validate_config(config_data, samples_info)
+    validate_config(config_data)
 
     # -----------------------------------------------------------------
     # Instantiate Config (run-level)
     # -----------------------------------------------------------------
     config = Config(config_data)
+
+    # -----------------------------------------------------------------
+    # Load manifest file and resources
+    # -----------------------------------------------------------------
+    raw_manifest, installed_resources = (
+        load_resource_manifest(
+            config.resources.manifest
+        )
+    )
+
+    execution_meta = samples_info["execution"]
+
+    required_categories = get_required_resource_categories(
+        samples_info
+    )
+
+    selected_resources = resolve_execution_resources(
+        assembly=execution_meta["reference_genome"],
+        clinvar_evidence=execution_meta["clinvar_evidence"],
+        categories=required_categories,
+        configured_genomes=config.references.genomes,
+        installed=installed_resources,
+    )
+
+    runtime_resources = RuntimeResources(
+        manifest_path=config.resources.manifest,
+        manifest=raw_manifest,
+        installed=installed_resources,
+        execution=selected_resources,
+    )
+
+    config.resources.raw_manifest = raw_manifest
+    config.resources.installed = installed_resources
+
+    # -----------------------------------------------------------------
+    # Check runtime dependencies
+    # -----------------------------------------------------------------
     check_runtime_dependencies(config.paths)
 
     # -----------------------------------------------------------------
     # Build ExecutionContext
     # -----------------------------------------------------------------
     ctx = ExecutionContext(
-        execution_meta=samples_info["execution"],
+        execution_meta=execution_meta,
         config=config,
+        resources=runtime_resources,
         output_dir=output_dir,
         tmp_dir=tmp_dir,
     )
@@ -439,140 +482,201 @@ def validate_variant_confirmation_requests(samples: list[Dict[str, Any]], modes:
 
         request["variant"] = variant.strip()
 
-def validate_config(config: Dict[str, Any], samples_info: dict | None = None):
-    required = [
-        "paths", "references", "catalogs",
-        "clinvar", "genebe_credentials", "smaca_thresholds"
-    ]
-
-    for key in required:
-        if key not in config:
-            raise ValidationError(f"Missing '{key}' block in config.json")
-
-    # Shorthand variables
-    references = config["references"]
-    catalogs = config["catalogs"]
-    clinvar = config["clinvar"]
-
-    # ----------------------------------------------------
-    # Validate reference genomes exist
-    # ----------------------------------------------------
-    if "genomes" not in references:
-        raise ValidationError("Missing 'references.genomes' block in config.json")
-
-    for name, path in references["genomes"].items():
-        if not isinstance(path, str) or path == "":
-            raise ValidationError(f"Invalid reference genome path for '{name}'")
-
-        if not os.path.exists(path):
-            raise ValidationError(
-                f"Reference genome '{name}' does not exist at: {path}"
-            )
-
-    # ----------------------------------------------------
-    # Validate gene_to_phenotype file existence
-    # ----------------------------------------------------
-    if "gene_to_phenotype_file" not in references:
-        raise ValidationError("Missing 'references.gene_to_phenotype_file' in config.json")
-
-    g2p = references["gene_to_phenotype_file"]
-
-    if not os.path.exists(g2p):
+def validate_resource_config(resources: Dict[str, Any]) -> None:
+    if not isinstance(resources, dict):
         raise ValidationError(
-            f"gene_to_phenotype_file does not exist: {g2p}"
+            "'resources' must be an object"
         )
 
-    # ----------------------------------------------------
-    # Validate pharmCAT_positions_vcf file existence when PGx category exists
-    # ----------------------------------------------------
+    manifest = resources.get("manifest")
 
-    requested_categories = set()
-
-    if samples_info is not None:
-        requested_categories = {
-            category
-            for sample in samples_info["samples"]
-            for category in sample.get("categories", [])
-        }
-
-    if "PGx" in requested_categories:
-        if "pharmCAT_positions_vcf" not in references:
-            raise ValidationError("Missing 'references.pharmCAT_positions_vcf' in config.json")
-
-        pharmCAT_positions = references["pharmCAT_positions_vcf"]
-
-        if not os.path.exists(pharmCAT_positions):
-            raise ValidationError(
-                f"pharmCAT_positions_vcf does not exist: {pharmCAT_positions}"
-            )
-
-    # ----------------------------------------------------
-    # Validate catalogs (PR, RR, STR, PGx) file existence
-    # ----------------------------------------------------
-    for label, path in catalogs.items():
-        if not os.path.exists(path):
-            raise ValidationError(
-                f"Catalog file for '{label}' does not exist: {path}"
-            )
-
-    # ----------------------------------------------------
-    # Validate clinvar.version follows YYYYMMDD
-    # ----------------------------------------------------
-    if "version" not in clinvar:
-        raise ValidationError("Missing 'clinvar.version' field in config.json")
-
-    version = clinvar["version"]
-
-    # must be string of 8 digits
-    if not (isinstance(version, str) and (version == "latest" or (len(version) == 8 and version.isdigit()))):
-            raise ValidationError(
-                f"Invalid clinvar.version '{version}'. Expected YYYYMMDD (8 digits) or 'latest' string for the downloading of the latest Clinvar version."
-            )
-
-    if version != "latest":
-        # split into components
-        year = int(version[0:4])
-        month = int(version[4:6])
-        day = int(version[6:8])
-
-        # year range
-        if not (2015 <= year <= 2030):
-            raise ValidationError(
-                f"Invalid clinvar.version year '{year}'. Must be 2000–2030."
-            )
-
-        # month range
-        if not (1 <= month <= 12):
-            raise ValidationError(
-                f"Invalid clinvar.version month '{month:02d}'. Must be 01–12."
-            )
-
-        # days per month (default February 28, updated later if leap year)
-        days_in_month = {
-            1: 31, 2: 28, 3: 31, 4: 30, 5: 31, 6: 30,
-            7: 31, 8: 31, 9: 30, 10: 31, 11: 30, 12: 31
-        }
-
-        # leap year adjustment
-        if (year % 4 == 0 and year % 100 != 0) or (year % 400 == 0):
-            days_in_month[2] = 29
-
-        # day range
-        if not (1 <= day <= days_in_month[month]):
-            raise ValidationError(
-                f"Invalid clinvar.version day '{day:02d}' for month {month:02d}."
-            )
-
-    # ----------------------------------------------------
-    # Validate clinvar.db_path existence
-    # ----------------------------------------------------
-    if "db_path" not in clinvar:
-        raise ValidationError("Missing 'clinvar.db_path' in config.json")
-
-    if not os.path.exists(clinvar["db_path"]):
+    if not isinstance(manifest, str) or not manifest.strip():
         raise ValidationError(
-            f"ClinVar database path does not exist: {clinvar['db_path']}"
+            "resources.manifest must be a non-empty string"
         )
+
+    manifest_path = Path(manifest).expanduser()
+
+    if not manifest_path.exists():
+        raise ValidationError(
+            f"Resource manifest does not exist: {manifest_path}"
+        )
+
+    if not manifest_path.is_file():
+        raise ValidationError(
+            f"Resource manifest is not a file: {manifest_path}"
+        )
+
+def validate_reference_config(
+        references: Dict[str, Any],
+) -> None:
+    if not isinstance(references, dict):
+        raise ValidationError(
+            "'references' must be an object"
+        )
+
+    unknown_fields = set(references) - {"genomes"}
+
+    if unknown_fields:
+        raise ValidationError(
+            "Unsupported field(s) in references: "
+            + ", ".join(sorted(unknown_fields))
+        )
+
+    genomes = references.get("genomes", {})
+
+    if not isinstance(genomes, dict):
+        raise ValidationError(
+            "references.genomes must be an object"
+        )
+
+    unsupported_assemblies = (
+            set(genomes) - SUPPORTED_REFERENCE_GENOMES
+    )
+
+    if unsupported_assemblies:
+        raise ValidationError(
+            "Unsupported reference genome override(s): "
+            + ", ".join(sorted(unsupported_assemblies))
+        )
+
+    for assembly, value in genomes.items():
+        if value is None:
+            continue
+
+        if not isinstance(value, str) or not value.strip():
+            raise ValidationError(
+                f"references.genomes.{assembly} must be "
+                "a non-empty string or null"
+            )
+
+        fasta_path = Path(value).expanduser()
+
+        if not fasta_path.exists():
+            raise ValidationError(
+                f"Reference genome override for {assembly} "
+                f"does not exist: {fasta_path}"
+            )
+
+        if not fasta_path.is_file():
+            raise ValidationError(
+                f"Reference genome override for {assembly} "
+                f"is not a file: {fasta_path}"
+            )
+
+        fai_path = Path(f"{fasta_path}.fai")
+
+        if not fai_path.is_file():
+            raise ValidationError(
+                f"Reference genome index for {assembly} "
+                f"does not exist: {fai_path}"
+            )
+
+def validate_paths_config(paths: Dict[str, Any]) -> None:
+    if not isinstance(paths, dict):
+        raise ValidationError("'paths' must be an object")
+
+    required_paths = {
+        "bcftools",
+        "java",
+        "genebe",
+        "bgzip",
+        "python",
+        "pharmCAT",
+    }
+
+    missing = required_paths - paths.keys()
+
+    if missing:
+        raise ValidationError(
+            "Missing required path(s): "
+            + ", ".join(sorted(missing))
+        )
+
+    for name in required_paths:
+        value = paths[name]
+
+        if not isinstance(value, str) or not value.strip():
+            raise ValidationError(
+                f"paths.{name} must be a non-empty string"
+            )
+
+def validate_genebe_config(
+        credentials: Dict[str, Any],
+) -> None:
+    if not isinstance(credentials, dict):
+        raise ValidationError(
+            "'genebe_credentials' must be an object"
+        )
+
+    for field in ("api_key", "username"):
+        value = credentials.get(field)
+
+        if not isinstance(value, str):
+            raise ValidationError(
+                f"genebe_credentials.{field} must be a string"
+            )
+
+def validate_smaca_config(
+        thresholds: Dict[str, Any],
+) -> None:
+    if not isinstance(thresholds, dict):
+        raise ValidationError(
+            "'smaca_thresholds' must be an object"
+        )
+
+    required = {
+        "cv_fail",
+        "cv_warn",
+        "low_cov_absolute",
+        "low_cov_relative",
+    }
+
+    missing = required - thresholds.keys()
+
+    if missing:
+        raise ValidationError(
+            "Missing SMAca threshold(s): "
+            + ", ".join(sorted(missing))
+        )
+
+    for field in required:
+        value = thresholds[field]
+
+        if (
+                not isinstance(value, (int, float))
+                or isinstance(value, bool)
+        ):
+            raise ValidationError(
+                f"smaca_thresholds.{field} must be numeric"
+            )
+
+def validate_config(config: Dict[str, Any]) -> None:
+    if not isinstance(config, dict):
+        raise ValidationError(
+            "config must be a JSON object"
+        )
+
+    required_blocks = {
+        "paths",
+        "resources",
+        "genebe_credentials",
+        "smaca_thresholds",
+    }
+
+    missing = required_blocks - config.keys()
+
+    if missing:
+        raise ValidationError(
+            "Missing required block(s) in config.json: "
+            + ", ".join(sorted(missing))
+        )
+
+    validate_paths_config(config["paths"])
+    validate_resource_config(config["resources"])
+    validate_reference_config(config.get("references", {}))
+    validate_genebe_config(config["genebe_credentials"])
+    validate_smaca_config(config["smaca_thresholds"])
 
 
 

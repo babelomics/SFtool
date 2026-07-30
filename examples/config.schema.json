@@ -3,14 +3,14 @@
   "title": "SFtool config schema",
   "type": "object",
 
-  "required": ["paths", "references", "catalogs", "clinvar", "genebe_credentials", "smaca_thresholds"],
+  "required": ["paths", "resources","references", "genebe_credentials", "smaca_thresholds"],
 
   "properties": {
     "version": { "type": "string" },
 
     "paths": {
       "type": "object",
-      "required": ["categories", "clinvar_db", "bcftools", "htslib", "genebe", "java", "python", "pharmCAT"],
+      "required": ["categories", "bcftools", "htslib", "genebe", "java", "python", "pharmCAT"],
       "properties": {
         "categories": { "type": "string" },
         "bcftools": { "type": "string" },
@@ -21,39 +21,47 @@
         "pharmCAT": { "type": "string" }
       }
     },
-
-    "references": {
+    "resources": {
       "type": "object",
-      "required": ["genomes", "gene_to_phenotype_file"],
+      "additionalProperties": false,
+      "required": [
+        "manifest"
+      ],
       "properties": {
-        "gene_to_phenotype_file": { "type": "string" },
-        "genomes": {
-          "type": "object",
-          "required": ["GRCh37", "GRCh38"],
-          "properties": {
-            "GRCh37": { "type": "string" },
-            "GRCh38": { "type": "string" }
-          }
+        "manifest": {
+          "type": "string",
+          "minLength": 1
         }
       }
     },
 
-    "catalogs": {
+    "references": {
       "type": "object",
-      "required": ["personal_risk_geneset", "reproductive_risk_geneset", "reproductive_risk_geneset_STR"],
+      "additionalProperties": false,
       "properties": {
-        "personal_risk_geneset": { "type": "string" },
-        "reproductive_risk_geneset": { "type": "string" },
-        "reproductive_risk_geneset_STR": { "type": "string" }
-      }
-    },
-
-    "clinvar": {
-      "type": "object",
-      "required": ["version", "db_path"],
-      "properties": {
-        "version": { "type": "string" },
-        "db_path": { "type": "string" }
+        "genomes": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "GRCh37": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1
+            },
+            "GRCh38": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1
+            }
+          }
+        }
       }
     },
 
