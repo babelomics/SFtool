@@ -25,8 +25,11 @@ from sftool.core.resources import (
     RuntimeResources,
     validate_resource_bundle,
     resolve_execution_resources,
-    get_required_resource_categories
+    get_required_resource_categories,
+    SUPPORTED_CLINVAR_EVIDENCE_LEVELS
 )
+
+
 
 
 SUPPORTED_EXECUTION_MODES = {
@@ -273,7 +276,7 @@ def validate_execution_block(exec_data: Dict[str, Any], num_samples):
 
     # -------- Validate ClinVar evidence --------
     ce = exec_data["clinvar_evidence"]
-    if not isinstance(ce, int) or not (1 <= ce <= 5) or isinstance(ce, bool):
+    if not isinstance(ce, int) or ce not in SUPPORTED_CLINVAR_EVIDENCE_LEVELS or isinstance(ce, bool):
         raise ValidationError("execution.clinvar_evidence must be an integer between 1 and 5")
 
     # =====================================================

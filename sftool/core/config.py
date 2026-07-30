@@ -126,6 +126,18 @@ class ReferenceDataConfig:
                 "references.genomes must be an object"
             )
 
+        unexpected = set(genomes) - {
+            "GRCh37",
+            "GRCh38",
+        }
+
+        if unexpected:
+            raise ValueError(
+                "references.genomes contains unsupported "
+                "assembly key(s): "
+                + ", ".join(sorted(unexpected))
+            )
+
         self.genomes: dict[str, Path | None] = {}
 
         for assembly in ("GRCh37", "GRCh38"):
@@ -146,7 +158,6 @@ class ReferenceDataConfig:
                 .expanduser()
                 .resolve()
             )
-
 class PathsConfig:
     """
     Tool and resource paths.

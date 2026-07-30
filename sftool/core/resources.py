@@ -56,6 +56,33 @@ class RuntimeResources:
     def reference_genome_source(self) -> str:
         return self.execution["reference_genome"]["source"]
 
+    @property
+    def hpo_file(self) -> Path:
+        return self.execution["hpo"]["file"]["path"]
+
+    @property
+    def hpo_version(self) -> str:
+        return self.execution["hpo"]["version"]
+
+    @property
+    def pharmcat_positions_vcf(self) -> Path:
+        return self.execution[
+            "pharmcat"
+        ]["positions_vcf"]["path"]
+
+    @property
+    def pharmcat_version(self) -> str:
+        return self.execution["pharmcat"]["version"]
+
+    @property
+    def rr_str_catalog(self) -> Path | None:
+        rr_str = self.execution.get("rr_str")
+
+        if rr_str is None:
+            return None
+
+        return rr_str["csv"]["path"]
+
 def load_resource_manifest(
         manifest_path: str | Path,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
@@ -930,8 +957,8 @@ def _validate_user_reference(
         "fasta": fasta,
         "fai": fai.resolve(),
         "source": "config",
-        "version": None,
-        "sha256": None,
+        "fasta_sha256": None,
+        "fai_sha256": None,
     }
 
 def _resolve_execution_reference(
@@ -958,8 +985,12 @@ def _resolve_execution_reference(
             "fasta": installed_reference["fasta"]["path"],
             "fai": installed_reference["fai"]["path"],
             "source": "manifest",
-            "version": installed_reference.get("version"),
-            "sha256": installed_reference["fasta"].get("sha256"),
+            "fasta_sha256": (
+                installed_reference["fasta"]["sha256"]
+            ),
+            "fai_sha256": (
+                installed_reference["fai"]["sha256"]
+            ),
         }
 
     raise ResourceManifestError(
@@ -982,6 +1013,35 @@ def resolve_execution_resources(
             f"Unsupported assembly: {assembly}"
         )
 
+    if (
+            not isinstance(clinvar_evidence, int)
+            or isinstance(clinvar_evidence, bool)
+            or clinvar_evidence
+            not in SUPPORTED_CLINVAR_EVIDENCE_LEVELS
+    ):
+        supported = ", ".join(
+            str(level)
+            for level in sorted(
+                SUPPORTED_CLINVAR_EVIDENCE_LEVELS
+            )
+        )
+
+        raise ResourceManifestError(
+            f"Unsupported ClinVar evidence level: "
+            f"{clinvar_evidence!r}. "
+            f"Supported levels are: {supported}."
+        )
+
+    unsupported_categories = (
+            set(categories) - SUPPORTED_CATALOGS
+    )
+
+    if unsupported_categories:
+        raise ResourceManifestError(
+            "Unsupported resource category or categories: "
+            + ", ".join(sorted(unsupported_categories))
+        )
+
     assembly_catalogs = (
         installed["catalogs"]
         ["assemblies"]
@@ -990,19 +1050,8 @@ def resolve_execution_resources(
 
     if assembly_catalogs is None:
         raise ResourceManifestError(
-            f"No installed catalogs are available for {assembly}"
-        )
-
-    clinvar_database = (
-        installed["clinvar"]
-        ["databases"]
-        .get(assembly)
-    )
-
-    if clinvar_database is None:
-        raise ResourceManifestError(
-            f"No installed ClinVar database is "
-            f"available for {assembly}"
+            f"No installed catalogs are available for "
+            f"{assembly}"
         )
 
     clinvar_filtered_databases = (
@@ -1013,17 +1062,14 @@ def resolve_execution_resources(
 
     if clinvar_filtered_databases is None:
         raise ResourceManifestError(
-            f"No installed filtered ClinVar resources are "
-            f"available for {assembly}"
+            f"No installed filtered ClinVar resources "
+            f"are available for {assembly}"
         )
 
     selected_catalogs: dict[str, Any] = {}
     selected_clinvar: dict[str, Any] = {}
 
     for category in sorted(categories):
-        if category not in SUPPORTED_CATALOGS:
-            continue
-
         catalog = assembly_catalogs.get(category)
 
         if catalog is None:
@@ -1034,33 +1080,55 @@ def resolve_execution_resources(
 
         selected_catalogs[category] = catalog
 
-        evidence_files = clinvar_filtered_databases.get(
-            category,
-            {},
+        evidence_files = (
+            clinvar_filtered_databases.get(category)
         )
 
-        clinvar_file = evidence_files.get(clinvar_evidence)
+        if evidence_files is None:
+            raise ResourceManifestError(
+                f"No installed ClinVar resources are "
+                f"available for assembly={assembly}, "
+                f"catalog={category}"
+            )
+
+        clinvar_file = evidence_files.get(
+            clinvar_evidence
+        )
 
         if clinvar_file is None:
             raise ResourceManifestError(
-                f"No installed ClinVar resource is available "
-                f"for assembly={assembly}, "
+                f"No installed ClinVar resource is "
+                f"available for assembly={assembly}, "
                 f"catalog={category}, "
                 f"evidence={clinvar_evidence}"
             )
 
         selected_clinvar[category] = clinvar_file
 
+    rr_str = None
+
+    if "RR" in categories:
+        rr_str = installed["catalogs"].get("RR_STR")
+
+        if rr_str is None:
+            raise ResourceManifestError(
+                "The installed resource bundle does not "
+                "contain the RR-STR catalog required for "
+                "RR analysis"
+            )
+
     return {
+        "assembly": assembly,
         "reference_genome": _resolve_execution_reference(
             assembly=assembly,
             configured_genomes=configured_genomes,
-            installed_references=installed["reference_genomes"],
+            installed_references=(
+                installed["reference_genomes"]
+            ),
         ),
         "catalogs": selected_catalogs,
         "clinvar": selected_clinvar,
-        "clinvar_database": clinvar_database,
-        "rr_str": installed["catalogs"]["RR_STR"],
+        "rr_str": rr_str,
         "hpo": installed["hpo"],
         "pharmcat": installed["pharmcat"],
     }
@@ -1077,7 +1145,71 @@ def get_required_resource_categories(
         category
         for sample in samples_info["samples"]
         for category in sample.get("categories", [])
-        if category in {"PR", "RR"}
+        if category in SUPPORTED_CATALOGS
     }
 
     return required
+
+def clinvar_file(
+        self,
+        category: str,
+) -> Path:
+    descriptor = self.execution[
+        "clinvar"
+    ].get(category)
+
+    if descriptor is None:
+        raise ResourceManifestError(
+            f"No ClinVar resource was selected for "
+            f"category {category}"
+        )
+
+    return descriptor["path"]
+
+def catalog_json(
+        self,
+        category: str,
+) -> Path:
+    catalog = self.execution[
+        "catalogs"
+    ].get(category)
+
+    if catalog is None:
+        raise ResourceManifestError(
+            f"No catalog resource was selected for "
+            f"category {category}"
+        )
+
+    return catalog["json"]["path"]
+
+def catalog_bed(
+        self,
+        category: str,
+) -> Path:
+    catalog = self.execution[
+        "catalogs"
+    ].get(category)
+
+    if catalog is None:
+        raise ResourceManifestError(
+            f"No catalog resource was selected for "
+            f"category {category}"
+        )
+
+    return catalog["bed"]["path"]
+
+def catalog_chr_bed(
+        self,
+        category: str,
+) -> Path:
+    catalog = self.execution[
+        "catalogs"
+    ].get(category)
+
+    if catalog is None:
+        raise ResourceManifestError(
+            f"No catalog resource was selected for "
+            f"category {category}"
+        )
+
+    return catalog["chr_bed"]["path"]
