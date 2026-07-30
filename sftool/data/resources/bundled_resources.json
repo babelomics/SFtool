@@ -9,12 +9,12 @@
   "hpo": {
     "version": "v2026-06-23",
     "url": "https://github.com/obophenotype/human-phenotype-ontology/releases/download/v2026-06-23/genes_to_phenotype.txt",
-    "filename": "genes_to_phenotype.txt"
+    "installed_filename": "genes_to_phenotype.txt"
   },
   "pharmcat": {
     "version": "3.4.0",
     "url": "https://github.com/PharmGKB/PharmCAT/releases/download/v3.4.0/pharmcat_positions_3.4.0.vcf",
-    "filename": "pharmcat_positions_3.4.0.vcf"
+    "installed_filename": "pharmcat_positions_3.4.0.vcf"
   },
   "reference_genomes": {
     "GRCh37": {
