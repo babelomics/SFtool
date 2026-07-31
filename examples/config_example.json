@@ -10,27 +10,17 @@
     "python": "/home/jpflorido/miniconda3/envs/pharmcat_py312/bin/python",
     "pharmCAT": "/home/jpflorido/software/pharmCAT/3.2.0/pharmcat-pipeline-3.2.0/pharmcat.jar"
   },
+  "resources":
+  {
+    "manifest": "/data/software/sftool/resources.json"
+  },
 
   "references": {
     "genomes": {
-      "GRCh37": "/data/reference_genome/hs37d5/hs37d5.fa",
+      "GRCh37": null,
       "GRCh38": "/data/reference_genome/hg38/hg38_no_alt.fa"
-    },
-    "gene_to_phenotype_file": "/home/jpflorido/GBPA/projects/SFtool/sftool/data/categories/genes_to_phenotype_20260623.txt",
-    "pharmCAT_positions_vcf": "/mnt/lustre/scratch/CBRA/projects/ACCI/secondary_findings/resources/pharmcat_positions_3.2.0.vcf"
+    }
   },
-
-  "catalogs": {
-    "personal_risk_geneset": "/home/jpflorido/GBPA/projects/SFtool/sftool/data/categories/PR/PR_risk_genes_ACMG_SF_v3.1.csv",
-    "reproductive_risk_geneset": "/home/jpflorido/GBPA/projects/SFtool/sftool/data/categories/RR/RR_risk_genes_ACMG_CS_v2021.csv",
-    "reproductive_risk_geneset_STR": "/home/jpflorido/GBPA/projects/SFtool/sftool/data/categories/RR/RR_risk_genes_STR_ACMG_CS_v2021.csv"
-  },
-
-  "clinvar": {
-    "version": "20260615",
-    "db_path": "/home/jpflorido/software/clinvar/"
-  },
-
   "genebe_credentials": {
     "api_key": "ak-fuwmE37xOkhfh6jquUt0LzOKT",
     "username": "javier.perez.florido.sspa@juntadeandalucia.es"

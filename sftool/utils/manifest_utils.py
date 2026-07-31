@@ -7,9 +7,12 @@ from typing import Any
 
 from sftool.utils.resource_utils import (
     ResourceOperationError,
-    calculate_sha256,
     read_json,
     write_json,
+)
+from sftool.utils.checksums import (
+    ChecksumError,
+    calculate_sha256,
 )
 
 
@@ -78,9 +81,17 @@ def describe_installed_file(
             f"Installed resource file does not exist: {absolute_path}"
         )
 
+    try:
+        checksum = calculate_sha256(absolute_path)
+    except ChecksumError as exc:
+        raise ResourceOperationError(
+            f"Could not calculate checksum for installed "
+            f"resource file: {absolute_path}"
+        ) from exc
+
     descriptor = {
         "path": relative_path.as_posix(),
-        "sha256": calculate_sha256(absolute_path),
+        "sha256": checksum,
     }
 
     if source_url is not None:

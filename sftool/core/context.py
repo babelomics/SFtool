@@ -10,6 +10,7 @@ from sftool.core.config import Config
 from sftool.variant_confirmation.models import (
     VariantConfirmationRequest
 )
+from sftool.core.resources import RuntimeResources
 
 
 class SampleContext:
@@ -125,12 +126,14 @@ class ExecutionContext:
         • run-level parameters
         • directory layout
         • configuration
+        • installed resources
     """
 
     def __init__(
             self,
             execution_meta: dict,
             config: Config,
+            resources: RuntimeResources,
             output_dir: str | Path,
             tmp_dir: str | Path | None = None,
     ):
@@ -144,20 +147,25 @@ class ExecutionContext:
         )
 
         # ------------------------------------------------------------------
-        # Configuration (run-level)
+        # Configuration and installed resources (run-level)
         # ------------------------------------------------------------------
         self.config: Config = config
+        self.resources: RuntimeResources = resources
 
         # ------------------------------------------------------------------
         # Run-level parameters
         # ------------------------------------------------------------------
-        self.assembly: Optional[str] = execution_meta.get("reference_genome")
-        self.modes: List[str] = execution_meta.get("modes",[])
-        self.clinvar_evidence: Optional[int] = execution_meta.get("clinvar_evidence")
-        self.variant_classification_sources: list[str] = execution_meta.get("variant_classification_sources")
+        self.assembly: Optional[str] = execution_meta.get(
+            "reference_genome"
+        )
+        self.modes: List[str] = execution_meta.get("modes", [])
+        self.clinvar_evidence: Optional[int] = execution_meta.get(
+            "clinvar_evidence"
+        )
+        self.variant_classification_sources: list[str] = (
+            execution_meta.get("variant_classification_sources")
+        )
         self.RR_mode: Optional[str] = execution_meta.get("RR_mode")
-
-
 
         # ------------------------------------------------------------------
         # Output directory layout
@@ -178,7 +186,10 @@ class ExecutionContext:
         # ------------------------------------------------------------------
         # Outputs populated during execution
         # ------------------------------------------------------------------
-        self.outputs: Dict[str, Dict[str, Dict[str, str | Path]]] = {
+        self.outputs: Dict[
+            str,
+            Dict[str, Dict[str, str | Path]],
+        ] = {
             "catalogs": {
                 "bed_files": {},
                 "json_files": {},
@@ -189,8 +200,8 @@ class ExecutionContext:
                 "clinvar_db_version": "",
                 "clinvar_db_assembly": "",
                 "PR_json": "",
-                "RR_json": ""
-            }
+                "RR_json": "",
+            },
         }
 
         # ------------------------------------------------------------------
@@ -201,10 +212,14 @@ class ExecutionContext:
     def add_sample(self, sample: SampleContext):
         self.samples.append(sample)
 
-    def get_sample(self, sample_id: str) -> Optional[SampleContext]:
+    def get_sample(
+            self,
+            sample_id: str,
+    ) -> Optional[SampleContext]:
         for sample in self.samples:
             if sample.sample_id == sample_id:
                 return sample
+
         return None
 
     def __repr__(self) -> str:
