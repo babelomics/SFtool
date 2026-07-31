@@ -136,16 +136,18 @@ def run_command(cmd: list[str]) -> str:
         ) from e
 
 
-def get_vcf_contigs(vcf_path: Path) -> dict[str, int]:
-    """
-    Return contigs declared in the VCF header.
+def get_vcf_contigs(
+        vcf_path: Path,
+        *,
+        bcftools_path: str = "bcftools",
+) -> dict[str, int]:
 
-    Returns
-    -------
-    dict
-        {contig_name: contig_length}
-    """
-    header = run_command(["bcftools", "view", "-h", str(vcf_path)])
+    header = run_command([
+        bcftools_path,
+        "view",
+        "-h",
+        str(vcf_path),
+    ])
 
     contigs = {}
 
@@ -254,3 +256,60 @@ def check_vcf_positions_present(
                     fh.write(f"{chrom}\t{pos}\n")
 
     return missing
+
+
+def vcf_uses_chr_prefix(
+        vcf_path: Path,
+        *,
+        bcftools_path: str,
+) -> bool:
+    contigs = get_vcf_contigs(
+        vcf_path,
+        bcftools_path=bcftools_path,
+    )
+
+    if not contigs:
+        raise ValidationError(
+            f"Could not determine chromosome naming convention "
+            f"from VCF header: {vcf_path}"
+        )
+
+    prefixed_canonical = {
+        "chr1",
+        "chr2",
+        "chrX",
+        "chrY",
+        "chrM",
+    }
+
+    non_prefixed_canonical = {
+        "1",
+        "2",
+        "X",
+        "Y",
+        "MT",
+    }
+
+    has_prefixed = any(
+        contig in prefixed_canonical
+        for contig in contigs
+    )
+
+    has_non_prefixed = any(
+        contig in non_prefixed_canonical
+        for contig in contigs
+    )
+
+    if has_prefixed and has_non_prefixed:
+        raise ValidationError(
+            f"VCF uses mixed chromosome naming conventions: "
+            f"{vcf_path}"
+        )
+
+    if not has_prefixed and not has_non_prefixed:
+        raise ValidationError(
+            f"Could not identify canonical chromosome contigs "
+            f"in VCF header: {vcf_path}"
+        )
+
+    return has_prefixed

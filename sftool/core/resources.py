@@ -142,6 +142,17 @@ class RuntimeResources:
             category
         )["chr_bed"]["path"]
 
+    def catalog_bed_for_prefix(
+            self,
+            category: str,
+            *,
+            uses_chr_prefix: bool,
+    ) -> Path:
+        if uses_chr_prefix:
+            return self.catalog_chr_bed(category)
+
+        return self.catalog_bed(category)
+
     def clinvar_file(
             self,
             category: str,

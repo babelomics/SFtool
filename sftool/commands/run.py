@@ -8,7 +8,7 @@ from sftool.utils.errors import (
 )
 
 from sftool.core.bootstrap import bootstrap_execution
-from sftool.steps.catalog_generation import run as run_catalog_generation
+from sftool.steps.catalog_selection import run as run_catalog_selection
 from sftool.steps.clinvar_setup import run as run_clinvar_setup
 from sftool.steps.sample_preprocessing import run as run_sample_preprocessing
 from sftool.steps.variant_evidence_preparation import run as run_variant_evidence_preparation
@@ -89,9 +89,9 @@ def run(samples_path, config_path, outdir, force, debug_dump_ctx, debug_load_ctx
             sys.exit(1)
 
         # ----------------------------
-        # STEP 2: JSON and BED files catalog generation
+        # STEP 2: JSON and BED files catalog selection
         # ----------------------------
-        run_catalog_generation(ctx)
+        run_catalog_selection(ctx)
 
         # ----------------------------
         # STEP 3: CLINVAR DDBB MANAGEMENT
