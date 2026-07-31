@@ -23,8 +23,8 @@ class RuntimeResources:
     """
     Installed resources resolved for one SFtool execution.
 
-    The original manifest remains available for provenance, while resource
-    paths are exposed as pathlib.Path objects.
+    The original manifest remains available for provenance, while
+    runtime resource paths are exposed as pathlib.Path objects.
     """
 
     def __init__(
@@ -45,6 +45,10 @@ class RuntimeResources:
         return self.installed["root"]
 
     @property
+    def assembly(self) -> str:
+        return self.execution["assembly"]
+
+    @property
     def reference_genome(self) -> Path:
         return self.execution["reference_genome"]["fasta"]
 
@@ -55,6 +59,28 @@ class RuntimeResources:
     @property
     def reference_genome_source(self) -> str:
         return self.execution["reference_genome"]["source"]
+
+    @property
+    def reference_genome_sha256(self) -> str | None:
+        return self.execution[
+            "reference_genome"
+        ]["fasta_sha256"]
+
+    @property
+    def reference_genome_index_sha256(self) -> str | None:
+        return self.execution[
+            "reference_genome"
+        ]["fai_sha256"]
+
+    @property
+    def clinvar_database(self) -> Path:
+        return self.execution[
+            "clinvar_database"
+        ]["path"]
+
+    @property
+    def clinvar_version(self) -> str:
+        return self.installed["clinvar"]["version"]
 
     @property
     def hpo_file(self) -> Path:
@@ -82,6 +108,79 @@ class RuntimeResources:
             return None
 
         return rr_str["csv"]["path"]
+
+    @property
+    def rr_str_version(self) -> str | None:
+        rr_str = self.execution.get("rr_str")
+
+        if rr_str is None:
+            return None
+
+        return rr_str["version"]
+
+    def catalog_json(
+            self,
+            category: str,
+    ) -> Path:
+        return self._selected_catalog(
+            category
+        )["json"]["path"]
+
+    def catalog_bed(
+            self,
+            category: str,
+    ) -> Path:
+        return self._selected_catalog(
+            category
+        )["bed"]["path"]
+
+    def catalog_chr_bed(
+            self,
+            category: str,
+    ) -> Path:
+        return self._selected_catalog(
+            category
+        )["chr_bed"]["path"]
+
+    def clinvar_file(
+            self,
+            category: str,
+    ) -> Path:
+        return self._selected_clinvar(
+            category
+        )["path"]
+
+    def _selected_catalog(
+            self,
+            category: str,
+    ) -> dict[str, Any]:
+        catalog = self.execution[
+            "catalogs"
+        ].get(category)
+
+        if catalog is None:
+            raise ResourceManifestError(
+                f"No catalog resource was selected for "
+                f"category {category}"
+            )
+
+        return catalog
+
+    def _selected_clinvar(
+            self,
+            category: str,
+    ) -> dict[str, Any]:
+        descriptor = self.execution[
+            "clinvar"
+        ].get(category)
+
+        if descriptor is None:
+            raise ResourceManifestError(
+                f"No ClinVar resource was selected for "
+                f"category {category}"
+            )
+
+        return descriptor
 
 def load_resource_manifest(
         manifest_path: str | Path,
@@ -1128,6 +1227,11 @@ def resolve_execution_resources(
         ),
         "catalogs": selected_catalogs,
         "clinvar": selected_clinvar,
+        "clinvar_database": (
+            installed["clinvar"]
+            ["databases"]
+            [assembly]
+        ),
         "rr_str": rr_str,
         "hpo": installed["hpo"],
         "pharmcat": installed["pharmcat"],
@@ -1150,66 +1254,3 @@ def get_required_resource_categories(
 
     return required
 
-def clinvar_file(
-        self,
-        category: str,
-) -> Path:
-    descriptor = self.execution[
-        "clinvar"
-    ].get(category)
-
-    if descriptor is None:
-        raise ResourceManifestError(
-            f"No ClinVar resource was selected for "
-            f"category {category}"
-        )
-
-    return descriptor["path"]
-
-def catalog_json(
-        self,
-        category: str,
-) -> Path:
-    catalog = self.execution[
-        "catalogs"
-    ].get(category)
-
-    if catalog is None:
-        raise ResourceManifestError(
-            f"No catalog resource was selected for "
-            f"category {category}"
-        )
-
-    return catalog["json"]["path"]
-
-def catalog_bed(
-        self,
-        category: str,
-) -> Path:
-    catalog = self.execution[
-        "catalogs"
-    ].get(category)
-
-    if catalog is None:
-        raise ResourceManifestError(
-            f"No catalog resource was selected for "
-            f"category {category}"
-        )
-
-    return catalog["bed"]["path"]
-
-def catalog_chr_bed(
-        self,
-        category: str,
-) -> Path:
-    catalog = self.execution[
-        "catalogs"
-    ].get(category)
-
-    if catalog is None:
-        raise ResourceManifestError(
-            f"No catalog resource was selected for "
-            f"category {category}"
-        )
-
-    return catalog["chr_bed"]["path"]
