@@ -79,6 +79,12 @@ class RuntimeResources:
         ]["path"]
 
     @property
+    def clinvar_submission_summary(self) -> Path:
+        return self.installed[
+            "clinvar"
+        ]["source_files"]["submission_summary"]["path"]
+
+    @property
     def clinvar_version(self) -> str:
         return self.installed["clinvar"]["version"]
 

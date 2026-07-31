@@ -9,7 +9,6 @@ from sftool.utils.errors import (
 
 from sftool.core.bootstrap import bootstrap_execution
 from sftool.steps.catalog_selection import run as run_catalog_selection
-from sftool.steps.clinvar_setup import run as run_clinvar_setup
 from sftool.steps.sample_preprocessing import run as run_sample_preprocessing
 from sftool.steps.variant_evidence_preparation import run as run_variant_evidence_preparation
 from sftool.steps.variant_collection import run as run_variant_collection
@@ -94,30 +93,13 @@ def run(samples_path, config_path, outdir, force, debug_dump_ctx, debug_load_ctx
         run_catalog_selection(ctx)
 
         # ----------------------------
-        # STEP 3: CLINVAR DDBB MANAGEMENT
-        #           Only if 'clinvar' is present in variant_classification_sources
-        # ----------------------------
-        variant_classification_sources = ctx.variant_classification_sources
-        # Get unique list of categories for all samples
-        categories = sorted({
-            c for s in ctx.samples for c in s.categories
-        })
-
-        if ('clinvar' in variant_classification_sources and ("PR" in categories or "RR" in categories)) \
-                or \
-                "variant_confirmation" in ctx.modes:
-
-            run_clinvar_setup(ctx)
-
-
-        # ----------------------------
-        # STEP 4: SAMPLE PREPROCESSING
+        # STEP 3: SAMPLE PREPROCESSING
         #
         # ----------------------------
         run_sample_preprocessing(ctx)
 
         # ----------------------------
-        # STEP 5: VARIANT CONFIRMATION
+        # STEP 4: VARIANT CONFIRMATION
         #
         # ----------------------------
         if "variant_confirmation" in ctx.modes:
@@ -125,7 +107,7 @@ def run(samples_path, config_path, outdir, force, debug_dump_ctx, debug_load_ctx
 
 
         # ----------------------------
-        # STEP 6: VARIANT EVIDENCE PREPARATION (GENEBE AND/OR CLINVAR)
+        # STEP 5: VARIANT EVIDENCE PREPARATION (GENEBE AND PharmCAT)
         #
         # ----------------------------
         run_variant_evidence_preparation(ctx)
@@ -133,14 +115,14 @@ def run(samples_path, config_path, outdir, force, debug_dump_ctx, debug_load_ctx
 
 
         # ----------------------------
-        # STEP 7: VARIANT COLLECTION (GENEBE AND/OR CLINVAR, STRs and SMN1-copy, pharmCAT)
+        # STEP 6: VARIANT COLLECTION (GENEBE AND/OR CLINVAR, STRs and SMN1-copy, pharmCAT)
         #
         # ----------------------------
         run_variant_collection(ctx)
 
 
         # ----------------------------
-        # STEP 8: VARIANT SELECTION from the set of VARIANT COLLECTION
+        # STEP 7: VARIANT SELECTION from the set of VARIANT COLLECTION
         #
         # ----------------------------
         run_variant_selection(ctx)
@@ -155,7 +137,7 @@ def run(samples_path, config_path, outdir, force, debug_dump_ctx, debug_load_ctx
         with open(debug_ctx_path, "rb") as f:
             ctx = pickle.load(f)
         # ----------------------------
-        # STEP 9: REPORT GENERATION
+        # STEP 8: REPORT GENERATION
         #
         # ----------------------------
         run_report_generation(ctx)

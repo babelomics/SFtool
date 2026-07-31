@@ -26,8 +26,7 @@ def run(ctx: ExecutionContext) -> None:
                 snv_indels_genebe = parse_genebe_output(genebe_file, variant_classification_sources, category, category_geneset_file)
                 # Collect CLINVAR variants (SNV/Indels) and merge with GENEBE variants (only of variant_classification_sources contains clinvar)
                 if 'clinvar' in variant_classification_sources:
-                    json_category = category + '_json'
-                    clinvar_file = ctx.outputs["clinvar"][json_category]
+                    clinvar_file = ctx.resources.clinvar_file(category)
                     with clinvar_file.open("r", encoding="utf-8") as fh:
                         snv_indels_clinvar = json.load(fh)
                     snv_indels_genebe_clinvar = combine_genebe_clinvar_results(snv_indels_genebe, snv_indels_clinvar)
