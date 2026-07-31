@@ -172,16 +172,17 @@ def get_vcf_contigs(
 
 
 
-def get_vcf_positions(vcf_path: Path) -> set[tuple[str, int]]:
-    """
-    Return all (chromosome, position) pairs in a VCF.
-    """
+def get_vcf_positions(
+        vcf_path: Path,
+        *,
+        bcftools_path: Path | str,
+) -> set[tuple[str, int]]:
     output = run_command([
-        "bcftools",
+        str(bcftools_path),
         "query",
         "-f",
         "%CHROM\t%POS\n",
-        str(vcf_path)
+        str(vcf_path),
     ])
 
     return {
@@ -222,15 +223,26 @@ def validate_chr_prefix(vcf_path: Path):
 def check_vcf_positions_present(
         input_vcf: Path,
         required_vcf: Path,
-        output_file: Path | None = None
-)-> set[tuple[str, int]]:
+        *,
+        bcftools_path: Path | str,
+        output_file: Path | None = None,
+) -> set[tuple[str, int]]:
     """
-    Validate that all positions present in required_vcf
-    also exist in input_vcf.
+    Return PharmCAT positions that are absent from the input VCF.
+
+    Missing positions are reported as a warning because PharmCAT may
+    still complete successfully.
     """
 
-    required = get_vcf_positions(required_vcf)
-    observed = get_vcf_positions(input_vcf)
+    required = get_vcf_positions(
+        required_vcf,
+        bcftools_path=bcftools_path,
+    )
+
+    observed = get_vcf_positions(
+        input_vcf,
+        bcftools_path=bcftools_path,
+    )
 
     missing = required - observed
 
@@ -243,11 +255,17 @@ def check_vcf_positions_present(
             "First missing positions: %s",
             len(missing),
             input_vcf,
-            ", ".join(f"{chrom}:{pos}" for chrom, pos in examples)
+            ", ".join(
+                f"{chrom}:{pos}"
+                for chrom, pos in examples
+            ),
         )
 
-        if output_file:
-            output_file.parent.mkdir(parents=True, exist_ok=True)
+        if output_file is not None:
+            output_file.parent.mkdir(
+                parents=True,
+                exist_ok=True,
+            )
 
             with output_file.open("w") as fh:
                 fh.write("CHROM\tPOS\n")

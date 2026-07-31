@@ -3,38 +3,127 @@ import os
 import shutil
 import json
 from collections import defaultdict
+from pathlib import Path
 
-def pharmCAT_vcf_preprocessor(vcf_input, python_path, pharmCAT_path, bgzip_path, htslib_path, tmp_dir):
+
+def pharmCAT_vcf_preprocessor(
+        *,
+        vcf_input: Path | str,
+        python_path: Path | str,
+        pharmcat_path: Path | str,
+        bcftools_path: Path | str,
+        bgzip_path: Path | str,
+        tmp_dir: Path | str,
+) -> Path:
     """
-    Run pharmCAT's VCF preprocessor: https://pharmcat.org/using/VCF-Preprocessor/
+    Run the PharmCAT VCF preprocessor (https://pharmcat.org/using/VCF-Preprocessor/) and return the generated VCF.
 
-    :param vcf_input:
-    :param python_path:
-    :param pharmCAT_path:
-    :return:
+    Executable paths are provided explicitly by the runtime
+    configuration.
     """
 
-    preprocessed_vcf = ''
+    vcf_input = Path(vcf_input).resolve()
+    pharmcat_path = Path(pharmcat_path).resolve()
+    tmp_dir = Path(tmp_dir).resolve()
 
-    try:
-        # Run pharmCAT's VCF preprocessor script
-        vcf_preprocessor_command = [python_path, os.path.dirname(pharmCAT_path) + "/pharmcat_vcf_preprocessor", "--path-to-bcftools", bgzip_path , "--path-to-bgzip", htslib_path , "-vcf", vcf_input]
-        with subprocess.Popen(vcf_preprocessor_command, stderr=subprocess.STDOUT, text=True, cwd=os.path.dirname(pharmCAT_path)) as process:
-            output, _ = process.communicate()
+    if not vcf_input.is_file():
+        raise ResourceOperationError(
+            f"PharmCAT input VCF does not exist: "
+            f"{vcf_input}"
+        )
 
-        preprocessed_vcf = vcf_input.split(".vcf.gz")[0] + ".preprocessed.vcf.bgz"
-        if os.path.exists(preprocessed_vcf):
-            file_name = os.path.basename(preprocessed_vcf)
-            pgx_output_dir = os.path.join(str(tmp_dir), "PGx")
-            os.makedirs(pgx_output_dir, exist_ok=True)
-            shutil.move(preprocessed_vcf, os.path.join(pgx_output_dir, file_name))
-            return os.path.join(pgx_output_dir, file_name)
-        else:
-            print("pharmCAT's preprocessed file does not exist. Exiting")
-            exit(-1)
+    preprocessor_path = (
+            pharmcat_path.parent
+            / "pharmcat_vcf_preprocessor"
+    )
 
-    except subprocess.CalledProcessError as e:
-        print(f"Error when running pharmCAT's VCF preprocessor script: {e.output}")
+    if not preprocessor_path.is_file():
+        raise ResourceOperationError(
+            "PharmCAT VCF preprocessor script does not "
+            f"exist: {preprocessor_path}"
+        )
+
+    command = [
+        str(python_path),
+        str(preprocessor_path),
+        "--path-to-bcftools",
+        str(bcftools_path),
+        "--path-to-bgzip",
+        str(bgzip_path),
+        "-vcf",
+        str(vcf_input),
+    ]
+
+    result = subprocess.run(
+        command,
+        cwd=pharmcat_path.parent,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        check=False,
+    )
+
+    if result.returncode != 0:
+        raise ResourceOperationError(
+            "PharmCAT VCF preprocessing failed "
+            f"for {vcf_input}:\n{result.stdout}"
+        )
+
+    input_name = vcf_input.name
+
+    if input_name.endswith(".vcf.gz"):
+        output_name = (
+                input_name[:-len(".vcf.gz")]
+                + ".preprocessed.vcf.bgz"
+        )
+    elif input_name.endswith(".vcf.bgz"):
+        output_name = (
+                input_name[:-len(".vcf.bgz")]
+                + ".preprocessed.vcf.bgz"
+        )
+    elif input_name.endswith(".vcf"):
+        output_name = (
+                input_name[:-len(".vcf")]
+                + ".preprocessed.vcf.bgz"
+        )
+    else:
+        raise ResourceOperationError(
+            f"Unsupported PharmCAT input VCF name: "
+            f"{input_name}"
+        )
+
+    generated_vcf = (
+            vcf_input.parent
+            / output_name
+    )
+
+    if not generated_vcf.is_file():
+        raise ResourceOperationError(
+            "PharmCAT VCF preprocessing completed but "
+            "the expected output was not generated: "
+            f"{generated_vcf}"
+        )
+
+    pgx_tmp_dir = tmp_dir / "PGx"
+    pgx_tmp_dir.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    destination = (
+            pgx_tmp_dir
+            / output_name
+    )
+
+    if destination.exists():
+        destination.unlink()
+
+    shutil.move(
+        str(generated_vcf),
+        str(destination),
+    )
+
+    return destination
 
 
 def run_pharmCAT(preprocessed_vcf, pharmCAT_path, java_path, out_path):

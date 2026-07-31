@@ -159,6 +159,36 @@ class RuntimeResources:
 
         return self.catalog_bed(category)
 
+    def select_catalog_bed(
+            self,
+            category: str,
+            *,
+            uses_chr_prefix: bool,
+    ) -> None:
+        catalog = self._selected_catalog(category)
+
+        catalog["selected_bed"] = (
+            catalog["chr_bed"]
+            if uses_chr_prefix
+            else catalog["bed"]
+        )
+
+    def selected_catalog_bed(
+            self,
+            category: str,
+    ) -> Path:
+        catalog = self._selected_catalog(category)
+
+        selected_bed = catalog.get("selected_bed")
+
+        if selected_bed is None:
+            raise ResourceManifestError(
+                f"No BED file has been selected for "
+                f"catalog category {category}"
+            )
+
+        return selected_bed["path"]
+
     def clinvar_file(
             self,
             category: str,

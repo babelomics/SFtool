@@ -184,27 +184,6 @@ class ExecutionContext:
         self.tmp_dir.mkdir(parents=True, exist_ok=True)
 
         # ------------------------------------------------------------------
-        # Outputs populated during execution
-        # ------------------------------------------------------------------
-        self.outputs: Dict[
-            str,
-            Dict[str, Dict[str, str | Path]],
-        ] = {
-            "catalogs": {
-                "bed_files": {},
-                "json_files": {},
-            },
-            "clinvar": {
-                "clinvar_db": "",
-                "clinvar_summary_db": "",
-                "clinvar_db_version": "",
-                "clinvar_db_assembly": "",
-                "PR_json": "",
-                "RR_json": "",
-            },
-        }
-
-        # ------------------------------------------------------------------
         # Sample contexts (populated by validation)
         # ------------------------------------------------------------------
         self.samples: List[SampleContext] = []

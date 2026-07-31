@@ -39,15 +39,9 @@ def run(ctx: ExecutionContext) -> None:
     )
 
     for category in categories:
-        ctx.outputs["catalogs"]["bed_files"][category] = (
-            ctx.resources.catalog_bed_for_prefix(
-                category,
-                uses_chr_prefix=uses_chr_prefix,
-            )
-        )
-
-        ctx.outputs["catalogs"]["json_files"][category] = (
-            ctx.resources.catalog_json(category)
+        ctx.resources.select_catalog_bed(
+            category,
+            uses_chr_prefix=uses_chr_prefix,
         )
 
 

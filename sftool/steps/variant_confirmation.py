@@ -120,7 +120,7 @@ def run(ctx: ExecutionContext) -> None:
             raw_vcf_path=raw_candidate_vcf,
             candidates=candidates,
             reference_fasta_path=(
-                ctx.config.references.genomes[ctx.assembly]
+                ctx.resources.reference_genome
             ),
             output_directory=output_dir,
             filename=normalized_candidate_filename,
