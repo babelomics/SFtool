@@ -1,7 +1,7 @@
 # steps/sample_preprocessing_setup.py
 
 from sftool.core.context import ExecutionContext
-from sftool.utils.vcf_utils import normalize_vcf, intersect_vcf_with_bed, check_vcf_positions_present
+from sftool.utils.vcf_utils import normalize_vcf, intersect_vcf_with_bed
 from sftool.utils.pharmcat_utils import pharmCAT_vcf_preprocessor
 
 CATALOG_CATEGORIES = {"PR", "RR"}
