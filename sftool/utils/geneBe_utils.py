@@ -12,7 +12,18 @@ from sftool.utils.catalog_utils import read_catalog_csv
 from pathlib import Path
 import re
 
-def run_genebe(norm_vcf, category, assembly, genebe_path, java_path, api_key, username, tmp_dir, output_file=None):
+def run_genebe(
+        *,
+        norm_vcf: Path | str,
+        category: str | None,
+        assembly: str,
+        genebe_path: Path | str,
+        java_path: Path | str,
+        api_key: str,
+        username: str,
+        tmp_dir: Path | str,
+        output_file: Path | str | None = None,
+) -> Path:
 
     """
     Run GeneBe to annotate a normalized VCF.

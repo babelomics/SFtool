@@ -126,7 +126,13 @@ def pharmCAT_vcf_preprocessor(
     return destination
 
 
-def run_pharmCAT(preprocessed_vcf, pharmCAT_path, java_path, out_path):
+def run_pharmCAT(
+        *,
+        preprocessed_vcf: Path | str,
+        pharmCAT_path: Path | str,
+        java_path: Path | str,
+        out_path: Path | str,
+) -> tuple[Path, Path]:
     """
     Run pharmCAT
 
