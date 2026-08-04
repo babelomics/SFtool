@@ -133,7 +133,7 @@ def run(samples_path, config_path, outdir, force, debug_dump_ctx, debug_load_ctx
                 pickle.dump(ctx, f)
 
     else:
-        debug_ctx_path = Path(outdir) / "ctx_backup_FE_34045_PR_RR_PGx_variant_confirmation.pkl"
+        debug_ctx_path = Path(outdir) / "ctx_backup_RR_CFTR_couple_screening.pkl"
         with open(debug_ctx_path, "rb") as f:
             ctx = pickle.load(f)
         # ----------------------------
