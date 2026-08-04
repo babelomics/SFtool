@@ -15,7 +15,7 @@ def build_couple_tables(ctx, sample_a, sample_b):
             _build_advanced_rr_couple_description(sample_a, sample_b, rr_mode)
         )
 
-    rr_catalog_path = ctx.outputs["catalogs"]["json_files"]["RR"]
+    rr_catalog_path = ctx.resources.catalog_json("RR")
 
     table_rows = RRCoupleRule(rr_catalog_path).build_tables(
         sample_a,

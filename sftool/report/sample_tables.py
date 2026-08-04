@@ -41,6 +41,11 @@ def _build_versions_and_paths_table(ctx, sample):
 
     versions = get_runtime_versions(ctx.config.paths)
 
+    uses_clinvar = (
+            "clinvar"
+            in ctx.variant_classification_sources
+    )
+
     rows = [
         {"Field": "SF tool version", "Value": ctx.config.version},
         {"Field": "SF tool general mode", "Value": ", ".join(ctx.modes)},
@@ -52,28 +57,158 @@ def _build_versions_and_paths_table(ctx, sample):
         {"Field": "Sample role", "Value": sample.role},
         {"Field": "HPO list", "Value": ",".join(sample.hpo_terms)},
         {"Field": "Input VCF file", "Value": str(sample.vcf)},
-        {"Field": "SMAca file", "Value": "Not provided" if sample.smaca_path == '' else sample.smaca_path},
-        {"Field": "STRipy file", "Value": "Not provided" if sample.stripy_path == '' else sample.stripy_path},
-        {"Field": "Personal Risk catalogue file", "Value": ctx.config.catalogs.personal_risk_geneset if 'PR' in sample.categories else "Not used"},
-        {"Field": "Reproductive Risk catalogue file", "Value": ctx.config.catalogs.reproductive_risk_geneset if 'RR' in sample.categories else "Not used"},
+        {"Field": "SMAca file", "Value": _optional_input_path(sample.smaca_path)},
+        {"Field": "STRipy file", "Value": _optional_input_path(sample.stripy_path)},
+        {"Field": "Personal Risk catalogue file", "Value": _catalog_provenance(ctx, sample, "PR")},
+        {"Field": "Reproductive Risk catalogue file", "Value": _catalog_provenance(ctx, sample, "RR")},
         {"Field": "Base output dir", "Value": ctx.base_output_dir},
         {"Field": "Run dir", "Value": ctx.run_dir},
         {"Field": "Temporal dir", "Value": ctx.tmp_dir},
         {"Field": "Human assembly", "Value": "hg19" if ctx.assembly == "GRCh37" else "hg38" },
-        {"Field": "Reference genome path", "Value": ctx.config.references.genomes["GRCh37"] if ctx.assembly == "GRCh37" else ctx.config.references.genomes["GRCh38"]},
-        {"Field": "Clinvar version", "Value": ctx.config.clinvar.version if 'clinvar' in ctx.variant_classification_sources else "Not used"},
-        {"Field": "Clinvar path", "Value": ctx.config.clinvar.db_path if 'clinvar' in ctx.variant_classification_sources else "Not used"},
-        {"Field": "Clinvar evidence level", "Value": str(ctx.clinvar_evidence) if 'clinvar' in ctx.variant_classification_sources else "Not used"},
-        {"Field": "GeneBe version", "Value": "Not used" if ("PR" not in sample.categories and "rr" not in sample.categories) else versions["genebe"].version},
+        {
+            "Field": "Reference genome source",
+            "Value": (
+                ctx.resources.reference_genome_source
+            ),
+        },
+        {
+            "Field": "Reference genome",
+            "Value": (
+                ctx.resources.resource_relative_path(
+                    ctx.resources.reference_genome
+                )
+            ),
+        },
+        {
+            "Field": "ClinVar version",
+            "Value": (
+                ctx.resources.clinvar_version
+                if uses_clinvar
+                else "Not used"
+            ),
+        },
+        {"Field": "Clinvar evidence level", "Value": str(ctx.clinvar_evidence) if uses_clinvar else "Not used"},
+        {
+            "Field": "ClinVar PR resource",
+            "Value": _clinvar_provenance(
+                ctx,
+                sample,
+                "PR",
+                uses_clinvar,
+            ),
+        },
+        {
+            "Field": "ClinVar RR resource",
+            "Value": _clinvar_provenance(
+                ctx,
+                sample,
+                "RR",
+                uses_clinvar,
+            ),
+        },
+        {
+            "Field": "GeneBe version",
+            "Value": _genebe_version(
+                sample,
+                versions,
+            ),
+        },
         {"Field": "GeneBe path", "Value": ctx.config.paths.genebe},
         {"Field": "bcftools version", "Value": versions["bcftools"].version},
         {"Field": "pharmCAT version", "Value": versions["pharmcat"].version if 'PGx' in sample.categories else "Not used"},
-        {"Field": "HPO genes to phenotype version", "Value": os.path.splitext(os.path.basename(ctx.config.references.gene_to_phenotype_file))[0].split("_")[-1]},
-        {"Field": "HPO genes to phenotype path", "Value": ctx.config.references.gene_to_phenotype_file}
+        {
+            "Field": "PharmCAT resource version",
+            "Value": (
+                ctx.resources.pharmcat_version
+                if "PGx" in sample.categories
+                else "Not used"
+            ),
+        },
+        {
+            "Field": "HPO genes-to-phenotype version",
+            "Value": ctx.resources.hpo_version,
+        },
+        {
+            "Field": "HPO genes-to-phenotype resource",
+            "Value": (
+                ctx.resources.resource_relative_path(
+                    ctx.resources.hpo_file
+                )
+            ),
+        },
+        {
+            "Field": "Resource manifest",
+            "Value": str(ctx.resources.manifest_path),
+        },
+        {
+            "Field": "Resource manifest schema",
+            "Value": str(ctx.resources.manifest["schema_version"])
+        },
+        {
+            "Field": "Resource version policy",
+            "Value": (
+                ctx.resources.manifest.get(
+                    "resource_version_policy",
+                    "Not specified",
+                )
+            ),
+        },
     ]
 
     return ReportTable("Versions and paths", rows)
 
+def _catalog_provenance(
+        ctx,
+        sample,
+        category,
+):
+    if category not in sample.categories:
+        return "Not used"
+
+    path = ctx.resources.catalog_json(category)
+    version = ctx.resources.catalog_version(
+        category
+    )
+
+    relative_path = (
+        ctx.resources.resource_relative_path(path)
+    )
+
+    if version:
+        return f"{version} ({relative_path})"
+
+    return relative_path
+
+
+def _clinvar_provenance(
+        ctx,
+        sample,
+        category,
+        uses_clinvar,
+):
+    if (
+            not uses_clinvar
+            or category not in sample.categories
+    ):
+        return "Not used"
+
+    return ctx.resources.resource_relative_path(
+        ctx.resources.clinvar_file(category)
+    )
+
+
+def _optional_input_path(value):
+    if not value:
+        return "Not provided"
+
+    return str(value)
+
+
+def _genebe_version(sample, versions):
+    if not {"PR", "RR"} & set(sample.categories):
+        return "Not used"
+
+    return versions["genebe"].version
 # PR and RR SNVs & Indels
 def _build_pr_rr_snv_indels_table(variant_selection, category):
 

@@ -132,6 +132,28 @@ class RuntimeResources:
             category
         )["json"]["path"]
 
+    def catalog_version(
+            self,
+            category: str,
+    ) -> str:
+        return self._selected_catalog(
+            category
+        )["version"]
+
+    def resource_relative_path(
+            self,
+            path: str | Path,
+    ) -> str:
+        resolved_path = Path(path).resolve()
+        root = self.root.resolve()
+
+        try:
+            return resolved_path.relative_to(
+                root
+            ).as_posix()
+        except ValueError:
+            return str(resolved_path)
+
     def catalog_bed(
             self,
             category: str,
