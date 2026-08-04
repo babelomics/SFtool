@@ -5,7 +5,7 @@ from sftool.variant_selection.rr_variant_selection import rr_variant_selection, 
 
 def run(ctx: ExecutionContext) -> None:
 
-    gene_to_phenotype_file = ctx.config.references.gene_to_phenotype_file
+    gene_to_phenotype_file = ctx.resources.hpo_file
 
     for sample in ctx.samples:
         categories = sample.categories
@@ -13,13 +13,13 @@ def run(ctx: ExecutionContext) -> None:
         for category in categories:
             if category == "PR" or category == 'RR':
                 snv_indels_collection = sample.variant_collections[category]["snv_indels_genebe_clinvar"]
-                json_file = ctx.outputs["catalogs"]["json_files"][category]
+                catalog_json = ctx.resources.catalog_json(category)
                 if category == "PR":
                     # SNV / Indels
-                    snv_indels_selection = pr_variant_selection(snv_indels_collection, json_file, ctx.assembly, gene_to_phenotype_file, sample_hpo_terms)
+                    snv_indels_selection = pr_variant_selection(snv_indels_collection, catalog_json, ctx.assembly, gene_to_phenotype_file, sample_hpo_terms)
                 elif category == "RR":
                     # SNV / Indels
-                    snv_indels_selection = rr_variant_selection(snv_indels_collection, json_file, ctx.RR_mode, sample.sex, gene_to_phenotype_file, sample_hpo_terms)
+                    snv_indels_selection = rr_variant_selection(snv_indels_collection, catalog_json, ctx.RR_mode, sample.sex, gene_to_phenotype_file, sample_hpo_terms)
                     # STRs
                     if sample.variant_collections[category]["STRs"]:
                         str_collection = sample.variant_collections[category]["STRs"]
