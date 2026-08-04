@@ -32,7 +32,7 @@ def run(ctx: ExecutionContext) -> None:
                 # Collect STR results and SMN1 copy results (only for RR)
                 if category == 'RR':
                     if sample.stripy_path:
-                        sample.variant_collections[category]["STRs"] = STR_collection(ctx.config.catalogs.reproductive_risk_geneset_STR, sample.stripy_path)
+                        sample.variant_collections[category]["STRs"] = STR_collection(ctx.resources.rr_str_catalog, sample.stripy_path)
                     if sample.smaca_path:
                         sample.variant_collections[category]["SMN1_copy"] = SMN1_collection(sample.smaca_path, ctx.config.smaca_thresholds)
             elif category == "PGx":

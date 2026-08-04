@@ -4,7 +4,7 @@
     "variant_classification_sources": ["genebe", "clinvar"],
     "reference_genome": "GRCh37",
     "clinvar_evidence": 1,
-    "RR_mode": "advanced"
+    "RR_mode": "screening"
   },
 
   "samples": [
