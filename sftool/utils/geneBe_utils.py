@@ -8,11 +8,22 @@ import os
 import gzip
 import io
 import vcfpy
-from sftool.utils.catalog_utils import read_catalog_csv
+from sftool.utils.catalog_utils import read_catalog_json
 from pathlib import Path
 import re
 
-def run_genebe(norm_vcf, category, assembly, genebe_path, java_path, api_key, username, tmp_dir, output_file=None):
+def run_genebe(
+        *,
+        norm_vcf: Path | str,
+        category: str | None,
+        assembly: str,
+        genebe_path: Path | str,
+        java_path: Path | str,
+        api_key: str,
+        username: str,
+        tmp_dir: Path | str,
+        output_file: Path | str | None = None,
+) -> Path:
 
     """
     Run GeneBe to annotate a normalized VCF.
@@ -120,20 +131,25 @@ def run_genebe(norm_vcf, category, assembly, genebe_path, java_path, api_key, us
     except subprocess.CalledProcessError as e:
         print(f"Error when running Genebe: {e.output}")
 
-def parse_genebe_output(genebe_output_vcf_file, variant_classification_sources, category, category_geneset_file):
+def parse_genebe_output(genebe_output_vcf_file, variant_classification_sources, category, category_catalog_json):
     """
 
     :param genebe_output_vcf_file: VCF annotated by GeneBe
     :param variant_classification_sources: list of variant classification sources
     :param category: pr or rr
-    :param category_geneset_file: Path to CSV file for the given category
+    :param category_catalog_json: Path to JSON file for the given category
     :return:
     """
 
     try:
 
         # Get the list of genes for the current category
-        genes_dct, genes_lst = read_catalog_csv(category_geneset_file, category)
+        _, genes = read_catalog_json(
+            category_catalog_json,
+            category,
+        )
+
+        genes_lst = set(genes)
 
         # Read VCF file
         genebe_results = {}

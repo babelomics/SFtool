@@ -11,6 +11,7 @@ from pathlib import Path
 import shutil
 from natsort import natsorted
 import requests
+import json
 from collections.abc import Sequence
 from typing import NamedTuple
 from importlib.resources import as_file, files
@@ -155,6 +156,92 @@ def read_catalog_csv(
 
     return catalog, genes
 
+
+
+def read_catalog_json(
+        catalog_json: Path | str,
+        category: str,
+) -> tuple[dict, list[str]]:
+    """
+    Load an installed PR or RR catalog JSON resource.
+
+    The JSON resource is generated during ``sftool resources setup``
+    and contains the catalog metadata and its list of genes.
+
+    Parameters
+    ----------
+    catalog_json
+        Path to the installed catalog JSON resource.
+    category
+        Supported catalog category: PR or RR.
+
+    Returns
+    -------
+    tuple[dict, list[str]]
+        The complete catalog dictionary and the ordered list of gene
+        symbols.
+    """
+    if category not in GENERATED_CATALOGS:
+        raise CatalogGenerationError(
+            f"Unsupported generated catalog: {category}"
+        )
+
+    catalog_path = Path(catalog_json)
+
+    try:
+        with catalog_path.open(
+                "r",
+                encoding="utf-8",
+        ) as handle:
+            catalog = json.load(handle)
+
+    except OSError as error:
+        raise CatalogGenerationError(
+            f"Could not read catalog JSON: {catalog_path}"
+        ) from error
+
+    except json.JSONDecodeError as error:
+        raise CatalogGenerationError(
+            f"Invalid catalog JSON: {catalog_path}: {error}"
+        ) from error
+
+    if not isinstance(catalog, dict):
+        raise CatalogGenerationError(
+            "Catalog JSON must contain an object: "
+            f"{catalog_path}"
+        )
+
+    genes_data = catalog.get("genes")
+
+    if not isinstance(genes_data, list):
+        raise CatalogGenerationError(
+            "Catalog JSON field 'genes' must contain a list: "
+            f"{catalog_path}"
+        )
+
+    genes: list[str] = []
+
+    for index, gene_entry in enumerate(genes_data):
+        if not isinstance(gene_entry, dict):
+            raise CatalogGenerationError(
+                "Catalog JSON gene entry must be an object at "
+                f"index {index}: {catalog_path}"
+            )
+
+        gene_symbol = gene_entry.get("gene_symbol")
+
+        if (
+                not isinstance(gene_symbol, str)
+                or not gene_symbol.strip()
+        ):
+            raise CatalogGenerationError(
+                "Catalog JSON gene entry contains an invalid "
+                f"'gene_symbol' at index {index}: {catalog_path}"
+            )
+
+        genes.append(gene_symbol.strip())
+
+    return catalog, genes
 
 def _get_ensembl_response(
         url: str,

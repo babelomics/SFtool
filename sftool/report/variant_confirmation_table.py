@@ -35,7 +35,7 @@ def build_variant_confirmation_table(ctx, sample) -> Optional[ReportTable]:
         )
 
     gene_hpos = _load_gene_hpos(
-        ctx.config.references.gene_to_phenotype_file
+        ctx.resources.hpo_file
     )
     sample_hpos = set(sample.hpo_terms or [])
 

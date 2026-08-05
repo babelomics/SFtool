@@ -17,7 +17,7 @@
 
   "references": {
     "genomes": {
-      "GRCh37": null,
+      "GRCh37": "/data/reference_genome/hs37d5/hs37d5.fa",
       "GRCh38": "/data/reference_genome/hg38/hg38_no_alt.fa"
     }
   },

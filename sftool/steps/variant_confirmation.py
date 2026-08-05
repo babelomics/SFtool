@@ -120,7 +120,7 @@ def run(ctx: ExecutionContext) -> None:
             raw_vcf_path=raw_candidate_vcf,
             candidates=candidates,
             reference_fasta_path=(
-                ctx.config.references.genomes[ctx.assembly]
+                ctx.resources.reference_genome
             ),
             output_directory=output_dir,
             filename=normalized_candidate_filename,
@@ -148,9 +148,9 @@ def run(ctx: ExecutionContext) -> None:
         # 7. Retrieve variant-level ClinVar evidence.
         clinvar_by_candidate = clinvar_lookup.lookup(
             matches=matching_output.matches,
-            clinvar_db=ctx.outputs["clinvar"]["clinvar_db"],
+            clinvar_db=ctx.resources.clinvar_database,
             clinvar_submission_db=(
-                ctx.outputs["clinvar"]["clinvar_summary_db"]
+                ctx.resources.clinvar_submission_summary
             ),
         )
 

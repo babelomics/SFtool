@@ -136,16 +136,18 @@ def run_command(cmd: list[str]) -> str:
         ) from e
 
 
-def get_vcf_contigs(vcf_path: Path) -> dict[str, int]:
-    """
-    Return contigs declared in the VCF header.
+def get_vcf_contigs(
+        vcf_path: Path,
+        *,
+        bcftools_path: str = "bcftools",
+) -> dict[str, int]:
 
-    Returns
-    -------
-    dict
-        {contig_name: contig_length}
-    """
-    header = run_command(["bcftools", "view", "-h", str(vcf_path)])
+    header = run_command([
+        bcftools_path,
+        "view",
+        "-h",
+        str(vcf_path),
+    ])
 
     contigs = {}
 
@@ -170,16 +172,17 @@ def get_vcf_contigs(vcf_path: Path) -> dict[str, int]:
 
 
 
-def get_vcf_positions(vcf_path: Path) -> set[tuple[str, int]]:
-    """
-    Return all (chromosome, position) pairs in a VCF.
-    """
+def get_vcf_positions(
+        vcf_path: Path,
+        *,
+        bcftools_path: Path | str,
+) -> set[tuple[str, int]]:
     output = run_command([
-        "bcftools",
+        str(bcftools_path),
         "query",
         "-f",
         "%CHROM\t%POS\n",
-        str(vcf_path)
+        str(vcf_path),
     ])
 
     return {
@@ -220,15 +223,26 @@ def validate_chr_prefix(vcf_path: Path):
 def check_vcf_positions_present(
         input_vcf: Path,
         required_vcf: Path,
-        output_file: Path | None = None
-)-> set[tuple[str, int]]:
+        *,
+        bcftools_path: Path | str,
+        output_file: Path | None = None,
+) -> set[tuple[str, int]]:
     """
-    Validate that all positions present in required_vcf
-    also exist in input_vcf.
+    Return PharmCAT positions that are absent from the input VCF.
+
+    Missing positions are reported as a warning because PharmCAT may
+    still complete successfully.
     """
 
-    required = get_vcf_positions(required_vcf)
-    observed = get_vcf_positions(input_vcf)
+    required = get_vcf_positions(
+        required_vcf,
+        bcftools_path=bcftools_path,
+    )
+
+    observed = get_vcf_positions(
+        input_vcf,
+        bcftools_path=bcftools_path,
+    )
 
     missing = required - observed
 
@@ -241,11 +255,17 @@ def check_vcf_positions_present(
             "First missing positions: %s",
             len(missing),
             input_vcf,
-            ", ".join(f"{chrom}:{pos}" for chrom, pos in examples)
+            ", ".join(
+                f"{chrom}:{pos}"
+                for chrom, pos in examples
+            ),
         )
 
-        if output_file:
-            output_file.parent.mkdir(parents=True, exist_ok=True)
+        if output_file is not None:
+            output_file.parent.mkdir(
+                parents=True,
+                exist_ok=True,
+            )
 
             with output_file.open("w") as fh:
                 fh.write("CHROM\tPOS\n")
@@ -254,3 +274,60 @@ def check_vcf_positions_present(
                     fh.write(f"{chrom}\t{pos}\n")
 
     return missing
+
+
+def vcf_uses_chr_prefix(
+        vcf_path: Path,
+        *,
+        bcftools_path: str,
+) -> bool:
+    contigs = get_vcf_contigs(
+        vcf_path,
+        bcftools_path=bcftools_path,
+    )
+
+    if not contigs:
+        raise ValidationError(
+            f"Could not determine chromosome naming convention "
+            f"from VCF header: {vcf_path}"
+        )
+
+    prefixed_canonical = {
+        "chr1",
+        "chr2",
+        "chrX",
+        "chrY",
+        "chrM",
+    }
+
+    non_prefixed_canonical = {
+        "1",
+        "2",
+        "X",
+        "Y",
+        "MT",
+    }
+
+    has_prefixed = any(
+        contig in prefixed_canonical
+        for contig in contigs
+    )
+
+    has_non_prefixed = any(
+        contig in non_prefixed_canonical
+        for contig in contigs
+    )
+
+    if has_prefixed and has_non_prefixed:
+        raise ValidationError(
+            f"VCF uses mixed chromosome naming conventions: "
+            f"{vcf_path}"
+        )
+
+    if not has_prefixed and not has_non_prefixed:
+        raise ValidationError(
+            f"Could not identify canonical chromosome contigs "
+            f"in VCF header: {vcf_path}"
+        )
+
+    return has_prefixed

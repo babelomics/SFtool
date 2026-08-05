@@ -758,8 +758,15 @@ def _validate_pgx_inputs(ctx: ExecutionContext):
                     vcf_path=sample.vcf
                 )
 
+            missing_positions_file = (
+                    ctx.tmp_dir
+                    / "PGx"
+                    / f"{sample.sample_id}.missing_positions.tsv"
+            )
+
             check_vcf_positions_present(
                 input_vcf=pgx_vcf,
-                required_vcf=ctx.resources.execution["pharmcat"]["positions_vcf"]["path"],
-                output_file=ctx.tmp_dir / "PGx" / f"{sample.sample_id}.missing_pharmcat_positions.tsv"
+                required_vcf=ctx.resources.pharmcat_positions_vcf,
+                bcftools_path=ctx.config.paths.bcftools,
+                output_file=missing_positions_file,
             )
