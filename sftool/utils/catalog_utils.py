@@ -12,7 +12,6 @@ import shutil
 from natsort import natsorted
 import requests
 import json
-from collections.abc import Sequence
 from typing import NamedTuple
 from importlib.resources import as_file, files
 from sftool.utils.resource_utils import (
